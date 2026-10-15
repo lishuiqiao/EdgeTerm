@@ -60,9 +60,9 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQzQkI2OTcxQzI3QjE1MkYKUldRdkZYdkNjV203MDV1TGsyMXplU2tyb2VZUzl0bEpMOFlWeWZzVCtsQ2tFeGkrNkpkZ29VRDUK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDYxRTA0NTMzQkUxQ0M2MkIKUldRcnhoeStNMFhnWWE1WFVkblBjVHBvbm9UdDAxSlB4ZEkxR3JVb3NzdkNRUndOejhXYW5IaG8K",
       "endpoints": [
-        "https://github.com/miskin-lee/EdgeTerm/releases/latest/download/latest.json"
+        "https://github.com/lishuiqiao/EdgeTerm/releases/latest/download/latest.json"
       ],
       "windows": {
         "installMode": "passive"

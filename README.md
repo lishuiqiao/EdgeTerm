@@ -8,8 +8,8 @@
 <p align="center">
   <a href="https://github.com/miskin-lee/EdgeTerm/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/miskin-lee/EdgeTerm?style=flat"></a>
   <a href="https://qm.qq.com/q/oINZ2ffDOg"><img alt="Join the EdgeTerm QQ group: 1129162865" src="https://img.shields.io/badge/QQ%20group-Join%20discussion-12B7F5?style=flat"></a>
-  <a href="https://github.com/miskin-lee/EdgeTerm/releases"><img alt="GitHub release downloads" src="https://img.shields.io/github/downloads/miskin-lee/EdgeTerm/total?style=flat&amp;label=downloads"></a>
-  <a href="https://github.com/miskin-lee/EdgeTerm/releases/latest"><img alt="Latest GitHub release" src="https://img.shields.io/github/v/release/miskin-lee/EdgeTerm?style=flat"></a>
+  <a href="https://github.com/lishuiqiao/EdgeTerm/releases"><img alt="GitHub release downloads" src="https://img.shields.io/github/downloads/lishuiqiao/EdgeTerm/total?style=flat&amp;label=downloads"></a>
+  <a href="https://github.com/lishuiqiao/EdgeTerm/releases/latest"><img alt="Latest GitHub release" src="https://img.shields.io/github/v/release/lishuiqiao/EdgeTerm?style=flat"></a>
   <a href="LICENSE"><img alt="GPL-3.0 license" src="https://img.shields.io/github/license/miskin-lee/EdgeTerm?style=flat"></a>
   <a href="https://github.com/miskin-lee/EdgeTerm/graphs/contributors"><img alt="GitHub contributors" src="https://img.shields.io/github/contributors/miskin-lee/EdgeTerm?style=flat"></a>
 </p>
@@ -38,7 +38,7 @@ A small, fast terminal, SSH, Telnet, SFTP, FTP and serial client built with **Ru
 
 ## Install
 
-Download from [Releases](https://github.com/miskin-lee/EdgeTerm/releases):
+Download from [Releases](https://github.com/lishuiqiao/EdgeTerm/releases):
 
 | Platform | Package |
 | --- | --- |
@@ -50,6 +50,22 @@ Download from [Releases](https://github.com/miskin-lee/EdgeTerm/releases):
 - The portable zip keeps all its data in the `data` folder next to `EdgeTerm.exe`. Saved passwords do not carry over to another machine.
 - The `.rpm` needs WebKitGTK 4.1 (Fedora has it). On older distributions, use the AppImage.
 - Installed copies update themselves (**Help → Check for Updates…**). The portable copy only tells you a new version is out.
+
+## Auto Update
+
+This fork uses its own updater signing key and the releases at
+`lishuiqiao/EdgeTerm`. Install a release from this fork to follow its update
+channel; an upstream installation continues to use the upstream channel.
+
+The **Release** GitHub Actions workflow builds signed update bundles and
+publishes them only after every platform and the update manifest pass its
+checks. Repository secrets `TAURI_SIGNING_PRIVATE_KEY` and
+`TAURI_SIGNING_PRIVATE_KEY_PASSWORD` must contain the fork's updater key and
+password. Keep a secure backup of both; never commit them. The corresponding
+public key and update endpoint live in `src-tauri/tauri.conf.json`.
+
+These signatures secure application updates; they do not provide Apple
+notarization or Windows Authenticode signing.
 
 ## Getting started
 

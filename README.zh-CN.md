@@ -8,8 +8,8 @@
 <p align="center">
   <a href="https://github.com/miskin-lee/EdgeTerm/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/miskin-lee/EdgeTerm?style=flat"></a>
   <a href="https://qm.qq.com/q/oINZ2ffDOg"><img alt="加入 EdgeTerm QQ 群：1129162865" src="https://img.shields.io/badge/QQ%20group-Join%20discussion-12B7F5?style=flat"></a>
-  <a href="https://github.com/miskin-lee/EdgeTerm/releases"><img alt="GitHub release downloads" src="https://img.shields.io/github/downloads/miskin-lee/EdgeTerm/total?style=flat&amp;label=downloads"></a>
-  <a href="https://github.com/miskin-lee/EdgeTerm/releases/latest"><img alt="最新 GitHub 发布版本" src="https://img.shields.io/github/v/release/miskin-lee/EdgeTerm?style=flat"></a>
+  <a href="https://github.com/lishuiqiao/EdgeTerm/releases"><img alt="GitHub release downloads" src="https://img.shields.io/github/downloads/lishuiqiao/EdgeTerm/total?style=flat&amp;label=downloads"></a>
+  <a href="https://github.com/lishuiqiao/EdgeTerm/releases/latest"><img alt="最新 GitHub 发布版本" src="https://img.shields.io/github/v/release/lishuiqiao/EdgeTerm?style=flat"></a>
   <a href="LICENSE"><img alt="GPL-3.0 许可证" src="https://img.shields.io/github/license/miskin-lee/EdgeTerm?style=flat"></a>
   <a href="https://github.com/miskin-lee/EdgeTerm/graphs/contributors"><img alt="GitHub 贡献者" src="https://img.shields.io/github/contributors/miskin-lee/EdgeTerm?style=flat"></a>
 </p>
@@ -38,7 +38,7 @@
 
 ## 安装
 
-从 [Releases](https://github.com/miskin-lee/EdgeTerm/releases) 下载：
+从 [Releases](https://github.com/lishuiqiao/EdgeTerm/releases) 下载：
 
 | 平台 | 安装包 |
 | --- | --- |
@@ -50,6 +50,18 @@
 - 便携版的数据都存在 `EdgeTerm.exe` 旁的 `data` 文件夹里；换机器后保存的密码不会带过去。
 - `.rpm` 需要 WebKitGTK 4.1（Fedora 有），较老的发行版请用 AppImage。
 - 安装版会自动更新（**Help → Check for Updates…**），便携版只提示有新版本。
+
+## 自动更新
+
+此 fork 使用独立的更新签名密钥，并从 `lishuiqiao/EdgeTerm` 的 Releases
+获取更新。首次使用此更新渠道需要安装本 fork 的安装包；上游安装版仍跟随上游渠道。
+
+GitHub Actions 的 **Release** 流程会构建带更新签名的安装包，全部平台及更新清单
+检查通过后才正式发布。仓库 Secrets `TAURI_SIGNING_PRIVATE_KEY` 和
+`TAURI_SIGNING_PRIVATE_KEY_PASSWORD` 分别保存此 fork 的更新私钥和密码。
+请妥善备份两者，不要提交到 Git；对应公钥和更新地址保存在 `src-tauri/tauri.conf.json`。
+
+这些签名用于验证应用更新，不包含 Apple 公证或 Windows Authenticode 签名。
 
 ## 快速上手
 
