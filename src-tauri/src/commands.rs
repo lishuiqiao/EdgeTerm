@@ -368,7 +368,7 @@ pub async fn open_session(
             info.legacy_algorithms = conn.legacy_algorithms().to_vec();
             state.ssh_transports.register(&id, &conn.transport());
             let recorder = start_recording(&mut info)?;
-            session::ssh::spawn(app.clone(), id.clone(), conn, rx, recorder);
+            session::ssh::spawn(app.clone(), id.clone(), conn, rx, recorder, &profile);
             None
         }
         SessionKind::Sftp => {

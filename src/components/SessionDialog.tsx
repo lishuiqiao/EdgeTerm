@@ -165,6 +165,12 @@ const describeJumpHost = (p: SessionProfile) =>
   `${p.name} — ${p.username ?? ""}@${p.host ?? ""}:${p.port ?? 22}`;
 
 function validateProfile(profile: SessionProfile): string | null {
+  if (profile.kind === "ssh" || profile.kind === "local") {
+    const delay = profile.startupDelayMs ?? 500;
+    if (!Number.isInteger(delay) || delay < 0 || delay > 0xffffffff) {
+      return "Startup delay must be a whole number from 0 to 4294967295 milliseconds.";
+    }
+  }
   if (profile.locale && !LOCALE_NAME.test(profile.locale)) {
     return "Locale must be a locale name such as en_US.UTF-8 or C.UTF-8.";
   }
@@ -303,6 +309,15 @@ export function SessionDialog({ initial, onClose }: Props) {
     recordDir: isFileSession(profile.kind)
       ? null
       : profile.recordDir?.trim() || null,
+    startupCommand:
+      (profile.kind === "ssh" || profile.kind === "local") &&
+      profile.startupCommand?.trim()
+        ? profile.startupCommand
+        : null,
+    startupDelayMs:
+      profile.kind === "ssh" || profile.kind === "local"
+        ? profile.startupDelayMs ?? 500
+        : null,
   });
 
   // One line under the title saying what the form connects to as it is filled
@@ -1266,6 +1281,64 @@ export function SessionDialog({ initial, onClose }: Props) {
                   </select>
                 </label>
                 {renderTextFields(false)}
+              </div>
+            </section>
+          )}
+
+          {(profile.kind === "ssh" || profile.kind === "local") && (
+            <section className="session-section">
+              <div className="session-section-heading">
+                <Icon name="terminal" />
+                <span>Startup command</span>
+                <small>Run after connecting</small>
+              </div>
+              <div className="session-form-grid">
+                <label className="session-field is-wide">
+                  <span className="session-field-label">Command</span>
+                  <textarea
+                    {...RAW_TEXT_INPUT}
+                    rows={4}
+                    value={profile.startupCommand ?? ""}
+                    placeholder={
+                      profile.kind === "local"
+                        ? "ssh my-aws-host"
+                        : "cd /srv/app\npwd"
+                    }
+                    onChange={(event) =>
+                      patch({ startupCommand: event.target.value })
+                    }
+                  />
+                </label>
+                <label className="session-field">
+                  <span className="session-field-label">Startup delay (ms)</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={0xffffffff}
+                    step={1}
+                    value={profile.startupDelayMs ?? 500}
+                    onChange={(event) =>
+                      patch({
+                        startupDelayMs:
+                          event.target.value === ""
+                            ? null
+                            : Number(event.target.value),
+                      })
+                    }
+                  />
+                </label>
+                <div className="session-note is-wide">
+                  <Icon name="info" />
+                  <span>
+                    Leave blank to disable. Runs once per opened, reconnected or
+                    duplicated session, submitting each line with Enter. The
+                    delay lets the shell initialize; it does not wait for prompts
+                    or for each command to finish. Commands are saved and exported
+                    with the profile.
+                    {profile.kind === "local" &&
+                      " Use ssh with a host alias to use your system SSH config, including ProxyCommand."}
+                  </span>
+                </div>
               </div>
             </section>
           )}

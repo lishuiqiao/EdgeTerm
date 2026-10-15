@@ -169,6 +169,8 @@ pub(crate) fn profile(kind: SessionKind) -> SessionProfile {
         backspace: None,
         record: false,
         record_dir: None,
+        startup_command: None,
+        startup_delay_ms: None,
         shell: None,
         cwd: None,
         host: None,
@@ -186,6 +188,43 @@ pub(crate) fn profile(kind: SessionKind) -> SessionProfile {
         parity: None,
         flow_control: None,
     }
+}
+
+#[test]
+fn startup_commands_survive_save_duplicate_export_import_and_old_profiles() {
+    let legacy: SessionProfile = serde_json::from_value(serde_json::json!({
+        "name": "old shell", "kind": "local"
+    }))
+    .unwrap();
+    assert!(legacy.startup_command.is_none());
+    assert!(legacy.startup_delay_ms.is_none());
+
+    let dir = temp_dir("startup-command");
+    let path = dir.join("sessions.json");
+    let store = Store::load_from(path.clone());
+    let mut original = profile(SessionKind::Local);
+    original.startup_command = Some("  echo first\nssh my-aws-host\n".into());
+    original.startup_delay_ms = Some(1234);
+    let saved = store.save(original).unwrap();
+    let copy = store.duplicate(&saved.id).unwrap();
+    let reloaded = Store::load_from(path);
+    for id in [&saved.id, &copy.id] {
+        let restored = reloaded.get(id).unwrap().unwrap();
+        assert_eq!(restored.startup_command, saved.startup_command);
+        assert_eq!(restored.startup_delay_ms, Some(1234));
+    }
+    let exported = serde_json::to_string(&reloaded.snapshot()).unwrap();
+    assert!(exported.contains("startupCommand"));
+    let imported = Store::load_from(dir.join("imported.json"));
+    imported
+        .import_data(serde_json::from_str(&exported).unwrap())
+        .unwrap();
+    assert_eq!(imported.list().len(), 2);
+    assert!(imported
+        .list()
+        .iter()
+        .all(|p| p.startup_command == saved.startup_command && p.startup_delay_ms == Some(1234)));
+    std::fs::remove_dir_all(dir).unwrap();
 }
 
 fn group(name: &str, kind: SessionKind, parent_id: Option<&str>) -> SessionGroup {

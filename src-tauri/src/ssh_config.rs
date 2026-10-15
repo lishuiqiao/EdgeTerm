@@ -583,6 +583,8 @@ fn new_profile(entry: &SshConfigEntry, group_id: Option<String>) -> SessionProfi
         backspace: None,
         record: false,
         record_dir: None,
+        startup_command: None,
+        startup_delay_ms: None,
         shell: None,
         cwd: None,
         host: Some(entry.host.clone()),

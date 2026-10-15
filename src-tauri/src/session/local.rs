@@ -7,6 +7,7 @@ use tauri::AppHandle;
 use tokio::sync::mpsc::UnboundedReceiver;
 
 use super::recording::Recorder;
+use super::startup::StartupCommand;
 use super::{cwd, emit_state, locale, reject_unsupported, OutputPump, SessionCommand};
 use crate::error::{err, Result};
 use crate::model::{split_command_line, SessionKind, SessionProfile};
@@ -101,6 +102,10 @@ pub fn spawn(
     let mut writer = pair.master.take_writer().map_err(err)?;
     let master = pair.master;
 
+    let mut startup = StartupCommand::new(profile);
+    startup.start();
+    let (reader_finished, mut reader_done) = tokio::sync::oneshot::channel::<()>();
+
     emit_state(&app, &id, "connected", Some(format!("shell {shell}")));
 
     // Raised by the control thread before it kills the shell, so the reader
@@ -130,6 +135,7 @@ pub fn spawn(
                 }
             }
             pump.flush();
+            let _ = reader_finished.send(());
             if !reader_close_requested.load(Ordering::SeqCst) {
                 emit_state(&reader_app, &reader_id, "closed", None);
             }
@@ -139,7 +145,13 @@ pub fn spawn(
     std::thread::Builder::new()
         .name(format!("edgeterm-pty-ctl-{id}"))
         .spawn(move || {
-            while let Some(cmd) = rx.blocking_recv() {
+            while let Some(cmd) = tauri::async_runtime::block_on(async {
+                tokio::select! {
+                    biased;
+                    _ = &mut reader_done => None,
+                    cmd = startup.recv(&mut rx) => cmd,
+                }
+            }) {
                 match cmd {
                     SessionCommand::Write(data) => {
                         if writer.write_all(&data).is_err() || writer.flush().is_err() {
@@ -217,5 +229,68 @@ mod tests {
         assert_eq!(login_flag(&argv(&["/usr/bin/python3"]), true), None);
         assert_eq!(login_flag(&argv(&["/bin/zsh"]), false), None);
         assert_eq!(login_flag(&argv(&["wsl.exe"]), false), None);
+    }
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn multiline_startup_input_executes_in_an_interactive_pty() {
+        use crate::model::SessionKind;
+        use crate::session::{startup::StartupCommand, SessionCommand};
+        use portable_pty::{native_pty_system, CommandBuilder, PtySize};
+        use std::io::{Read, Write};
+        use std::time::Duration;
+
+        let pair = native_pty_system()
+            .openpty(PtySize {
+                rows: 24,
+                cols: 80,
+                pixel_width: 0,
+                pixel_height: 0,
+            })
+            .unwrap();
+        let mut cmd = CommandBuilder::new("/bin/sh");
+        cmd.arg("-i");
+        cmd.env("ENV", "/dev/null");
+        let mut child = pair.slave.spawn_command(cmd).unwrap();
+        drop(pair.slave);
+        let mut reader = pair.master.try_clone_reader().unwrap();
+        let mut writer = pair.master.take_writer().unwrap();
+        let (output_tx, output_rx) = std::sync::mpsc::channel();
+        std::thread::spawn(move || {
+            let mut output = Vec::new();
+            // Unix PTYs may signal EOF as EIO; keep bytes read before that.
+            let _ = reader.read_to_end(&mut output);
+            let _ = output_tx.send(output);
+        });
+
+        let mut profile = crate::tests::profile(SessionKind::Local);
+        // The resulting marker does not occur in the command's terminal echo.
+        profile.startup_command =
+            Some("value=multi\r\nprintf '%s-%s\\n' \"$value\" line\nexit".into());
+        profile.startup_delay_ms = Some(50);
+        let mut startup = StartupCommand::new(&profile);
+        let (_tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
+        startup.start();
+        let Some(SessionCommand::Write(bytes)) = startup.recv(&mut rx).await else {
+            panic!("expected startup input");
+        };
+        writer.write_all(&bytes).unwrap();
+        writer.flush().unwrap();
+        let finished = tokio::time::timeout(Duration::from_secs(5), async {
+            loop {
+                if let Some(status) = child.try_wait().unwrap() {
+                    return status;
+                }
+                tokio::time::sleep(Duration::from_millis(10)).await;
+            }
+        })
+        .await;
+        if finished.is_err() {
+            let _ = child.kill();
+            let _ = child.wait();
+        }
+        assert!(finished.expect("the startup script must exit").success());
+        let output = output_rx.recv_timeout(Duration::from_secs(2)).unwrap();
+        assert!(String::from_utf8_lossy(&output).contains("multi-line"));
     }
 }

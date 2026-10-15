@@ -59,6 +59,14 @@
 4. 标签右键菜单和 **View** 里有 **Split Right / Split Down**，把标签拖到别的分栏即可移过去。
 5. **Edit** 里是复制粘贴相关设置（右键行为、选中即复制、OSC 52），**View** 里是主题、字体和 **Keyboard Shortcuts…**。
 
+### 连接后自动执行命令
+
+新建或编辑 **SSH / Shell** 会话，在 **Startup command → Command** 中填写命令，支持多行；留空则不执行。**Startup delay (ms)** 是执行前的等待时间，默认 500 毫秒，可设为 0。每次打开、重连或复制会话执行一次，切换标签页不会重复执行；延迟期间关闭会话会取消执行。
+
+SSH 会话在服务器接受远程 Shell 后开始计时，本地 Shell 在进程启动后开始计时。命令按终端输入发送，换行视为回车，最后一行自动提交。延迟不会检测提示符或等待每条命令完成；启动较慢时请增加延迟。命令随会话保存及导出。
+
+通过 AWS Session Manager / `ProxyCommand` 连接时，可先在系统 SSH 配置中设置主机别名，再新建 **Shell** 会话，把启动命令填为 `ssh my-aws-host`（替换成你的别名）。它会调用本地 OpenSSH，使用本机已有的 SSH 配置和 AWS 工具。这仍是本地 Shell 会话，内置远程 SFTP 面板不会随之连接；内置 SSH 的原生 `ProxyCommand` 支持不在此功能内。
+
 ## 快捷键
 
 | macOS | Windows / Linux | 作用 |

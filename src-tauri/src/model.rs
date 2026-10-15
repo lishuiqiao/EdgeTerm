@@ -92,6 +92,13 @@ pub struct SessionProfile {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub record_dir: Option<String>,
 
+    /// Text typed once into each SSH / local shell after it opens.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub startup_command: Option<String>,
+    /// Delay before typing, in milliseconds; absent means 500 ms.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub startup_delay_ms: Option<u32>,
+
     // --- local ---
     #[serde(default)]
     pub shell: Option<String>,

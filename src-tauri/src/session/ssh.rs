@@ -25,6 +25,7 @@ use tokio::sync::mpsc::UnboundedReceiver;
 
 use super::auth::{AuthPrompter, Challenge};
 use super::recording::Recorder;
+use super::startup::StartupCommand;
 use super::transfer::{
     ensure_local_directory, plan_local_upload, safe_local_child, validate_local_file_target,
     CancelFlag, ProgressReporter,
@@ -1306,7 +1307,9 @@ pub fn spawn(
     conn: SshConnection,
     mut rx: UnboundedReceiver<SessionCommand>,
     recorder: Option<Recorder>,
+    profile: &SessionProfile,
 ) {
+    let mut startup = StartupCommand::new(profile);
     tauri::async_runtime::spawn(async move {
         let SshConnection { transport, channel } = conn;
         // Held for as long as this session runs; the transport goes down
@@ -1318,6 +1321,10 @@ pub fn spawn(
         let mut exit_status: Option<u32> = None;
         // Set when the frontend asked for the close; see `emit_state`.
         let mut close_requested = false;
+        // open_shell requests replies for PTY and shell only; environment
+        // requests have want_reply=false. Do not type until both succeeded.
+        let mut shell_replies = 2;
+        let mut failure = None;
 
         emit_state(&app, &id, "connected", None);
 
@@ -1328,11 +1335,22 @@ pub fn spawn(
                         Some(ChannelMsg::Data { data }) => pump.push(&data),
                         Some(ChannelMsg::ExtendedData { data, .. }) => pump.push(&data),
                         Some(ChannelMsg::ExitStatus { exit_status: code }) => exit_status = Some(code),
+                        Some(ChannelMsg::Success) if shell_replies > 0 => {
+                            shell_replies -= 1;
+                            if shell_replies == 0 {
+                                startup.start();
+                            }
+                        }
+                        Some(ChannelMsg::Failure) if shell_replies > 0 => {
+                            failure = Some("The server refused the terminal or shell request".to_string());
+                            let _ = writer.close().await;
+                            break;
+                        }
                         Some(ChannelMsg::Eof) | Some(ChannelMsg::Close) | None => break,
                         Some(_) => {}
                     }
                 }
-                cmd = rx.recv() => {
+                cmd = startup.recv(&mut rx) => {
                     match cmd {
                         Some(SessionCommand::Write(data)) => {
                             if writer.data_bytes(data).await.is_err() {
@@ -1391,7 +1409,7 @@ pub fn spawn(
                 &app,
                 &id,
                 "closed",
-                exit_status.map(|c| format!("exit status {c}")),
+                failure.or_else(|| exit_status.map(|c| format!("exit status {c}"))),
             );
         }
         // Only the channel is this session's own; whether the connection
@@ -2413,6 +2431,15 @@ mod tests {
         ) -> std::result::Result<(), Self::Error> {
             session.channel_success(channel)
         }
+
+        async fn data(
+            &mut self,
+            channel: russh::ChannelId,
+            data: &[u8],
+            session: &mut russh::server::Session,
+        ) -> std::result::Result<(), Self::Error> {
+            session.data(channel, data.to_vec())
+        }
     }
 
     /// The profile a test session connects with: the local server, as the
@@ -2494,6 +2521,46 @@ mod tests {
         };
         assert!(refused.contains("different server"), "{refused}");
         assert_eq!(*server.sessions.lock(), 2, "nothing was opened for it");
+    }
+
+    #[tokio::test]
+    async fn startup_input_reaches_each_shell_of_a_shared_transport() {
+        use crate::session::{startup::StartupCommand, SessionCommand};
+        let file = KnownHosts::new();
+        let server = ShellServer::default();
+        let address = serve_once(server.clone(), Preferred::default()).await;
+        let mut profile = profile_for(address);
+        profile.startup_command = Some("echo first\r\necho second".into());
+        profile.startup_delay_ms = Some(0);
+        let transport = transport_to(address, file.path()).await;
+        tokio::time::timeout(Duration::from_secs(5), async {
+            for _ in 0..2 {
+                let mut conn = connect_on(transport.clone(), &profile).await.unwrap();
+                let mut startup = StartupCommand::new(&profile);
+                let (_tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
+                // Verify the two replies the production loop uses to start
+                // its timer, including when reusing an authenticated transport.
+                for _ in 0..2 {
+                    assert!(matches!(
+                        conn.channel.wait().await,
+                        Some(ChannelMsg::Success)
+                    ));
+                }
+                startup.start();
+                let Some(SessionCommand::Write(bytes)) = startup.recv(&mut rx).await else {
+                    panic!("expected startup input");
+                };
+                conn.channel.data(&bytes[..]).await.unwrap();
+                let Some(ChannelMsg::Data { data }) = conn.channel.wait().await else {
+                    panic!("expected echoed input from the server");
+                };
+                assert_eq!(&data[..], b"echo first\recho second\r");
+                conn.channel.close().await.unwrap();
+            }
+        })
+        .await
+        .expect("startup input must reach both channels");
+        assert_eq!(*server.logins.lock(), 1);
     }
 
     /// The registry `open_session` looks a shared connection up in: it hands

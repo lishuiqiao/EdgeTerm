@@ -88,6 +88,11 @@ export interface SessionProfile {
   /** Folder the recordings go to; null / empty means the app's default. */
   recordDir?: string | null;
 
+  /** Typed once into each SSH / local shell after it opens. */
+  startupCommand?: string | null;
+  /** Delay before typing in milliseconds; null / absent means 500 ms. */
+  startupDelayMs?: number | null;
+
   // local
   shell?: string | null;
   cwd?: string | null;

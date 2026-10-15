@@ -3716,7 +3716,8 @@ textarea:focus {
 }
 
 .session-field input,
-.session-field select {
+.session-field select,
+.session-field textarea {
   width: 100%;
   min-width: 0;
   height: 30px;
@@ -3732,6 +3733,7 @@ textarea:focus {
    without moving anything in the grid. */
 .session-field input:focus,
 .session-field select:focus,
+.session-field textarea:focus,
 .session-field .input-with-suffix:focus-within {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
@@ -3746,6 +3748,13 @@ textarea:focus {
   padding-top: 0;
   padding-bottom: 0;
   color-scheme: inherit;
+}
+
+.session-field textarea {
+  height: auto;
+  min-height: 88px;
+  resize: vertical;
+  font-family: monospace;
 }
 
 .session-field-hint {

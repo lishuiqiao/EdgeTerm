@@ -59,6 +59,14 @@ Download from [Releases](https://github.com/miskin-lee/EdgeTerm/releases):
 4. **Split Right / Split Down** is on the tab's context menu and in **View**. Drag a tab onto another pane to move it there.
 5. **Edit** holds the copy/paste behavior (right click, Copy on Select, OSC 52), and **View** holds the theme, fonts and **Keyboard Shortcuts…**.
 
+### Commands after connecting
+
+Create or edit an **SSH / Shell** session and enter one or more lines under **Startup command → Command**. Leave it blank to disable. **Startup delay (ms)** defaults to 500 milliseconds and accepts 0. The command runs once per opened, reconnected or duplicated session; switching tabs does not run it again. Closing during the delay cancels it.
+
+The delay starts when the server accepts the remote shell for SSH, or when the local shell process starts. Lines are typed as terminal input, with Enter appended to the last line if needed. The delay does not detect prompts or wait for individual commands to finish; increase it for slow shell initialization. Commands are saved and exported with the profile.
+
+For AWS Session Manager / `ProxyCommand`, configure a host alias in your system SSH config, then create a **Shell** session with `ssh my-aws-host` as its startup command (replace the alias). This uses local OpenSSH and your installed AWS tools. It remains a local Shell session, so the built-in remote SFTP panel does not attach to that connection. Native `ProxyCommand` support in the built-in SSH client is outside this feature.
+
 ## Keyboard shortcuts
 
 | macOS | Windows / Linux | Action |
