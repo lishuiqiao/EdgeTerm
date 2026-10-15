@@ -6,6 +6,11 @@ on:
 permissions:
   contents: write
 
+# gh otherwise resolves a fork's parent as the default repository in some
+# environments, so an upload can miss the draft created in this fork.
+env:
+  GH_REPO: ${{ github.repository }}
+
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
