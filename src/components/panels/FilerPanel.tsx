@@ -1,8 +1,11 @@
 import type { PhysicalPosition } from "@tauri-apps/api/dpi";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import {
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
+  useMemo,
   useRef,
   useState,
   type MouseEvent,
@@ -123,7 +126,12 @@ const rememberPath = (source: string, path: string) => {
   lastPaths.set(source, path);
 };
 
-export function FilerPanel() {
+export interface FilerPanelHandle {
+  /** Returns false when the pointer is outside this panel. */
+  searchIfHovered: (next: boolean) => boolean;
+}
+
+export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, ref) {
   const tab = useActiveTab();
   const theme = useStore((s) => s.theme);
   const sshFiles = Boolean(
@@ -144,6 +152,7 @@ export function FilerPanel() {
   const remoteId = remote ? (tab?.info.id ?? null) : null;
   const filerTarget = useStore((s) => s.filerTarget);
   const revealKey = useStore((s) => chordLabel(s.shortcuts.revealCwd));
+  const findKey = useStore((s) => chordLabel(s.shortcuts.find));
   /** The last `filerTarget.token` this panel navigated to. */
   const consumedTarget = useRef(0);
   // Shell and SSH sessions have a working directory to reveal (⌘J); file
@@ -158,6 +167,70 @@ export function FilerPanel() {
   const [draft, setDraft] = useState("");
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchMatchPath, setSearchMatchPath] = useState<string | null>(null);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const pointerInPanel = useRef(false);
+  const searchMatchRef = useRef<HTMLDivElement>(null);
+  // Escape metacharacters: file names are searched literally, not as regexes.
+  // Splitting with a capture preserves original text and Unicode offsets.
+  const searchMatches = useMemo(() => {
+    const matches = new Map<string, string[]>();
+    if (!searchOpen || !searchQuery) return matches;
+    const pattern = new RegExp(
+      `(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+      "gi",
+    );
+    for (const entry of entries) {
+      const parts = entry.name.split(pattern);
+      if (parts.length > 1) matches.set(entry.path, parts);
+    }
+    return matches;
+  }, [entries, searchOpen, searchQuery]);
+  const matchedPaths = Array.from(searchMatches.keys());
+  const activeSearchPath = searchMatchPath && searchMatches.has(searchMatchPath)
+    ? searchMatchPath
+    : matchedPaths[0];
+  const searchIndex = activeSearchPath ? matchedPaths.indexOf(activeSearchPath) : -1;
+
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setSearchQuery("");
+    setSearchMatchPath(null);
+    searchButtonRef.current?.focus();
+  };
+  const moveSearch = (direction: number) => {
+    if (!matchedPaths.length) return;
+    setSearchMatchPath(
+      matchedPaths[(searchIndex + direction + matchedPaths.length) % matchedPaths.length],
+    );
+  };
+  useImperativeHandle(ref, () => ({
+    searchIfHovered(next) {
+      if (!pointerInPanel.current) return false;
+      if (!searchOpen) setSearchOpen(true);
+      else {
+        searchInputRef.current?.focus();
+        if (next && searchQuery) moveSearch(1);
+        else searchInputRef.current?.select();
+      }
+      return true;
+    },
+  }));
+  useEffect(() => {
+    const clearHover = () => { pointerInPanel.current = false; };
+    window.addEventListener("blur", clearHover);
+    return () => window.removeEventListener("blur", clearHover);
+  }, []);
+  useEffect(() => {
+    setSearchQuery("");
+    setSearchMatchPath(null);
+  }, [path, remoteId, offline]);
+  useEffect(() => {
+    searchMatchRef.current?.scrollIntoView({ block: "nearest" });
+  }, [activeSearchPath, searchQuery, entries]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState<NewEntryDraft | null>(null);
@@ -1181,6 +1254,8 @@ export function FilerPanel() {
   return (
     <div
       ref={panelRef}
+      onPointerEnter={() => { pointerInPanel.current = true; }}
+      onPointerLeave={() => { pointerInPanel.current = false; }}
       className={`panel filer-panel${dragOver ? (dragOver.accept ? " is-drag-over" : dragOver.reason ? " is-drag-blocked" : "") : ""}`}
       style={{ flex: 1 }}
     >
@@ -1196,6 +1271,17 @@ export function FilerPanel() {
 
       {/* Upload and download stay visible on local sessions, just disabled. */}
       <div className="filer-toolbar" role="toolbar" aria-label="File actions">
+        <button
+          ref={searchButtonRef}
+          className={`panel-action filer-action${searchOpen ? " is-open" : ""}`}
+          onClick={() => searchOpen ? closeSearch() : setSearchOpen(true)}
+          title={`Search files in current folder${findKey ? ` (${findKey})` : ""}`}
+          aria-label="Search files"
+          aria-expanded={searchOpen}
+          disabled={busy || !path}
+        >
+          <Icon name="search" />
+        </button>
         <button
           className="panel-action filer-action"
           onClick={() => setCreating({ kind: "file", name: "" })}
@@ -1309,6 +1395,66 @@ export function FilerPanel() {
         />
       </div>
 
+      {searchOpen && (
+        <div className="filer-search" role="search" aria-label="Search current folder">
+          <input
+            ref={searchInputRef}
+            autoFocus
+            aria-label="Search file names"
+            placeholder="Find names in current folder"
+            value={searchQuery}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            onChange={(event) => {
+              setSearchQuery(event.target.value);
+              setSearchMatchPath(null);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.preventDefault();
+                event.stopPropagation();
+                closeSearch();
+              } else if (event.key === "Enter") {
+                event.preventDefault();
+                moveSearch(event.shiftKey ? -1 : 1);
+              }
+            }}
+          />
+          <span className="filer-search-count" role="status" aria-live="polite">
+            {searchQuery
+              ? matchedPaths.length ? `${searchIndex + 1}/${matchedPaths.length}` : "No results"
+              : ""}
+          </span>
+          <button
+            className="panel-action filer-action"
+            aria-label="Previous file match"
+            title="Previous match (Shift+Enter)"
+            disabled={!matchedPaths.length}
+            onClick={() => moveSearch(-1)}
+          >
+            <Icon name="arrow-up" />
+          </button>
+          <button
+            className="panel-action filer-action"
+            aria-label="Next file match"
+            title="Next match (Enter)"
+            disabled={!matchedPaths.length}
+            onClick={() => moveSearch(1)}
+          >
+            <Icon name="arrow-down" />
+          </button>
+          <button
+            className="panel-action filer-action"
+            aria-label="Close file search"
+            title="Close search (Esc)"
+            onClick={closeSearch}
+          >
+            <Icon name="close" />
+          </button>
+        </div>
+      )}
+
       <div className="filer-columns">
         <span className="filer-col-name">Name</span>
         <span className="filer-col-date">Modified</span>
@@ -1353,10 +1499,12 @@ export function FilerPanel() {
         )}
         {entries.map((entry) => {
           const kind = entryKind(entry);
+          const matchParts = searchMatches.get(entry.path);
           return (
             <div
               key={entry.path}
-              className={`row filer-entry is-${kind}${entry.path === selected ? " is-active" : ""}${dragOut?.path === entry.path ? " is-dragging-out" : ""}`}
+              ref={entry.path === activeSearchPath ? searchMatchRef : undefined}
+              className={`row filer-entry is-${kind}${entry.path === selected ? " is-active" : ""}${entry.path === activeSearchPath ? " is-search-current" : ""}${dragOut?.path === entry.path ? " is-dragging-out" : ""}`}
               onMouseDown={() => setSelected(entry.path)}
               onPointerDown={(event) => onEntryPointerDown(entry, event)}
               onPointerMove={onEntryPointerMove}
@@ -1372,7 +1520,13 @@ export function FilerPanel() {
                 isDir={entry.isDir}
                 theme={theme}
               />
-              <span className="row-label">{entry.name}</span>
+              <span className="row-label">
+                {matchParts
+                  ? matchParts.map((part, index) => index % 2
+                    ? <mark className="filer-search-match" key={index}>{part}</mark>
+                    : part)
+                  : entry.name}
+              </span>
               <span className="filer-col-date row-meta">
                 {formatDate(entry.modified)}
               </span>
@@ -1476,7 +1630,7 @@ export function FilerPanel() {
       </div>
     </div>
   );
-}
+});
 
 /** Footer wording per transfer kind and state; see `TransferState`. */
 const TRANSFER_LABELS: Record<

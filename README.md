@@ -70,7 +70,7 @@ notarization or Windows Authenticode signing.
 ## Getting started
 
 1. **Session → New Session…** (`⌘N` / `Alt+N`) creates a session; double-click it in the Session panel to connect. Right-click a session to edit, duplicate, move or delete it.
-2. The **Filer** on the right follows the active tab. Drop files onto it to upload, drag entries out to download, or press `⌘J` / `Ctrl+Shift+J` to jump to the shell's working directory.
+2. The **Filer** on the right follows the active tab. Drop files onto it to upload, drag entries out to download, or press `⌘J` / `Ctrl+Shift+J` to jump to the shell's working directory. The search icon to the left of New file finds and highlights file and folder names in the current directory, ignoring case without searching subdirectories. Enter / Shift+Enter cycles matches; Esc closes search. While hovering over Filer, `⌘F` / `Ctrl+Shift+F` searches file names; elsewhere it searches terminal text. `⌘G` / `Ctrl+Shift+G` follows the same pointer-based routing for the next match.
 3. The **Sender** at the bottom sends text to the current session or to all sessions. Save frequently used commands as tags.
 4. **Split Right / Split Down** is on the tab's context menu and in **View**. Drag a tab onto another pane to move it there.
 5. **Edit** holds the copy/paste behavior (right click, Copy on Select, OSC 52), and **View** holds the theme, fonts and **Keyboard Shortcuts…**.

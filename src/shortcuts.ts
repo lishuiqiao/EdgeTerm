@@ -146,7 +146,7 @@ export const SHORTCUT_COMMANDS: {
   {
     id: "find",
     label: "Find",
-    hint: "Search the terminal buffer",
+    hint: "Search file names while hovering over Filer; otherwise search the terminal buffer",
     action: { kind: "find" },
   },
   {

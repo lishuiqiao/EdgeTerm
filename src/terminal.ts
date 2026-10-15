@@ -322,26 +322,32 @@ type SearchDecorations = NonNullable<ISearchOptions["decorations"]>;
 /**
  * Find-in-buffer highlights, per theme. Enabling decorations is also what
  * makes the search addon report the match index / count.
+ * Use amber for all matches and cyan for the active one, with crisp borders
+ * so both stand out against ANSI and semantic colors. Dark fills preserve
+ * light terminal text; light fills preserve dark text in the light themes.
  */
 const DARK_SEARCH_DECORATIONS: SearchDecorations = {
-  matchBackground: "#623315",
-  matchOverviewRuler: "#d18616",
-  activeMatchBackground: "#9e6a03",
-  activeMatchColorOverviewRuler: "#ffb700",
+  matchBackground: "#644b00",
+  matchBorder: "#facc15",
+  matchOverviewRuler: "#facc15",
+  activeMatchBackground: "#164e63",
+  activeMatchBorder: "#22d3ee",
+  activeMatchColorOverviewRuler: "#22d3ee",
 };
 
 const LIGHT_SEARCH_DECORATIONS: SearchDecorations = {
-  matchBackground: "#f5d3b0",
-  matchOverviewRuler: "#d18616",
-  activeMatchBackground: "#a8ac94",
-  activeMatchColorOverviewRuler: "#ffb700",
+  matchBackground: "#fff0a6",
+  matchBorder: "#b77900",
+  matchOverviewRuler: "#b77900",
+  activeMatchBackground: "#bae6fd",
+  activeMatchBorder: "#0078b8",
+  activeMatchColorOverviewRuler: "#0078b8",
 };
 
 const SEARCH_DECORATIONS: Record<ThemeMode, SearchDecorations> = {
   dark: DARK_SEARCH_DECORATIONS,
   light: LIGHT_SEARCH_DECORATIONS,
-  // The amber wash reads the same on serialX's two canvases, which differ
-  // from these only in how deep the dark one is.
+  // Share the same match colors across each pair of dark / light canvases.
   "serialx-dark": DARK_SEARCH_DECORATIONS,
   "serialx-light": LIGHT_SEARCH_DECORATIONS,
 };

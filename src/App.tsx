@@ -38,7 +38,7 @@ import { Splitter } from "./components/Splitter";
 import { StatusBar } from "./components/StatusBar";
 import { UpdateDialog } from "./components/UpdateDialog";
 import { Workspace } from "./components/Workspace";
-import { FilerPanel } from "./components/panels/FilerPanel";
+import { FilerPanel, type FilerPanelHandle } from "./components/panels/FilerPanel";
 import { SenderPanel } from "./components/panels/SenderPanel";
 import { SessionPanel } from "./components/panels/SessionPanel";
 import { applyFonts, symbolFallbacks } from "./fonts";
@@ -46,6 +46,7 @@ import { commandHistory } from "./history";
 import type { PanelDock } from "./panelDock";
 import { IS_WINDOWS } from "./platform";
 import { matchAppShortcut } from "./shortcuts";
+import { installSearchShortcuts } from "./searchShortcuts";
 import { type PanelName, tabTitle, useActiveTab, useStore } from "./store";
 import { allControllers, getController } from "./terminalRegistry";
 import { isFileSession, type SessionProfile, type SessionState } from "./types";
@@ -138,6 +139,7 @@ export default function App() {
   );
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef<SearchOverlayHandle>(null);
+  const filerRef = useRef<FilerPanelHandle>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [fontSettingsOpen, setFontSettingsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -330,6 +332,11 @@ export default function App() {
 
   // --- keyboard -------------------------------------------------------------
 
+  useEffect(() => installSearchShortcuts(
+    (next) => filerRef.current?.searchIfHovered(next) ?? false,
+    (next) => next ? findNext() : openSearch(),
+  ), [openSearch, findNext]);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       // xterm keeps a hidden textarea for input, so "focus is in a text field"
@@ -362,12 +369,8 @@ export default function App() {
           if (activeId) requestCloseTab(activeId);
           return;
         case "find":
-          event.preventDefault();
-          openSearch();
-          return;
         case "findNext":
-          event.preventDefault();
-          findNext();
+          // Routed in capture phase according to the pointer's panel.
           return;
         case "clear":
           if (activeId && !fileMode) {
@@ -446,7 +449,7 @@ export default function App() {
         onEditProfile={(profile) => setDialog({ profile })}
       />
     ) : panel === "filer" ? (
-      <FilerPanel />
+      <FilerPanel ref={filerRef} />
     ) : (
       <SenderPanel
         compact={senderCompact}

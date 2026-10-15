@@ -4640,6 +4640,47 @@ textarea:focus {
   border-color: var(--accent);
 }
 
+.filer-search {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 8px 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+.filer-search input {
+  flex: 1 1 100px;
+  min-width: 60px;
+  width: 0;
+  height: 26px;
+  font-size: calc(var(--panel-font-size) - 1px);
+}
+
+.filer-search-count {
+  color: var(--fg-dim);
+  font-size: calc(var(--panel-font-size) - 1px);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.filer-entry .filer-search-match {
+  color: #1f1f1f;
+  background: #facc15;
+  border-radius: 2px;
+}
+
+.filer-entry.is-search-current {
+  outline: 1px solid var(--accent-bright);
+  outline-offset: -1px;
+}
+
+.filer-entry.is-search-current .filer-search-match {
+  color: #102a43;
+  background: #67e8f9;
+}
+
 /* Column captions, aligned with the row content (6px inset + 6px padding). */
 .filer-columns {
   display: flex;
