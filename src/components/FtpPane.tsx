@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import * as api from "../api";
+import { consumePanelKey, panelKey } from "./panels/panelKeyboard";
 import { FileIcon } from "./FileIcon";
 import { Icon } from "./icons";
 import { useStore, type Tab } from "../store";
@@ -30,6 +31,8 @@ interface FileBrowserProps {
   loading: boolean;
   error: string | null;
   actions?: ReactNode;
+  keyboardActions?: Record<string, (() => void) | undefined>;
+  keyboardDisabled?: boolean;
   onDraftChange: (value: string) => void;
   onOpenPath: (path: string) => void;
   onHome: () => void;
@@ -405,6 +408,14 @@ export function FtpPane({ tab, active }: Props) {
               onParent={() => void loadRemote(remoteParent(remotePath))}
               onRefresh={() => void loadRemote(remotePath || remoteHome)}
               onSelect={setRemoteSelected}
+              keyboardDisabled={transferring || !active}
+              keyboardActions={{
+                F2: selectedRemote ? () => { void renameRemote(); } : undefined,
+                Delete: selectedRemote ? () => { void removeRemote(); } : undefined,
+                "Mod+Shift+n": () => { void createRemoteFolder(); },
+                F3: selectedRemote ? () => { void download(); } : undefined,
+                F4: selectedLocal ? () => { void upload(); } : undefined,
+              }}
               onActivate={(entry) => {
                 if (entry.isDir) void loadRemote(entry.path);
               }}
@@ -474,6 +485,14 @@ export function FtpPane({ tab, active }: Props) {
               }}
               onRefresh={() => void loadLocal(localPath || localHome)}
               onSelect={setLocalSelected}
+              keyboardDisabled={transferring || !active}
+              keyboardActions={{
+                F2: selectedLocal ? () => { void renameLocal(); } : undefined,
+                Delete: selectedLocal ? () => { void removeLocal(); } : undefined,
+                "Mod+Shift+n": () => { void createLocalFolder(); },
+                F3: selectedRemote ? () => { void download(); } : undefined,
+                F4: selectedLocal ? () => { void upload(); } : undefined,
+              }}
               onActivate={(entry) => {
                 if (entry.isDir) void loadLocal(entry.path);
               }}
@@ -559,6 +578,8 @@ function FileBrowser({
   loading,
   error,
   actions,
+  keyboardActions,
+  keyboardDisabled,
   onDraftChange,
   onOpenPath,
   onHome,
@@ -568,6 +589,8 @@ function FileBrowser({
   onActivate,
 }: FileBrowserProps) {
   const theme = useStore((s) => s.theme);
+  const listRef = useRef<HTMLDivElement>(null);
+  const addressRef = useRef<HTMLInputElement>(null);
   return (
     <section className="ftp-file-browser">
       <div className="ftp-browser-header">
@@ -591,6 +614,7 @@ function FileBrowser({
 
       <div className="ftp-browser-path">
         <input
+          ref={addressRef}
           value={draft}
           aria-label={`${title} path`}
           onChange={(event) => onDraftChange(event.target.value)}
@@ -607,7 +631,40 @@ function FileBrowser({
         <span>Modified</span>
       </div>
 
-      <div className="ftp-browser-list" role="listbox" aria-label={`${title} files`}>
+      <div
+        ref={listRef}
+        tabIndex={0}
+        className="ftp-browser-list"
+        role="listbox"
+        aria-label={`${title} files`}
+        onMouseDown={(event) => { if (event.button === 0) listRef.current?.focus(); }}
+        onKeyDown={(event) => {
+          const key = panelKey(event);
+          if (!key || loading || keyboardDisabled) return;
+          let action = keyboardActions?.[key];
+          if (path === api.LOCAL_DRIVES_ROOT && ["F2", "Delete", "Mod+Shift+n"].includes(key)) action = undefined;
+          const entry = entries.find((item) => item.path === selected);
+          if (key === "Enter" && entry) action = () => onActivate(entry);
+          if (key === "Backspace" && path && path !== api.LOCAL_DRIVES_ROOT) action = onParent;
+          if (key === "F5") action = onRefresh;
+          if (key === "Alt+d") action = () => { addressRef.current?.focus(); addressRef.current?.select(); };
+          const navigating = ["ArrowUp", "ArrowDown", "Home", "End"].includes(key);
+          if (navigating) action = () => {
+            const current = entries.findIndex((item) => item.path === selected);
+            const index = key === "Home" ? 0 : key === "End" ? entries.length - 1
+              : current < 0 ? (key === "ArrowUp" ? entries.length - 1 : 0)
+              : Math.max(0, Math.min(entries.length - 1, current + (key === "ArrowUp" ? -1 : 1)));
+            if (entries[index]) {
+              onSelect(entries[index].path);
+              listRef.current?.querySelectorAll<HTMLElement>(".ftp-file-row")[index]?.scrollIntoView({ block: "nearest" });
+            }
+          };
+          if (action) {
+            consumePanelKey(event);
+            if (!event.repeat || navigating) action();
+          }
+        }}
+      >
         {error && <div className="ftp-browser-message is-error">{error}</div>}
         {!error && loading && <div className="ftp-browser-message">Loading…</div>}
         {!error && !loading && entries.length === 0 && (

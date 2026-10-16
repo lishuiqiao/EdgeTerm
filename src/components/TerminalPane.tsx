@@ -9,7 +9,8 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 
-import { ensureController, revealCwdInFiler } from "../actions";
+import { ensureController, reconnectSession, revealCwdInFiler } from "../actions";
+import { closedSessionShortcut } from "../appKeyboard";
 import { fontStack } from "../fonts";
 import { IS_MAC } from "../platform";
 import { chordLabel, type ShortcutCommand } from "../shortcuts";
@@ -312,6 +313,15 @@ function TerminalHost({
       <div
         ref={ref}
         className="term-pane"
+        onKeyDownCapture={(event) => {
+          const action = closedSessionShortcut(event.nativeEvent, tab.state);
+          if (!action) return;
+          event.preventDefault();
+          event.stopPropagation();
+          if (event.repeat) return;
+          if (action === "reconnect") void reconnectSession(id);
+          else useStore.getState().requestCloseTab(id);
+        }}
         onContextMenu={onContextMenu}
         onMouseUp={onMiddleButton}
         onAuxClick={onMiddleButton}

@@ -47,7 +47,7 @@ Download from [Releases](https://github.com/lishuiqiao/EdgeTerm/releases):
 | Linux x64 / ARM64 | `.AppImage`, `.deb` or `.rpm` |
 
 - Builds are not notarized or Authenticode-signed, so the OS may warn on first launch.
-- The portable zip keeps all its data in the `data` folder next to `EdgeTerm.exe`. Saved passwords do not carry over to another machine.
+- The portable zip keeps all its data in the `data` folder next to `EdgeTerm.exe`. Directly copying it to another machine cannot decrypt saved passwords; use the encrypted export/import flow below to migrate credentials.
 - The `.rpm` needs WebKitGTK 4.1 (Fedora has it). On older distributions, use the AppImage.
 - Installed copies update themselves (**Help → Check for Updates…**). The portable copy only tells you a new version is out.
 
@@ -83,6 +83,16 @@ The delay starts when the server accepts the remote shell for SSH, or when the l
 
 For AWS Session Manager / `ProxyCommand`, configure a host alias in your system SSH config, then create a **Shell** session with `ssh my-aws-host` as its startup command (replace the alias). This uses local OpenSSH and your installed AWS tools. It remains a local Shell session, so the built-in remote SFTP panel does not attach to that connection. Native `ProxyCommand` support in the built-in SSH client is outside this feature.
 
+## Configuration backups and migration
+
+Use **Session → Export Data…** to export sessions, groups, Sender commands and application settings. By default the `.edgeterm` file is readable JSON without saved login passwords or private key passphrases.
+
+Select **Include login passwords and private key passphrases**, then enter and confirm an export password of at least 8 characters to encrypt the entire backup, including saved credentials. The export password is not stored in application settings and cannot be recovered if forgotten. Private key files are not included: copy them separately and adjust their paths on the destination device. OpenSSH / AWS configuration and credentials used inside Shell sessions also need separate setup.
+
+On the destination, choose **Session → Import Data…**, select the backup, enter its export password and click **Unlock**. Review the preview and click **Import**. Credentials are encrypted again using the destination device's local key. Entries with matching IDs are updated; other entries are kept. Credentials present in the backup replace matching local credentials; absent credentials leave local ones intact.
+
+Existing plain files remain supported, with any manually added password fields ignored. Encrypted backups require a version supporting this feature. Backups use PBKDF2-HMAC-SHA256 (600,000 iterations and a random salt) with authenticated ChaCha20-Poly1305 encryption. Wrong passwords, tampered files and files changed after preview are rejected before import.
+
 ## Keyboard shortcuts
 
 | macOS | Windows / Linux | Action |
@@ -99,7 +109,9 @@ For AWS Session Manager / `ProxyCommand`, configure a host alias in your system 
 | `⌘⌥←` / `⌘⌥→` / `⌘⌥↓` | `Ctrl+Alt+←` / `→` / `↓` | Toggle Session / Filer / Sender |
 | `⌘C` / `⌘V` / `⌘A` | `Ctrl+Shift+C` / `V` / `A` | Copy / paste / select all |
 
-All except the tab numbers can be changed in **View → Keyboard Shortcuts…**.
+The app actions in this table, except tab numbers, can be changed in **View → Keyboard Shortcuts…**. WindTerm compatibility aliases add clipboard, previous/next search, scroll, zoom and two-stroke window commands. See the [comparison and verification](docs/windterm-keyboard-audit.md). Focused Filer / FTP / SFTP lists support F2 rename, F5 refresh, confirmed Delete and other panel actions. Sender supports Alt+Enter to send, Alt+Q to stop and Alt+X to clear.
+
+On macOS, Fn+Left/Right defaults to line-start/end editing on the ordinary shell screen. Alternate-screen/application-cursor programs retain standard terminal sequences. Disable **Edit → Home/End Line Editing** when exact Home/End encoding is needed. This does not add WindTerm's separate local Vim browsing mode.
 
 ## License
 

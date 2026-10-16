@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type MouseEvent } from "react";
+import { useCallback, useMemo, useRef, useState, type MouseEvent } from "react";
 
 import { openSession, toggleSessionConnection } from "../../actions";
 import * as api from "../../api";
@@ -26,6 +26,7 @@ import { ContextMenu, type MenuItem } from "../ContextMenu";
 import { DeleteProfileDialog } from "../DeleteProfileDialog";
 import { GroupNameDialog } from "../GroupNameDialog";
 import { Icon } from "../icons";
+import { consumePanelKey, panelKey } from "./panelKeyboard";
 
 export const LOCAL_SHELL_PROFILE: SessionProfile = {
   id: "",
@@ -125,6 +126,12 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
     s.tabs.find((tab) => tab.info.id === s.activeId),
   );
 
+  const deleteFocus = useRef<HTMLElement | null>(null);
+  const treeRef = useRef<HTMLDivElement>(null);
+  const restoreDeleteFocus = () => {
+    if (deleteFocus.current?.isConnected) deleteFocus.current.focus();
+    else treeRef.current?.querySelector<HTMLElement>(".row[tabindex]")?.focus();
+  };
   const [filter, setFilter] = useState("");
   /**
    * Explicit open / closed state of the tree, keyed `kind:<kind>` for
@@ -223,6 +230,7 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
 
   /** Opens the delete dialog, counting the Sender commands that go with it. */
   const askDeleteProfile = async (profile: SessionProfile) => {
+    deleteFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const commands = await listSenderCommands();
     const scopedCommands = commands.filter(
       (command) =>
@@ -391,6 +399,19 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
     <div
       key={profile.id || profile.name}
       className="row"
+      tabIndex={0}
+      onMouseDown={(event) => { if (event.button === 0) event.currentTarget.focus(); }}
+      onKeyDown={(event) => {
+        const key = panelKey(event);
+        let action: (() => void) | undefined;
+        if (key === "Enter") action = () => { void openSession(profile); };
+        if (profile.id) {
+          if (key === "Alt+Enter") action = () => onEditProfile(profile);
+          if (key === "Mod+d") action = () => { void duplicateProfile(profile.id).then(onEditProfile, (error) => report("Failed to duplicate session", error)); };
+          if (key === "Delete") action = () => { void askDeleteProfile(profile); };
+        }
+        if (action) { consumePanelKey(event); if (!event.repeat) action(); }
+      }}
       style={{ paddingLeft: 6 + INDENT * depth }}
       onDoubleClick={() => void openSession(profile)}
       onContextMenu={(event) => openMenu(event, profileMenu(profile))}
@@ -443,9 +464,20 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
     <div
       key={`group:${row.group.id}`}
       className="row is-group"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        const key = panelKey(event);
+        if (key === "Enter" || key === "Delete" || key === "Alt+Enter") {
+          consumePanelKey(event);
+          if (event.repeat) return;
+          if (key === "Enter") toggle(`group:${row.group.id}`);
+          else if (key === "Delete") void confirmDeleteGroup(row.group);
+          else setGroupDialog({ mode: "rename", group: row.group });
+        }
+      }}
       style={{ paddingLeft: 6 + INDENT * row.depth }}
       onMouseDown={(event) => {
-        if (event.button === 0) toggle(`group:${row.group.id}`);
+        if (event.button === 0) { event.currentTarget.focus(); toggle(`group:${row.group.id}`); }
       }}
       onContextMenu={(event) => openMenu(event, groupMenu(row.group))}
       title={`${describeLocation(
@@ -513,13 +545,28 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
         />
       </div>
 
-      <div className="panel-body">
+      <div ref={treeRef} className="panel-body" onKeyDown={(event) => {
+        const key = panelKey(event);
+        if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(key ?? "")) return;
+        const rows = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(".row[tabindex]"));
+        const current = rows.indexOf(document.activeElement as HTMLElement);
+        const index = key === "Home" ? 0 : key === "End" ? rows.length - 1
+          : Math.max(0, Math.min(rows.length - 1, current + (key === "ArrowUp" ? -1 : 1)));
+        consumePanelKey(event);
+        rows[index]?.focus();
+      }}>
         {sections.map((section) => (
           <div key={section.kind}>
             <div
               className="row is-section"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (panelKey(event) !== "Enter") return;
+                consumePanelKey(event);
+                if (!event.repeat) toggle(`kind:${section.kind}`);
+              }}
               onMouseDown={(event) => {
-                if (event.button === 0) toggle(`kind:${section.kind}`);
+                if (event.button === 0) { event.currentTarget.focus(); toggle(`kind:${section.kind}`); }
               }}
               onContextMenu={(event) =>
                 openMenu(event, kindMenu(section.kind))
@@ -615,9 +662,9 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
             // Dismiss first so a second Enter cannot re-enter removeProfile
             // while the backend delete is still in flight.
             setPendingDelete(null);
-            void removeProfile(pendingDelete.profile.id);
+            void removeProfile(pendingDelete.profile.id).finally(() => requestAnimationFrame(restoreDeleteFocus));
           }}
-          onCancel={() => setPendingDelete(null)}
+          onCancel={() => { setPendingDelete(null); restoreDeleteFocus(); }}
         />
       )}
     </div>

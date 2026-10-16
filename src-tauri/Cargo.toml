@@ -1,6 +1,6 @@
 [package]
 name = "edgeterm"
-version = "1.0.2"
+version = "1.0.3"
 description = "EdgeTerm - a lightweight terminal, SSH, FTP and serial client built with Rust + Tauri (installer under 5 MB, fast startup)"
 authors = ["EdgeTerm contributors"]
 license = "GPL-3.0-only"
@@ -59,6 +59,7 @@ dirs = "6"
 # Already in the tree through russh; used directly to seal credentials.json
 # (HKDF-SHA256 + ChaCha20-Poly1305).
 ring = "0.17"
+zeroize = "1"
 notify = "8"
 
 [target."cfg(any(target_os = \"macos\", windows, target_os = \"linux\"))".dependencies]

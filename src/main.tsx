@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 
 import App from "./App";
+import { installBrowserReloadGuard } from "./appKeyboard";
 import { applyFonts } from "./fonts";
 import { installOverflowTooltip } from "./overflowTooltip";
 import { useStore } from "./store";
@@ -23,16 +24,7 @@ applyFonts(
 // context menus where needed, so suppress the native menu and its common
 // keyboard shortcuts entirely.
 document.addEventListener("contextmenu", (event) => event.preventDefault());
-document.addEventListener(
-  "keydown",
-  (event) => {
-    const reloadShortcut =
-      event.key === "F5" ||
-      ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "r");
-    if (reloadShortcut) event.preventDefault();
-  },
-  { capture: true },
-);
+installBrowserReloadGuard();
 
 installOverflowTooltip();
 

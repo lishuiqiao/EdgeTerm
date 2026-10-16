@@ -1,6 +1,7 @@
 import {
   type MouseEvent as ReactMouseEvent,
   type ReactElement,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -14,15 +15,16 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import appIcon from "../../src-tauri/icons/32x32.png";
 import {
   revealCwdInFiler,
+  openSession,
   splitSession,
   toggleSessionConnection,
 } from "../actions";
 import { windowControl } from "../api";
 import {
-  exportAppData,
-  importAppData,
+  chooseDataImport,
   importSshConfig,
 } from "../dataTransfer";
+import { DataTransferDialog, type DataTransferRequest } from "./DataTransferDialog";
 import { commandHistory } from "../history";
 import { ask } from "../nativeDialog";
 import {
@@ -240,6 +242,7 @@ interface Props {
   onNewSession: () => void;
   onFind: () => void;
   onFindNext: () => void;
+  onFindPrevious: () => void;
   onFontSettings: () => void;
   onKeyboardShortcuts: () => void;
   onCheckForUpdates: () => void;
@@ -267,6 +270,8 @@ export function MenuBar(props: Props) {
       .catch(() => {});
   }, [windowTitle]);
   const panels = useStore((s) => s.panels);
+  const [dataTransfer, setDataTransfer] = useState<DataTransferRequest | null>(null);
+  const closeDataTransfer = useCallback(() => setDataTransfer(null), []);
   const togglePanel = useStore((s) => s.togglePanel);
   const panelDocks = useStore((s) => s.panelDocks);
   const movePanel = useStore((s) => s.movePanel);
@@ -280,6 +285,7 @@ export function MenuBar(props: Props) {
   const rightClickAction = useStore((s) => s.rightClickAction);
   const setRightClickAction = useStore((s) => s.setRightClickAction);
   const pasteWarning = useStore((s) => s.pasteWarning);
+  const macHomeEnd = useStore((s) => s.macHomeEnd);
   const copyOnSelect = useStore((s) => s.copyOnSelect);
   const setPasteWarning = useStore((s) => s.setPasteWarning);
   const setCopyOnSelect = useStore((s) => s.setCopyOnSelect);
@@ -406,6 +412,11 @@ export function MenuBar(props: Props) {
           action: withActive(toggleSessionConnection),
         },
         {
+          label: "Duplicate Session",
+          shortcut: accel("duplicateSession"),
+          action: () => { if (activeTab) void openSession(activeTab.profile); },
+        },
+        {
           label: "Close Session",
           shortcut: accel("closeSession"),
           action: withActive(requestCloseTab),
@@ -448,8 +459,12 @@ export function MenuBar(props: Props) {
           ],
         },
         "separator",
-        { label: "Export Data…", action: () => void exportAppData() },
-        { label: "Import Data…", action: () => void importAppData() },
+        { label: "Export Data…", action: () => setDataTransfer({ mode: "export" }) },
+        { label: "Import Data…", action: () => {
+          void chooseDataImport().then((path) => {
+            if (path) setDataTransfer({ mode: "import", path });
+          });
+        } },
         {
           label: "Import OpenSSH Config…",
           action: () => void importSshConfig(),
@@ -469,6 +484,8 @@ export function MenuBar(props: Props) {
           shortcut: accel("paste"),
           action: withActive((id) => getController(id)?.pasteFromClipboard()),
         },
+        { label: "Paste Selection", shortcut: accel("pasteSelection"),
+          action: withTerminal((terminal) => terminal.pasteSelection()) },
         {
           label: "Select All",
           shortcut: accel("selectAll"),
@@ -499,6 +516,11 @@ export function MenuBar(props: Props) {
             programClipboardEntry("deny"),
           ],
         },
+        ...(IS_MAC ? [{
+          label: "Home/End Line Editing",
+          checked: macHomeEnd,
+          action: () => useStore.getState().setMacHomeEnd(!macHomeEnd),
+        }] : []),
         // Mouse copy / paste is a Windows / Linux choice; macOS terminals
         // always open the menu, so the submenu is left out there.
         ...(IS_MAC
@@ -519,6 +541,11 @@ export function MenuBar(props: Props) {
               },
             ]),
         "separator",
+        {
+          label: "Redraw Screen",
+          shortcut: accel("clearScreen"),
+          action: withTerminal((terminal) => terminal.clearScreen()),
+        },
         {
           label: "Clear Buffer",
           shortcut: accel("clear"),
@@ -568,6 +595,7 @@ export function MenuBar(props: Props) {
           shortcut: accel("findNext"),
           action: props.onFindNext,
         },
+        { label: "Find Previous", shortcut: accel("findPrevious"), action: props.onFindPrevious },
       ],
     },
     {
@@ -617,6 +645,12 @@ export function MenuBar(props: Props) {
           children: (Object.keys(THEME_LABELS) as ThemeMode[]).map(themeEntry),
         },
         "separator",
+        { label: "Increase Terminal Font", shortcut: accel("zoomIn"), action: () => {
+          const state = useStore.getState(); state.setBufferFontSize(state.bufferFontSize + 1);
+        } },
+        { label: "Decrease Terminal Font", shortcut: accel("zoomOut"), action: () => {
+          const state = useStore.getState(); state.setBufferFontSize(state.bufferFontSize - 1);
+        } },
         { label: "Display Settings…", action: props.onFontSettings },
         {
           label: "Keyboard Shortcuts…",
@@ -766,6 +800,7 @@ export function MenuBar(props: Props) {
         </div>
         {!IS_MAC && <WindowControls maximized={maximized} />}
       </div>
+      {dataTransfer && <DataTransferDialog request={dataTransfer} onClose={closeDataTransfer} />}
     </div>
   );
 }

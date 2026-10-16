@@ -1,14 +1,10 @@
-
 import * as api from "./api";
-import { ask, open as openDialog, save as saveDialog } from "./nativeDialog";
+import { open as openDialog, save as saveDialog } from "./nativeDialog";
 import { useStore } from "./store";
-import type { AppData } from "./types";
+import type { BackupPreview } from "./types";
 
-// Session → Export Data… / Import Data…: one `.edgeterm` file (plain JSON
-// inside) holding the settings, saved sessions with their groups and Sender
-// tags. Passwords and passphrases never leave `credentials.json`; the backend
-// strips them on both sides, and the confirmation below says so, since
-// imported sessions will ask again.
+// Session → Export Data… / Import Data…: plain credential-free JSON by
+// default, or a password-encrypted backup. Only the backend handles secrets.
 
 /** Mirrors `APP_DATA_EXTENSION` in model.rs; the backend enforces it too. */
 export const DATA_FILE_EXTENSION = "edgeterm";
@@ -29,7 +25,7 @@ const withDataExtension = (path: string) =>
 const plural = (count: number, noun: string) =>
   `${count} ${noun}${count === 1 ? "" : "s"}`;
 
-const describe = (counts: {
+export const describeData = (counts: {
   profiles: number;
   groups: number;
   senderCommands: number;
@@ -49,31 +45,29 @@ const datestamp = (date: Date) =>
     String(date.getDate()).padStart(2, "0"),
   ].join("-");
 
-export async function exportAppData(): Promise<void> {
+export async function exportAppData(password: string | null = null): Promise<boolean> {
   const { exportSettings, setStatus } = useStore.getState();
-  try {
-    const now = new Date();
-    const picked = await saveDialog({
-      title: "Export EdgeTerm Data",
-      defaultPath: `EdgeTerm-${datestamp(now)}.${DATA_FILE_EXTENSION}`,
-      filters: FILE_FILTERS,
-    });
-    if (!picked) return;
-    const path = withDataExtension(picked);
-    const summary = await api.exportAppData(
-      path,
-      exportSettings(),
-      now.toISOString(),
-    );
-    setStatus(
-      `Exported ${describe(summary)} and settings to ${basename(path)} (passwords are not included)`,
-    );
-  } catch (error) {
-    setStatus(`Export failed: ${error}`);
-  }
+  const now = new Date();
+  const picked = await saveDialog({
+    title: "Export EdgeTerm Data",
+    defaultPath: `EdgeTerm-${datestamp(now)}.${DATA_FILE_EXTENSION}`,
+    filters: FILE_FILTERS,
+  });
+  if (!picked) return false;
+  const path = withDataExtension(picked);
+  const summary = await api.exportAppData(
+    path,
+    exportSettings(),
+    now.toISOString(),
+    password,
+  );
+  setStatus(
+    `Exported ${describeData(summary)} and settings to ${basename(path)} (${password === null ? "passwords are not included" : "encrypted, including saved passwords"})`,
+  );
+  return true;
 }
 
-export async function importAppData(): Promise<void> {
+export async function chooseDataImport(): Promise<string | null> {
   const store = useStore.getState();
   try {
     const picked = await openDialog({
@@ -83,49 +77,35 @@ export async function importAppData(): Promise<void> {
       filters: FILE_FILTERS,
     });
     const path = typeof picked === "string" ? picked : null;
-    if (!path) return;
+    if (!path) return null;
     // The dialog filter already narrows the list, but "All files" and typed
     // paths get through on some platforms; say what was expected up front.
     if (!hasDataExtension(path)) {
       store.setStatus(
         `Import failed: “${basename(path)}” is not an EdgeTerm data file (expected .${DATA_FILE_EXTENSION})`,
       );
-      return;
+      return null;
     }
 
-    // Parse first so the confirmation can say exactly what is coming in.
-    const data: AppData = await api.readAppData(path);
-    const hasSettings = !!data.settings && typeof data.settings === "object";
-    const summary = describe({
-      profiles: data.profiles.length,
-      groups: data.groups.length,
-      senderCommands: data.senderCommands.length,
-    });
-    const confirmed = await ask(
-      `Import ${summary}${hasSettings ? " and settings" : ""} from “${basename(path)}”?\n\n` +
-        "Entries with the same id replace the local ones; nothing else is removed. " +
-        "Data files never contain session passwords, so imported sessions will ask for theirs again.",
-      {
-        title: "Import Data",
-        kind: "info",
-        okLabel: "Import",
-        cancelLabel: "Cancel",
-      },
-    );
-    if (!confirmed) return;
-
-    const result = await api.importAppData(data);
-    if (hasSettings) store.applySettings(data.settings);
-    await store.loadProfiles();
-    store.bumpSenderLibrary();
-    let status = `Imported ${describe(result)}${hasSettings ? " and settings" : ""}`;
-    if (result.skippedSenderCommands > 0) {
-      status += `; skipped ${plural(result.skippedSenderCommands, "Sender command")} (library full)`;
-    }
-    store.setStatus(status);
+    return path;
   } catch (error) {
     store.setStatus(`Import failed: ${error}`);
+    return null;
   }
+}
+
+export async function importAppData(path: string, preview: BackupPreview, password: string | null): Promise<void> {
+  const store = useStore.getState();
+  const { summary: result, settings } = await api.importAppDataFile(path, preview.fingerprint, password);
+  const hasSettings = !!settings && typeof settings === "object";
+  if (hasSettings) store.applySettings(settings);
+  await store.loadProfiles();
+  store.bumpSenderLibrary();
+  let status = `Imported ${describeData(result)}${hasSettings ? " and settings" : ""}${preview.encrypted ? " and saved credentials" : ""}`;
+  if (result.skippedSenderCommands > 0) {
+    status += `; skipped ${plural(result.skippedSenderCommands, "Sender command")} (library full)`;
+  }
+  store.setStatus(status);
 }
 
 /**

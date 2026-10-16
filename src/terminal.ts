@@ -499,6 +499,7 @@ export class TerminalController {
   /** The shell's latest OSC directory report; see `reportedCwd`. */
   private reported: ReportedCwd | null = null;
   private disposed = false;
+  private macHomeEnd = true;
   /** The WebGL addon driving the terminal; null on the DOM renderer. */
   private webgl: WebglAddon | null = null;
   /** True while the pane is on screen; see setVisible. */
@@ -781,6 +782,11 @@ export class TerminalController {
     if (event.type !== "keydown") return true;
     const key = event.key.toLowerCase();
 
+    // The IME owns its marked text. Composition/input events complete it
+    // through our input patch; this key must not trigger a shortcut or send
+    // a terminal sequence, even if the browser gives it a normal keyCode.
+    if (event.isComposing || event.keyCode === 229) return false;
+
     // IDE-style completion popup. While it is *passive* every key still
     // reaches the shell (so ↑ history, Tab completion and a remote shell's
     // own → autosuggest keep working); only ↓ (step into the list) and Esc
@@ -839,6 +845,83 @@ export class TerminalController {
       }
     }
 
+    // Terminal actions run here, before any shell key adaptation. Other
+    // matches are left unhandled so the window-level handler receives them
+    // instead of xterm turning them into input. Plain
+    // Ctrl+letter and Alt+letter are never matched unless the user bound
+    // them: they are the shell's control characters and readline's Meta
+    // layer.
+    const shortcut = matchAppShortcut(event);
+    if (shortcut) {
+      switch (shortcut.kind) {
+        case "copy":
+          // A copy key that is plain Ctrl+letter is a shell key as well
+          // (Ctrl+C interrupts), so with nothing selected it goes on to the
+          // shell, as in Windows Terminal. Any other chord is consumed even
+          // then: Ctrl+Shift+C would otherwise arrive as a stray ^C.
+          if (!this.term.hasSelection() && isControlLetter(event)) return true;
+          event.preventDefault();
+          this.copySelection();
+          return false;
+        case "paste":
+          event.preventDefault();
+          this.pasteFromClipboard();
+          return false;
+        case "selectAll":
+          event.preventDefault();
+          this.term.selectAll();
+          return false;
+        case "clearScreen":
+          event.preventDefault();
+          event.stopPropagation();
+          this.clearScreen();
+          return false;
+        case "pasteSelection":
+          event.preventDefault();
+          event.stopPropagation();
+          this.pasteSelection();
+          return false;
+        case "scrollTerminal":
+          event.preventDefault();
+          event.stopPropagation();
+          this.scrollTerminal(shortcut.direction, shortcut.unit);
+          return false;
+        default:
+          return false;
+      }
+    }
+
+    // macOS laptops deliver Fn+Left/Right as Home/End. Bare zsh does not
+    // bind xterm's Home/End sequences, so the ordinary shell screen uses
+    // readline's beginning/end-of-line controls. This is a shell usability
+    // adaptation, not the xterm protocol: alternate-screen applications and
+    // application-cursor mode retain their native Home/End sequences. A TUI
+    // that uses neither mode cannot be distinguished from a shell here.
+    if (
+      IS_MAC &&
+      this.macHomeEnd &&
+      !event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey &&
+      this.term.buffer.active.type === "normal" &&
+      !this.term.modes.applicationCursorKeysMode &&
+      (key === "home" || key === "end")
+    ) {
+      event.preventDefault();
+      this.term.input(key === "home" ? "\x01" : "\x05", true);
+      return false;
+    }
+
+    // xterm.js only encodes F1–F12. WindTerm's xterm keymap also defines
+    // the unmodified F13–F20 keys using these standard tilde sequences.
+    if (!event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey) {
+      const number = /^f(1[3-9]|20)$/.exec(key);
+      if (number) {
+        const sequence = [25, 26, 28, 29, 31, 32, 33, 34][Number(number[1]) - 13];
+        event.preventDefault();
+        this.term.input(`\x1b[${sequence}~`, true);
+        return false;
+      }
+    }
+
     // Alt+arrow word jumps. xterm 5 rewrote Alt+←/→ into the readline
     // word-motion keys (ESC b / ESC f on macOS, Ctrl+arrow elsewhere) and
     // Alt+↑/↓ into Ctrl+↑/↓ off macOS; xterm 6 dropped that (#5346) and
@@ -875,38 +958,6 @@ export class TerminalController {
         true,
       );
       return false;
-    }
-
-    // The shortcut table, copy / paste / select all included (#47). Those
-    // three are the terminal's own and run right here; every other match
-    // is left unhandled — not cancelled — so the window-level handler
-    // receives it instead of xterm turning it into input. Plain
-    // Ctrl+letter and Alt+letter are never matched unless the user bound
-    // them: they are the shell's control characters and readline's Meta
-    // layer.
-    const shortcut = matchAppShortcut(event);
-    if (shortcut) {
-      switch (shortcut.kind) {
-        case "copy":
-          // A copy key that is plain Ctrl+letter is a shell key as well
-          // (Ctrl+C interrupts), so with nothing selected it goes on to the
-          // shell, as in Windows Terminal. Any other chord is consumed even
-          // then: Ctrl+Shift+C would otherwise arrive as a stray ^C.
-          if (!this.term.hasSelection() && isControlLetter(event)) return true;
-          event.preventDefault();
-          this.copySelection();
-          return false;
-        case "paste":
-          event.preventDefault();
-          this.pasteFromClipboard();
-          return false;
-        case "selectAll":
-          event.preventDefault();
-          this.term.selectAll();
-          return false;
-        default:
-          return false;
-      }
     }
 
     // WebKit answers plain ⌘C / ⌘V itself (its copy and paste editing
@@ -1458,6 +1509,29 @@ export class TerminalController {
 
   clear() {
     this.clearBufferAndMetadata();
+  }
+
+  /** Ask the current shell/program to redraw, retaining local scrollback. */
+  clearScreen() {
+    this.term.input("\x0c", true);
+  }
+
+  /** Disable the shell adaptation for programs that use ordinary-screen Home/End. */
+  setMacHomeEnd(enabled: boolean) {
+    this.macHomeEnd = enabled;
+  }
+
+  /** Use the same multiline/bracketed-paste policy as clipboard paste. */
+  pasteSelection() {
+    const text = this.term.getSelection();
+    if (text) this.paste(text);
+  }
+
+  scrollTerminal(direction: -1 | 1, unit: "line" | "page" | "edge") {
+    if (unit === "line") this.term.scrollLines(direction);
+    else if (unit === "page") this.term.scrollPages(direction);
+    else if (direction < 0) this.term.scrollToTop();
+    else this.term.scrollToBottom();
   }
 
   /**

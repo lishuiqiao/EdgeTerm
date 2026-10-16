@@ -130,6 +130,7 @@ export async function ensureController(id: string): Promise<TerminalController> 
       useStore.getState().systemMonoFamily,
     ),
   );
+  controller.setMacHomeEnd(useStore.getState().macHomeEnd);
   controller.setSuggestions(useStore.getState().suggestionsEnabled);
   controller.setRightClickAction(useStore.getState().rightClickAction);
   controller.setPasteWarning(useStore.getState().pasteWarning);

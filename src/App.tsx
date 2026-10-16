@@ -14,6 +14,7 @@ import {
 
 import {
   acceptHostKey,
+  openSession,
   revealCwdInFiler,
   SESSION_CLOSED_NOTICE,
   splitSession,
@@ -45,7 +46,7 @@ import { applyFonts, symbolFallbacks } from "./fonts";
 import { commandHistory } from "./history";
 import type { PanelDock } from "./panelDock";
 import { IS_WINDOWS } from "./platform";
-import { matchAppShortcut } from "./shortcuts";
+import { installAppKeyboard } from "./appKeyboard";
 import { installSearchShortcuts } from "./searchShortcuts";
 import { type PanelName, tabTitle, useActiveTab, useStore } from "./store";
 import { allControllers, getController } from "./terminalRegistry";
@@ -92,6 +93,7 @@ export default function App() {
   const setBufferFontFamily = useStore((s) => s.setBufferFontFamily);
   const setTerminalScrollback = useStore((s) => s.setTerminalScrollback);
   const cursorStyle = useStore((s) => s.cursorStyle);
+  const macHomeEnd = useStore((s) => s.macHomeEnd);
   const cursorBlink = useStore((s) => s.cursorBlink);
   const setCursorStyle = useStore((s) => s.setCursorStyle);
   const setCursorBlink = useStore((s) => s.setCursorBlink);
@@ -330,32 +332,40 @@ export default function App() {
     else searchRef.current?.findNext();
   }, [fileMode, searchOpen]);
 
+  const findPrevious = useCallback(() => {
+    if (fileMode) return;
+    if (!searchOpen) setSearchOpen(true);
+    else searchRef.current?.findPrevious();
+  }, [fileMode, searchOpen]);
+
+  useEffect(() => {
+    for (const controller of allControllers()) controller.setMacHomeEnd(macHomeEnd);
+  }, [macHomeEnd]);
+
   // --- keyboard -------------------------------------------------------------
 
   useEffect(() => installSearchShortcuts(
     (next) => filerRef.current?.searchIfHovered(next) ?? false,
-    (next) => next ? findNext() : openSearch(),
-  ), [openSearch, findNext]);
+    (next) => next === "previous" ? findPrevious() : next ? findNext() : openSearch(),
+  ), [openSearch, findNext, findPrevious]);
 
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      // xterm keeps a hidden textarea for input, so "focus is in a text field"
-      // has to exclude the terminal itself or every shortcut would be dead
-      // exactly where it matters most.
-      const target = event.target as HTMLElement | null;
-      const inTerminal = Boolean(target?.closest(".xterm"));
-      if (!inTerminal && target?.closest("input, textarea, select")) return;
-
-      // The modifier scheme is platform-specific (⌘ on macOS, Alt elsewhere)
-      // and lives in shortcuts.ts; only the dispatch happens here.
-      const shortcut = matchAppShortcut(event);
-      if (!shortcut) return;
-
+    return installAppKeyboard((shortcut, event) => {
       switch (shortcut.kind) {
         case "tabStep":
           event.preventDefault();
           activateAdjacentTab(shortcut.step);
           return;
+        case "toggleGutter": {
+          event.preventDefault();
+          const state = useStore.getState();
+          const line = state.gutterMode === "line" || state.gutterMode === "both";
+          const time = state.gutterMode === "time" || state.gutterMode === "both";
+          const nextLine = shortcut.field === "line" ? !line : line;
+          const nextTime = shortcut.field === "time" ? !time : time;
+          state.setGutterMode(nextLine ? nextTime ? "both" : "line" : nextTime ? "time" : "off");
+          return;
+        }
         case "togglePanel":
           event.preventDefault();
           togglePanel(shortcut.panel);
@@ -370,23 +380,24 @@ export default function App() {
           return;
         case "find":
         case "findNext":
+        case "findPrevious":
           // Routed in capture phase according to the pointer's panel.
           return;
         case "clear":
+          event.preventDefault();
           if (activeId && !fileMode) {
-            event.preventDefault();
             getController(activeId)?.clear();
           }
           return;
         case "revealCwd":
+          event.preventDefault();
           if (activeId && !fileMode) {
-            event.preventDefault();
             void revealCwdInFiler(activeId);
           }
           return;
         case "splitPane":
-          if (activeId) {
-            event.preventDefault();
+          event.preventDefault();
+          if (activeId && !event.repeat) {
             void splitSession(activeId, shortcut.side);
           }
           return;
@@ -394,6 +405,21 @@ export default function App() {
           event.preventDefault();
           activateAdjacentPane(shortcut.step);
           return;
+        case "duplicateSession": {
+          const tab = useStore.getState().tabs.find((item) => item.info.id === activeId);
+          event.preventDefault();
+          if (tab && !event.repeat) void openSession(tab.profile);
+          return;
+        }
+        case "zoom": {
+          event.preventDefault();
+          const state = useStore.getState();
+          state.setBufferFontSize(state.bufferFontSize + shortcut.step);
+          return;
+        }
+        case "clearScreen":
+        case "pasteSelection":
+        case "scrollTerminal":
         case "copy":
         case "paste":
         case "selectAll":
@@ -412,9 +438,7 @@ export default function App() {
           return;
         }
       }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    });
   }, [
     activateAdjacentPane,
     activateAdjacentTab,
@@ -472,6 +496,7 @@ export default function App() {
         onNewSession={newSession}
         onFind={openSearch}
         onFindNext={findNext}
+        onFindPrevious={findPrevious}
         onFontSettings={() => setFontSettingsOpen(true)}
         onKeyboardShortcuts={() => setShortcutsOpen(true)}
         onCheckForUpdates={() => void updater.checkForUpdates()}

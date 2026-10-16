@@ -85,12 +85,19 @@ export const deleteSenderCommand = (id: string) =>
 
 // --- data export / import ---------------------------------------------------
 
-/** Writes sessions, groups, Sender tags and `settings` to `path` (no secrets). */
+/** A password opts into full-file encryption including saved credentials. */
 export const exportAppData = (
   path: string,
   settings: unknown,
   exportedAt: string,
-) => invoke<DataSummary>("export_app_data", { path, settings, exportedAt });
+  password: string | null = null,
+) => invoke<DataSummary>("export_app_data", { path, settings, exportedAt, password });
+
+export const previewAppData = (path: string, password: string | null = null) =>
+  invoke<import("./types").BackupPreview>("preview_app_data", { path, password });
+
+export const importAppDataFile = (path: string, fingerprint: string, password: string | null = null) =>
+  invoke<import("./types").DataImportResult>("import_app_data_file", { path, fingerprint, password });
 
 /** Parses a data file for preview; credentials in it are dropped by the backend. */
 export const readAppData = (path: string) =>

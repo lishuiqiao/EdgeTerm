@@ -16,6 +16,19 @@ beforeEach(() => {
   useStore.setState({ ...initialState }, true);
 });
 
+it("persists and exports the optional macOS Home/End shell adaptation", () => {
+  useStore.getState().setMacHomeEnd(false);
+  expect(localStorage.getItem("edgeterm.macHomeEnd")).toBe("off");
+  const backup = useStore.getState().exportSettings();
+  expect(backup.macHomeEnd).toBe(false);
+  useStore.getState().resetSettings();
+  expect(useStore.getState().macHomeEnd).toBe(true);
+  useStore.getState().applySettings(backup);
+  expect(useStore.getState().macHomeEnd).toBe(false);
+  useStore.getState().applySettings({ macHomeEnd: "invalid" });
+  expect(useStore.getState().macHomeEnd).toBe(false);
+});
+
 describe("cursor settings", () => {
   it("default to a blinking block", () => {
     const state = useStore.getState();

@@ -1,3 +1,4 @@
+mod backup;
 mod commands;
 mod error;
 mod file_promise;
@@ -392,6 +393,8 @@ pub fn run() {
             commands::export_app_data,
             commands::read_app_data,
             commands::import_app_data,
+            commands::preview_app_data,
+            commands::import_app_data_file,
             commands::default_ssh_config_path,
             commands::read_ssh_config,
             commands::import_ssh_config,

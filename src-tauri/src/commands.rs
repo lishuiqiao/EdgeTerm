@@ -2,9 +2,10 @@ use base64::{engine::general_purpose::STANDARD as B64, Engine as _};
 use std::path::Path;
 use std::sync::Arc;
 use std::time::UNIX_EPOCH;
-use tauri::{ipc::Channel, AppHandle, State};
+use tauri::{ipc::Channel, AppHandle, Manager, State};
 use tokio::io::{AsyncReadExt, AsyncSeekExt, AsyncWriteExt};
 use tokio::sync::mpsc;
+use zeroize::Zeroizing;
 
 use crate::error::{err, AppError, Result};
 use crate::file_promise::{self, PromisedDragEvent};
@@ -130,29 +131,61 @@ pub fn clear_command_history(state: State<'_, AppState>) -> Result<()> {
 
 // --- data export / import ---------------------------------------------------
 
-/// Writes saved sessions, their groups, Sender tags and the frontend's
-/// settings to `path` as pretty JSON. Passwords and passphrases are never
-/// included, so the file needs no special permissions. The path must carry
-/// the `.edgeterm` extension (the UI appends it), so every data file is
-/// recognisable by name.
+/// A password opts into a fully encrypted backup including saved credentials.
+/// Expensive password derivation and file IO run off the UI thread.
 #[tauri::command]
-pub fn export_app_data(
-    state: State<'_, AppState>,
+pub async fn export_app_data(
+    app: AppHandle,
     path: String,
     settings: serde_json::Value,
     exported_at: String,
+    password: Option<String>,
 ) -> Result<DataSummary> {
-    require_data_file_path(&path)?;
-    let mut data = state.store.snapshot();
-    data.exported_at = Some(exported_at);
-    data.settings = Some(settings);
-    std::fs::write(&path, serde_json::to_string_pretty(&data)?)?;
-    Ok(DataSummary {
-        profiles: data.profiles.len(),
-        groups: data.groups.len(),
-        sender_commands: data.sender_commands.len(),
-        skipped_sender_commands: 0,
+    let password = password.map(Zeroizing::new);
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::backup::export(
+            &app.state::<AppState>().store,
+            Path::new(&path),
+            settings,
+            exported_at,
+            password.as_ref().map(|p| p.as_str()),
+        )
     })
+    .await
+    .map_err(|_| AppError::new("Backup export task failed"))?
+}
+
+#[tauri::command]
+pub async fn preview_app_data(
+    path: String,
+    password: Option<String>,
+) -> Result<crate::backup::BackupPreview> {
+    let password = password.map(Zeroizing::new);
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::backup::preview(Path::new(&path), password.as_ref().map(|p| p.as_str()))
+    })
+    .await
+    .map_err(|_| AppError::new("Backup preview task failed"))?
+}
+
+#[tauri::command]
+pub async fn import_app_data_file(
+    app: AppHandle,
+    path: String,
+    password: Option<String>,
+    fingerprint: String,
+) -> Result<crate::backup::ImportResult> {
+    let password = password.map(Zeroizing::new);
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::backup::import(
+            &app.state::<AppState>().store,
+            Path::new(&path),
+            password.as_ref().map(|p| p.as_str()),
+            &fingerprint,
+        )
+    })
+    .await
+    .map_err(|_| AppError::new("Backup import task failed"))?
 }
 
 /// Parses an EdgeTerm data file so the UI can show what an import would

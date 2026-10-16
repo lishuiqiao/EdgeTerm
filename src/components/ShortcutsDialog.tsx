@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { IS_MAC } from "../platform";
 import {
   chordFromEvent,
+  shortcutAliasLabels,
+  DEFAULT_SHORTCUTS,
   chordLabel,
   chordProblem,
   defaultShortcuts,
@@ -22,8 +24,8 @@ interface Props {
 
 /** The shortcuts this dialog cannot change, shown so they are not hunted for. */
 const FIXED_SHORTCUTS: { keys: string; label: string }[] = IS_MAC
-  ? [{ keys: "⌘1–⌘9", label: "Switch to tab N" }]
-  : [{ keys: "Alt+1–Alt+9", label: "Switch to tab N" }];
+  ? [{ keys: "⌘1–⌘9", label: "Switch to tab N" }, { keys: "⌥W, ⌥S/F/X", label: "Toggle Sessions / Filer / Sender" }, { keys: "⌥W, ⌥H/V", label: "Split down / right" }, { keys: "Alt+T, Alt+N/T", label: "Toggle line numbers / timestamps" }]
+  : [{ keys: "Alt+1–Alt+9", label: "Switch to tab N" }, { keys: "Alt+W, Alt+S/F/X", label: "Toggle Sessions / Filer / Sender" }, { keys: "Alt+W, Alt+H/V", label: "Split down / right" }, { keys: "Alt+T, Alt+N/T", label: "Toggle line numbers / timestamps" }];
 
 /**
  * Rebinds the application's keyboard shortcuts. A row records the next chord
@@ -118,6 +120,8 @@ export function ShortcutsDialog({ bindings, onApply, onClose }: Props) {
                   <span className="shortcut-command">
                     <strong>{label}</strong>
                     <small>{hint}</small>
+                    {sameChord(chord, DEFAULT_SHORTCUTS[id]) && shortcutAliasLabels(id).length > 0 &&
+                      <small>Also: {shortcutAliasLabels(id).join(" · ")}</small>}
                   </span>
                   <button
                     type="button"

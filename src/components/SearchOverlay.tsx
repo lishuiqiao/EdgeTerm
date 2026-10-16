@@ -25,6 +25,7 @@ interface Props {
 export interface SearchOverlayHandle {
   /** Jump to the next match, or focus the input when there is no query yet. */
   findNext: () => void;
+  findPrevious: () => void;
   /**
    * Focus the input and select the query so typing replaces it. A new
    * single-line terminal selection is searched instead, as when the box opens.
@@ -153,6 +154,10 @@ export const SearchOverlay = forwardRef<SearchOverlayHandle, Props>(
           if (query) runSearch(true);
           else focusInput();
         },
+        findPrevious: () => {
+          if (query) runSearch(false);
+          else focusInput();
+        },
         focus: () => {
           const adopted = adoptSelection();
           focusInput(!adopted);
@@ -179,6 +184,7 @@ export const SearchOverlay = forwardRef<SearchOverlayHandle, Props>(
             runSearch(true, true, term);
           }}
           onKeyDown={(event) => {
+            if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
             if (event.key === "Enter") runSearch(!event.shiftKey);
             else if (event.key === "Escape") onClose();
             else if (isFindKey(event)) {

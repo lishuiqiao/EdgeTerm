@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type MouseEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
@@ -16,7 +17,9 @@ import { revealCwdInFiler } from "../../actions";
 import * as api from "../../api";
 import { open as openDialog, save as saveDialog } from "../../nativeDialog";
 import { IS_MAC, IS_WINDOWS } from "../../platform";
-import { chordLabel } from "../../shortcuts";
+import { getController } from "../../terminalRegistry";
+import { consumePanelKey, panelKey } from "./panelKeyboard";
+import { chordLabel, matchAppShortcut } from "../../shortcuts";
 import { tabTitle, useActiveTab, useStore } from "../../store";
 import { ContextMenu, type MenuItem } from "../ContextMenu";
 import { DeleteEntryDialog } from "../DeleteEntryDialog";
@@ -128,7 +131,7 @@ const rememberPath = (source: string, path: string) => {
 
 export interface FilerPanelHandle {
   /** Returns false when the pointer is outside this panel. */
-  searchIfHovered: (next: boolean) => boolean;
+  searchIfHovered: (next: boolean | "previous") => boolean;
 }
 
 export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, ref) {
@@ -171,6 +174,9 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
   const [searchQuery, setSearchQuery] = useState("");
   const [searchMatchPath, setSearchMatchPath] = useState<string | null>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null);
+  const addressInputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const [renaming, setRenaming] = useState<{ entry: FileEntry; name: string } | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const pointerInPanel = useRef(false);
   const searchMatchRef = useRef<HTMLDivElement>(null);
@@ -213,7 +219,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
       if (!searchOpen) setSearchOpen(true);
       else {
         searchInputRef.current?.focus();
-        if (next && searchQuery) moveSearch(1);
+        if (next && searchQuery) moveSearch(next === "previous" ? -1 : 1);
         else searchInputRef.current?.select();
       }
       return true;
@@ -417,6 +423,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
         setDraft(listing.path);
         setEntries(listing.entries);
         setSelected(null);
+        setRenaming(null);
         rememberPath(remoteId ?? LOCAL_SOURCE, listing.path);
         return true;
       } catch (e) {
@@ -594,7 +601,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
    * on screen, the way dropping on a file manager works: uploading needs a
    * remote session, and this is the local half of the same gesture.
    */
-  const copyPaths = async (sources: string[]) => {
+  const copyPaths = async (sources: string[], destination = path) => {
     if (
       remoteIdRef.current ||
       offlineReasonRef.current ||
@@ -604,7 +611,6 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
     ) {
       return;
     }
-    const destination = path;
     busyRef.current = true;
     setBusy(true);
     setError(null);
@@ -620,7 +626,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
         if (summary.files === 0 && summary.skipped > 0) skipped += 1;
         finishTransfer("complete");
       }
-      await load(destination);
+      await load(path);
       if (skipped > 0) {
         setError(
           skipped === sources.length
@@ -630,11 +636,33 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
       }
     } catch (e) {
       finishTransfer("error");
-      await load(destination);
+      await load(path);
       setError(String(e));
     } finally {
       busyRef.current = false;
       setBusy(false);
+    }
+  };
+
+  const copyToFolder = async (entry: FileEntry) => {
+    try {
+      const destination = await openDialog({ directory: true, title: "Copy to folder" });
+      if (typeof destination === "string") await copyPaths([entry.path], destination);
+    } catch (error) {
+      setError(String(error));
+    } finally {
+      listRef.current?.focus();
+    }
+  };
+
+  const copyFromFiles = async () => {
+    try {
+      const sources = await openDialog({ multiple: true, title: "Copy files into current folder" });
+      await copyPaths(pickedPaths(sources));
+    } catch (error) {
+      setError(String(error));
+    } finally {
+      listRef.current?.focus();
     }
   };
 
@@ -995,6 +1023,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
 
   const removeEntry = async (entry: FileEntry) => {
     setPendingDelete(null);
+    listRef.current?.focus();
     setBusy(true);
     try {
       if (remoteId) await api.sftpRemove(remoteId, entry.path, entry.isDir);
@@ -1142,6 +1171,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
         ]
       : []),
     "separator",
+    { label: "Rename…", icon: "rename", disabled: busy || atDrivesRoot, action: () => setRenaming({ entry, name: entry.name }) },
     { label: "Copy Path", icon: "copy", action: () => copyText(entry.path) },
     { label: "Copy Name", icon: "tag", action: () => copyText(entry.name) },
     "separator",
@@ -1227,6 +1257,83 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
       await load(path);
     } catch (e) {
       setError(String(e));
+    }
+  };
+
+  const commitRename = async () => {
+    const draft = renaming;
+    setRenaming(null);
+    listRef.current?.focus();
+    if (!draft || busy || atDrivesRoot) return;
+    const name = draft.name.trim();
+    if (!name || name === draft.entry.name) return;
+    if (name === "." || name === ".." || /[\\/]/.test(name)) {
+      setError(`"${name}" is not a valid name`);
+      return;
+    }
+    if (entries.some((entry) => entry.name === name)) {
+      setError(`"${name}" already exists in this folder`);
+      return;
+    }
+    setBusy(true);
+    try {
+      if (remoteId) await api.sftpRename(remoteId, draft.entry.path, joinRemote(path, name));
+      else await api.localRename(draft.entry.path, joinLocal(path, name));
+      await load(path);
+    } catch (error) {
+      setError(String(error));
+    } finally {
+      setBusy(false);
+      listRef.current?.focus();
+    }
+  };
+
+  const onTreeKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    const key = panelKey(event);
+    if (!key || busy || offline) return;
+    const entry = entries.find((item) => item.path === selected);
+    let action: (() => void) | undefined;
+    const paste = (text: string) => {
+      if (tab?.state === "connected") getController(tab.info.id)?.paste(text);
+    };
+    switch (key) {
+      case "ArrowDown":
+      case "ArrowUp":
+      case "Home":
+      case "End":
+        action = () => {
+          const current = entries.findIndex((item) => item.path === selected);
+          const index = key === "Home" ? 0 : key === "End" ? entries.length - 1
+            : current < 0 ? (key === "ArrowUp" ? entries.length - 1 : 0)
+            : Math.max(0, Math.min(entries.length - 1, current + (key === "ArrowUp" ? -1 : 1)));
+          const target = entries[index];
+          if (target) {
+            setSelected(target.path);
+            listRef.current?.querySelectorAll<HTMLElement>(".filer-entry")[index]?.scrollIntoView({ block: "nearest" });
+          }
+        };
+        break;
+      case "Enter": if (entry) action = () => activate(entry); break;
+      case "Delete": if (entry && !atDrivesRoot) action = () => setPendingDelete(entry); break;
+      case "F2": if (entry && !atDrivesRoot) action = () => setRenaming({ entry, name: entry.name }); break;
+      case "F3": if (entry && !atDrivesRoot) action = () => { if (remote) void download(entry); else void copyToFolder(entry); }; break;
+      case "F4": if (path && !atDrivesRoot) action = () => { if (remote) void upload(); else void copyFromFiles(); }; break;
+      case "F5": action = () => { void load(path); }; break;
+      case "Backspace": if (path && !atDrivesRoot) action = () => { void goUp(); }; break;
+      case "Alt+d": action = () => { addressInputRef.current?.focus(); addressInputRef.current?.select(); }; break;
+      case "F7": if (path && !atDrivesRoot) action = () => paste(path); break;
+      case "F8": if (canReveal && tab) action = () => { void revealCwdInFiler(tab.info.id); }; break;
+      case "Mod+c": if (entry) action = () => copyText(entry.name); break;
+      case "Mod+Shift+c": if (entry) action = () => copyText(entry.path); break;
+      case "Mod+p": if (entry) action = () => paste(entry.name); break;
+      case "Mod+Shift+p": if (entry) action = () => paste(entry.path); break;
+      case "Mod+n": if (path && !atDrivesRoot) action = () => setCreating({ kind: "file", name: "" }); break;
+      case "Mod+Shift+n": if (path && !atDrivesRoot) action = () => setCreating({ kind: "folder", name: "" }); break;
+    }
+    if (action) {
+      consumePanelKey(event);
+      if (!event.repeat) action();
+      else if (["ArrowDown", "ArrowUp", "Home", "End"].includes(key)) action();
     }
   };
 
@@ -1386,6 +1493,8 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
           <Icon name="target" />
         </button>
         <input
+          ref={addressInputRef}
+          aria-label="Folder path"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={(event) => {
@@ -1411,7 +1520,12 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
               setSearchMatchPath(null);
             }}
             onKeyDown={(event) => {
-              if (event.key === "Escape") {
+              if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+              if (matchAppShortcut(event.nativeEvent)?.kind === "findPrevious") {
+                event.preventDefault();
+                event.stopPropagation();
+                moveSearch(-1);
+              } else if (event.key === "Escape") {
                 event.preventDefault();
                 event.stopPropagation();
                 closeSearch();
@@ -1461,6 +1575,12 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
       </div>
 
       <div
+        ref={listRef}
+        tabIndex={0}
+        onKeyDown={onTreeKeyDown}
+        onMouseDown={(event) => {
+          if (event.button === 0 && event.target instanceof HTMLElement && !event.target.closest("input, button")) listRef.current?.focus();
+        }}
         className="panel-body filer-list"
         onContextMenu={(event) => openMenu(event, folderMenu())}
         aria-label={
@@ -1520,13 +1640,29 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
                 isDir={entry.isDir}
                 theme={theme}
               />
-              <span className="row-label">
+              {renaming?.entry.path === entry.path ? (
+                <input
+                  autoFocus
+                  aria-label="Rename file or folder"
+                  onDoubleClick={(event) => event.stopPropagation()}
+                  value={renaming.name}
+                  onFocus={(event) => event.currentTarget.select()}
+                  onChange={(event) => setRenaming({ ...renaming, name: event.target.value })}
+                  onBlur={() => setRenaming(null)}
+                  onKeyDown={(event) => {
+                    event.stopPropagation();
+                    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+                    if (event.key === "Enter") { event.preventDefault(); void commitRename(); }
+                    if (event.key === "Escape") { setRenaming(null); listRef.current?.focus(); }
+                  }}
+                />
+              ) : <span className="row-label">
                 {matchParts
                   ? matchParts.map((part, index) => index % 2
                     ? <mark className="filer-search-match" key={index}>{part}</mark>
                     : part)
                   : entry.name}
-              </span>
+              </span>}
               <span className="filer-col-date row-meta">
                 {formatDate(entry.modified)}
               </span>
@@ -1548,7 +1684,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
           entry={pendingDelete}
           location={remote ? (tab ? tabTitle(tab) : "remote") : "local"}
           onConfirm={() => void removeEntry(pendingDelete)}
-          onCancel={() => setPendingDelete(null)}
+          onCancel={() => { setPendingDelete(null); listRef.current?.focus(); }}
         />
       )}
 

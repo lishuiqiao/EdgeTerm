@@ -3,6 +3,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../../platform", () => ({ IS_MAC: true, IS_WINDOWS: false }));
+vi.mock("../../nativeDialog", () => ({ open: vi.fn(), save: vi.fn() }));
 vi.mock("../../actions", () => ({ revealCwdInFiler: vi.fn() }));
 vi.mock("../FileIcon", () => ({ FileIcon: () => null }));
 vi.mock("@tauri-apps/api/webview", () => ({
@@ -12,12 +13,15 @@ vi.mock("../../api", () => ({
   LOCAL_DRIVES_ROOT: "drives:",
   localHome: vi.fn().mockResolvedValue("/files"),
   localList: vi.fn(),
+  localRename: vi.fn().mockResolvedValue(undefined),
+  localCopyInto: vi.fn().mockResolvedValue({ files: 1, skipped: 0 }),
   sftpHome: vi.fn().mockResolvedValue("/remote"),
   sftpList: vi.fn(),
   onRemoteEditState: async () => () => {},
 }));
 
 import * as api from "../../api";
+import { open as openDialog } from "../../nativeDialog";
 import { useStore } from "../../store";
 import type { DirListing } from "../../types";
 import { installSearchShortcuts } from "../../searchShortcuts";
@@ -238,5 +242,122 @@ describe("Filer file-name search", () => {
     expect(input().value).toBe("");
     expect(container.querySelector("mark")).toBeNull();
     expect(button("Search files").disabled).toBe(true);
+  });
+});
+
+describe("WindTerm Filer shortcuts", () => {
+  const list = () => container.querySelector<HTMLDivElement>(".filer-list")!;
+  const rows = () => container.querySelectorAll<HTMLDivElement>(".filer-entry");
+  async function select(index = 1) {
+    await act(async () => rows()[index].dispatchEvent(new MouseEvent("mousedown", { bubbles: true })));
+    expect(document.activeElement).toBe(list());
+  }
+  async function press(key: string, modifiers: KeyboardEventInit = {}) {
+    const event = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true, ...modifiers });
+    await act(async () => document.activeElement!.dispatchEvent(event));
+    return event;
+  }
+
+  it("requires focus rather than hover and uses the existing delete confirmation", async () => {
+    await render(false);
+    await hover(true);
+    expect((await press("Delete")).defaultPrevented).toBe(false);
+    expect(document.querySelector('[role="alertdialog"]')).toBeNull();
+    await select();
+    const global = vi.fn();
+    window.addEventListener("keydown", global);
+    expect((await press("Delete")).defaultPrevented).toBe(true);
+    window.removeEventListener("keydown", global);
+    expect(global).not.toHaveBeenCalled();
+    expect(document.querySelector('[role="alertdialog"]')?.textContent).toContain("report.LOG");
+  });
+
+  it("supports navigation, refresh and selecting the address bar", async () => {
+    await render(false);
+    list().focus();
+    await press("ArrowDown");
+    expect(rows()[0].classList.contains("is-active")).toBe(true);
+    await press("End");
+    expect(rows()[4].classList.contains("is-active")).toBe(true);
+    const calls = vi.mocked(api.localList).mock.calls.length;
+    expect((await press("F5")).defaultPrevented).toBe(true);
+    expect(api.localList).toHaveBeenCalledTimes(calls + 1);
+    await press("∂", { altKey: true, code: "KeyD" });
+    const address = container.querySelector<HTMLInputElement>('[aria-label="Folder path"]')!;
+    expect(document.activeElement).toBe(address);
+    expect(address.selectionStart).toBe(0);
+    expect(address.selectionEnd).toBe(address.value.length);
+    expect((await press("Delete")).defaultPrevented).toBe(false);
+  });
+
+  it("opens file/folder creation with both Control and Command while preserving typing and IME", async () => {
+    await render(false);
+    list().focus();
+    expect((await press("n", { ctrlKey: true, isComposing: true })).defaultPrevented).toBe(false);
+    await press("n", { ctrlKey: true });
+    expect(document.activeElement?.getAttribute("placeholder")).toBe("New file name");
+    expect((await press("Delete")).defaultPrevented).toBe(false);
+    await press("Escape");
+    list().focus();
+    await press("N", { metaKey: true, shiftKey: true });
+    expect(document.activeElement?.getAttribute("placeholder")).toBe("New folder name");
+  });
+
+  it("renames through the existing file API and rejects collisions", async () => {
+    await render(false);
+    await select();
+    await press("F2");
+    const rename = () => container.querySelector<HTMLInputElement>('[aria-label="Rename file or folder"]')!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(rename(), "renamed.log");
+      rename().dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await press("Enter");
+    expect(api.localRename).toHaveBeenCalledWith("/files/report.LOG", "/files/renamed.log");
+    expect(document.activeElement).toBe(list());
+    await select();
+    await press("F2");
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(rename(), "other.txt");
+      rename().dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await press("Enter");
+    expect(api.localRename).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toContain("already exists");
+  });
+
+  it("copies local files with F3/F4 through the existing copy operation", async () => {
+    await render(false);
+    await select();
+    vi.mocked(openDialog).mockResolvedValueOnce("/destination");
+    await press("F3");
+    expect(api.localCopyInto).toHaveBeenCalledWith("/files/report.LOG", "/destination", expect.any(Function));
+    expect(container.querySelector<HTMLInputElement>('[aria-label="Folder path"]')?.value).toBe("/files");
+    vi.mocked(openDialog).mockResolvedValueOnce(["/source/a.txt", "/source/b.txt"]);
+    await press("F4");
+    expect(api.localCopyInto).toHaveBeenCalledWith("/source/a.txt", "/files", expect.any(Function));
+    expect(api.localCopyInto).toHaveBeenCalledWith("/source/b.txt", "/files", expect.any(Function));
+    vi.mocked(openDialog).mockResolvedValueOnce(null);
+    await press("F4");
+    expect(api.localCopyInto).toHaveBeenCalledTimes(3);
+  });
+
+  it("returns focus to the list when deleting is cancelled", async () => {
+    await render(false);
+    await select();
+    await press("Delete");
+    await press("Escape");
+    expect(document.activeElement).toBe(list());
+  });
+
+  it("opens inline rename and cancels without mutating a file", async () => {
+    await render(false);
+    await select();
+    await press("F2");
+    expect(document.activeElement?.getAttribute("aria-label")).toBe("Rename file or folder");
+    expect((document.activeElement as HTMLInputElement).value).toBe("report.LOG");
+    await press("Escape");
+    expect(container.querySelector('[aria-label="Rename file or folder"]')).toBeNull();
+    expect(document.activeElement).toBe(list());
   });
 });

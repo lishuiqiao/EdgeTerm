@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import * as api from "../../api";
 import {
@@ -525,6 +525,20 @@ export function SenderPanel({ compact, canCompact, onExpandedChange }: SenderPan
     setRepeatOpen(true);
   };
 
+  const onSenderKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.defaultPrevented || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+    if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    if (document.querySelector(".dialog-backdrop, [aria-modal='true'], [role='menu']")) return;
+    const key = /^Key[A-Z]$/.test(event.code) ? event.code.slice(3).toLowerCase() : event.key.toLowerCase();
+    if (!["enter", "q", "x"].includes(key)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.repeat) return;
+    if (key === "enter") void sendCommand(text, ending);
+    else if (key === "q") { stopSending(); if (schedule) stopSchedule(); }
+    else setText("");
+  };
+
   const emptyMessage = commandsLoading
     ? "Loading saved commands…"
     : savedCommands.length === 0
@@ -532,7 +546,7 @@ export function SenderPanel({ compact, canCompact, onExpandedChange }: SenderPan
       : "No saved commands apply to this session; they are listed under the sessions, groups or kinds they were saved to.";
 
   return (
-    <>
+    <div style={{ display: "contents" }} onKeyDownCapture={onSenderKeyDown}>
       {compact ? (
         <div className="panel-header sender-quickbar">
           <div className="panel-title is-sender sender-quick-title">
@@ -733,8 +747,8 @@ export function SenderPanel({ compact, canCompact, onExpandedChange }: SenderPan
             onKeyDown={(event) => {
               // Enter runs, Shift+Enter adds a line. An Enter that ends an
               // IME composition belongs to the input method.
-              if (event.key === "Enter" && !event.shiftKey) {
-                if (event.nativeEvent.isComposing) return;
+              if (event.key === "Enter" && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey) {
+                if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229 || event.repeat) return;
                 event.preventDefault();
                 void sendCommand(text, ending);
               } else if (event.key === "Escape" && editing) {
@@ -1168,7 +1182,7 @@ export function SenderPanel({ compact, canCompact, onExpandedChange }: SenderPan
           <span>{commandTooltip.details}</span>
         </div>
       )}
-    </>
+    </div>
   );
 }
 

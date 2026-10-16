@@ -7,6 +7,7 @@ use parking_lot::Mutex;
 use ring::rand::SecureRandom;
 use ring::{aead, hkdf};
 use serde::{Deserialize, Serialize};
+use zeroize::Zeroize;
 
 use crate::error::{AppError, Result};
 use crate::model::{
@@ -691,6 +692,20 @@ impl Store {
         }
     }
 
+    /// Only the password-encrypted backup writer may export these secrets.
+    /// Never return this snapshot through an IPC command.
+    pub(crate) fn snapshot_with_credentials(&self) -> AppData {
+        let mut data = self.snapshot();
+        let credentials = self.credentials.lock();
+        for profile in &mut data.profiles {
+            if let Some(secrets) = credentials.get(&profile.id) {
+                profile.password = secrets.password.clone();
+                profile.passphrase = secrets.passphrase.clone();
+            }
+        }
+        data
+    }
+
     /// Merges an exported file into the store. Entries are matched by id: a
     /// known id replaces the local entry, everything else is added, and
     /// nothing local is deleted. Credentials in the file are ignored — an
@@ -700,6 +715,15 @@ impl Store {
     /// group of another kind or around a cycle are detached so the Session
     /// panel tree stays finite.
     pub fn import_data(&self, data: AppData) -> Result<DataSummary> {
+        self.merge_data(data, false)
+    }
+
+    /// Called only after authenticating a password-encrypted backup.
+    pub(crate) fn import_with_credentials(&self, data: AppData) -> Result<DataSummary> {
+        self.merge_data(data, true)
+    }
+
+    fn merge_data(&self, data: AppData, include_credentials: bool) -> Result<DataSummary> {
         validate_app_data(&data)?;
         let mut summary = DataSummary::default();
 
@@ -731,11 +755,16 @@ impl Store {
         {
             let groups = self.groups.lock().clone();
             let mut profiles = self.profiles.lock();
-            for profile in data.profiles {
-                let mut profile = redact_profile(profile);
+            for mut profile in data.profiles {
                 if profile.id.is_empty() {
                     profile.id = uuid::Uuid::new_v4().to_string();
                 }
+                if include_credentials
+                    && (profile.password.is_some() || profile.passphrase.is_some())
+                {
+                    sync_secrets(&profile, &mut self.credentials.lock());
+                }
+                let mut profile = redact_profile(profile);
                 if let Some(group_id) = &profile.group_id {
                     let valid = groups.iter().any(|group| {
                         &group.id == group_id && same_group_category(group.kind, profile.kind)
@@ -994,8 +1023,12 @@ fn copy_name(name: &str, taken: impl Fn(&str) -> bool) -> String {
 /// Strips the secrets a profile may carry; every profile that leaves the
 /// store in an export, or enters it from an import, passes through here.
 pub fn redact_profile(mut profile: SessionProfile) -> SessionProfile {
-    profile.password = None;
-    profile.passphrase = None;
+    if let Some(mut password) = profile.password.take() {
+        password.zeroize();
+    }
+    if let Some(mut passphrase) = profile.passphrase.take() {
+        passphrase.zeroize();
+    }
     profile
 }
 

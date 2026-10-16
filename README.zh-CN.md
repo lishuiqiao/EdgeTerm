@@ -47,7 +47,7 @@
 | Linux x64 / ARM64 | `.AppImage`、`.deb` 或 `.rpm` |
 
 - 未做 macOS 公证和 Windows Authenticode 签名，首次打开时系统可能会提示风险。
-- 便携版的数据都存在 `EdgeTerm.exe` 旁的 `data` 文件夹里；换机器后保存的密码不会带过去。
+- 便携版的数据都存在 `EdgeTerm.exe` 旁的 `data` 文件夹里；直接复制到其他机器无法解密保存的密码，迁移凭据请使用下方的加密导出与导入。
 - `.rpm` 需要 WebKitGTK 4.1（Fedora 有），较老的发行版请用 AppImage。
 - 安装版会自动更新（**Help → Check for Updates…**），便携版只提示有新版本。
 
@@ -79,6 +79,16 @@ SSH 会话在服务器接受远程 Shell 后开始计时，本地 Shell 在进�
 
 通过 AWS Session Manager / `ProxyCommand` 连接时，可先在系统 SSH 配置中设置主机别名，再新建 **Shell** 会话，把启动命令填为 `ssh my-aws-host`（替换成你的别名）。它会调用本地 OpenSSH，使用本机已有的 SSH 配置和 AWS 工具。这仍是本地 Shell 会话，内置远程 SFTP 面板不会随之连接；内置 SSH 的原生 `ProxyCommand` 支持不在此功能内。
 
+## 配置备份与迁移
+
+在 **Session → Export Data…** 中导出会话、分组、Sender 命令和界面设置。默认生成不含登录密码及私钥密码的明文 JSON 文件，扩展名为 `.edgeterm`。
+
+勾选 **Include login passwords and private key passphrases**，设置并确认至少 8 个字符的导出密码，即可生成包含已保存凭据的整文件加密备份。导出密码不会保存到应用设置；遗忘后无法恢复。私钥文件本身不包含在内，需要另外复制，并按目标设备调整路径。Shell 中使用的 OpenSSH / AWS 配置和凭据也需要单独配置。
+
+在另一台设备选择 **Session → Import Data…**，打开备份，输入导出密码并点击 **Unlock**。核对预览后点击 **Import**，凭据会用目标设备的本地密钥重新加密保存。相同 ID 的条目会更新，其他条目不会删除；备份中提供的凭据覆盖对应本地凭据，没有提供的则保留本地值。
+
+旧明文文件仍可导入，文件中手动添加的密码字段会被忽略。加密备份需要支持此功能的版本才能导入。备份使用 PBKDF2-HMAC-SHA256（600,000 次、随机盐）派生密钥，以 ChaCha20-Poly1305 加密并校验完整性；密码错误、文件被篡改，或确认前文件已更换时拒绝导入。
+
 ## 快捷键
 
 | macOS | Windows / Linux | 作用 |
@@ -95,7 +105,9 @@ SSH 会话在服务器接受远程 Shell 后开始计时，本地 Shell 在进�
 | `⌘⌥←` / `⌘⌥→` / `⌘⌥↓` | `Ctrl+Alt+←` / `→` / `↓` | 显示 / 隐藏 Session、Filer、Sender |
 | `⌘C` / `⌘V` / `⌘A` | `Ctrl+Shift+C` / `V` / `A` | 复制 / 粘贴 / 全选 |
 
-除标签序号键外，都可在 **View → Keyboard Shortcuts…** 中修改。
+上表中的应用动作除标签序号键外，都可在 **View → Keyboard Shortcuts…** 中修改。另支持 WindTerm 的复制粘贴、前后搜索、滚动、字号调整和两段式窗口快捷键，详情见[快捷键对照与验证](docs/windterm-keyboard-audit.md)。列表获得焦点后，Filer / FTP / SFTP 支持 F2 重命名、F5 刷新、Delete 确认删除等；Sender 支持 Alt+Enter 发送、Alt+Q 停止、Alt+X 清空。
+
+macOS 的 Fn+←/→ 在普通 Shell 屏幕中默认移动到输入行首/尾。全屏或 application-cursor 模式保持标准终端序列；需要完全标准的 Home/End 编码时，关闭 **Edit → Home/End Line Editing**。这不是 WindTerm 的独立本地 Vim 浏览模式。
 
 ## 许可证
 

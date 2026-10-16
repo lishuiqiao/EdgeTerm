@@ -36,6 +36,18 @@ export type ShortcutCommand =
   | "closeSession"
   | "find"
   | "findNext"
+  | "findPrevious"
+  | "duplicateSession"
+  | "clearScreen"
+  | "pasteSelection"
+  | "zoomIn"
+  | "zoomOut"
+  | "scrollUp"
+  | "scrollDown"
+  | "pageUp"
+  | "pageDown"
+  | "scrollTop"
+  | "scrollBottom"
   | "clear"
   | "revealCwd"
   | "prevTab"
@@ -59,6 +71,12 @@ export type AppShortcut =
   | { kind: "closeSession" }
   | { kind: "find" }
   | { kind: "findNext" }
+  | { kind: "findPrevious" }
+  | { kind: "duplicateSession" }
+  | { kind: "clearScreen" }
+  | { kind: "pasteSelection" }
+  | { kind: "zoom"; step: -1 | 1 }
+  | { kind: "scrollTerminal"; direction: -1 | 1; unit: "line" | "page" | "edge" }
   | { kind: "clear" }
   | { kind: "revealCwd" }
   | { kind: "tabStep"; step: -1 | 1 }
@@ -68,7 +86,8 @@ export type AppShortcut =
   | { kind: "copy" }
   | { kind: "paste" }
   | { kind: "selectAll" }
-  | { kind: "togglePanel"; panel: PanelName };
+  | { kind: "togglePanel"; panel: PanelName }
+  | { kind: "toggleGutter"; field: "line" | "time" };
 
 /** What each command does, and the order the settings dialog lists them in. */
 export const SHORTCUT_COMMANDS: {
@@ -185,6 +204,18 @@ export const SHORTCUT_COMMANDS: {
     hint: "Show or hide the bottom panel",
     action: { kind: "togglePanel", panel: "sender" },
   },
+  { id: "findPrevious", label: "Find Previous", hint: "Jump to the previous search match", action: { kind: "findPrevious" } },
+  { id: "duplicateSession", label: "Duplicate Session", hint: "Open another connection using the active session profile", action: { kind: "duplicateSession" } },
+  { id: "clearScreen", label: "Redraw Screen", hint: "Send Ctrl+L to the terminal application", action: { kind: "clearScreen" } },
+  { id: "pasteSelection", label: "Paste Selection", hint: "Paste selected terminal text, with the usual multiline confirmation", action: { kind: "pasteSelection" } },
+  { id: "zoomIn", label: "Increase Terminal Font", hint: "Increase the terminal font size", action: { kind: "zoom", step: 1 } },
+  { id: "zoomOut", label: "Decrease Terminal Font", hint: "Decrease the terminal font size", action: { kind: "zoom", step: -1 } },
+  { id: "scrollUp", label: "Scroll Up", hint: "Scroll the terminal by one line", action: { kind: "scrollTerminal", direction: -1, unit: "line" } },
+  { id: "scrollDown", label: "Scroll Down", hint: "Scroll the terminal by one line", action: { kind: "scrollTerminal", direction: 1, unit: "line" } },
+  { id: "pageUp", label: "Scroll Page Up", hint: "Scroll the terminal by one page", action: { kind: "scrollTerminal", direction: -1, unit: "page" } },
+  { id: "pageDown", label: "Scroll Page Down", hint: "Scroll the terminal by one page", action: { kind: "scrollTerminal", direction: 1, unit: "page" } },
+  { id: "scrollTop", label: "Scroll to Top", hint: "Show the start of the terminal buffer", action: { kind: "scrollTerminal", direction: -1, unit: "edge" } },
+  { id: "scrollBottom", label: "Scroll to Bottom", hint: "Return to the terminal's latest output", action: { kind: "scrollTerminal", direction: 1, unit: "edge" } },
 ];
 
 const chord = (
@@ -201,8 +232,8 @@ const chord = (
 
 /**
  * macOS: ⌘+key for app shortcuts and ⌘⌥+arrow to toggle panels. Option and
- * Ctrl on their own are never taken by default: Option types characters and
- * Ctrl belongs to the shell.
+ * Control editing keys reach the shell; WindTerm compatibility aliases add
+ * modified clipboard, scrolling and window commands below.
  */
 const MAC_DEFAULTS: ShortcutBindings = {
   newSession: chord("KeyN", { meta: true }),
@@ -224,6 +255,18 @@ const MAC_DEFAULTS: ShortcutBindings = {
   panelSessions: chord("ArrowLeft", { meta: true, alt: true }),
   panelFiler: chord("ArrowRight", { meta: true, alt: true }),
   panelSender: chord("ArrowDown", { meta: true, alt: true }),
+  findPrevious: chord("KeyG", { meta: true, shift: true }),
+  duplicateSession: chord("KeyD", { ctrl: true, shift: true }),
+  clearScreen: chord("KeyL", { meta: true }),
+  pasteSelection: chord("KeyX", { meta: true, shift: true }),
+  zoomIn: chord("Equal", { meta: true }),
+  zoomOut: chord("Minus", { meta: true }),
+  scrollUp: chord("ArrowUp", { ctrl: true, shift: true }),
+  scrollDown: chord("ArrowDown", { ctrl: true, shift: true }),
+  pageUp: chord("PageUp", { ctrl: true, shift: true }),
+  pageDown: chord("PageDown", { ctrl: true, shift: true }),
+  scrollTop: chord("Home", { ctrl: true, shift: true }),
+  scrollBottom: chord("End", { ctrl: true, shift: true }),
 };
 
 /**
@@ -231,11 +274,11 @@ const MAC_DEFAULTS: ShortcutBindings = {
  * terminal: the shell receives the same control character as for plain
  * Ctrl+letter (Shift is not encoded), so taking Ctrl+Shift+F costs it
  * nothing, and this is what WindTerm, MobaXterm, GNOME Terminal and VS Code
- * all converge on. Alt+letter is readline's Meta layer (Alt+F is
+ * commonly use. Alt+letter is readline's Meta layer (Alt+F is
  * forward-word, Alt+B backward-word, Alt+D kill-word …) and Emacs's M-
  * prefix, so only letters with no default binding there are taken. Plain
- * Ctrl+letter is never a default — those are readline and shell keys (^W
- * kills a word, ^G is BEL, ^K kills to end of line).
+ * Ctrl+letter normally belongs to the shell (^W kills a word, ^G is BEL,
+ * ^K kills to end of line); the Ctrl+L action sends that same control byte.
  */
 const OTHER_DEFAULTS: ShortcutBindings = {
   newSession: chord("KeyN", { alt: true }),
@@ -264,6 +307,18 @@ const OTHER_DEFAULTS: ShortcutBindings = {
   panelSessions: chord("ArrowLeft", { ctrl: true, alt: true }),
   panelFiler: chord("ArrowRight", { ctrl: true, alt: true }),
   panelSender: chord("ArrowDown", { ctrl: true, alt: true }),
+  findPrevious: chord("F3", { alt: true, shift: true }),
+  duplicateSession: chord("KeyD", { ctrl: true, shift: true }),
+  clearScreen: chord("KeyL", { ctrl: true }),
+  pasteSelection: chord("KeyX", { ctrl: true, shift: true }),
+  zoomIn: chord("Equal", { ctrl: true }),
+  zoomOut: chord("Minus", { ctrl: true }),
+  scrollUp: chord("ArrowUp", { ctrl: true, shift: true }),
+  scrollDown: chord("ArrowDown", { ctrl: true, shift: true }),
+  pageUp: chord("PageUp", { ctrl: true, shift: true }),
+  pageDown: chord("PageDown", { ctrl: true, shift: true }),
+  scrollTop: chord("Home", { ctrl: true, shift: true }),
+  scrollBottom: chord("End", { ctrl: true, shift: true }),
 };
 
 /**
@@ -467,7 +522,8 @@ const SHIFT_ONLY_KEYS = /^(Insert|Delete|Home|End|PageUp|PageDown|F([1-9]|1\d|2[
  */
 export function chordProblem(binding: KeyChord): string | null {
   const bareShift = binding.shift && SHIFT_ONLY_KEYS.test(binding.code);
-  if (!binding.ctrl && !binding.alt && !binding.meta && !bareShift) {
+  const functionKey = /^F([1-9]|1\d|2[0-4])$/.test(binding.code);
+  if (!binding.ctrl && !binding.alt && !binding.meta && !bareShift && !functionKey) {
     return IS_MAC
       ? "Hold ⌘, ⌥ or ⌃ as well, or the key would be typed into the terminal."
       : "Hold Ctrl or Alt as well, or the key would be typed into the terminal.";
@@ -574,5 +630,60 @@ export function matchAppShortcut(event: ShortcutKeyEvent): AppShortcut | null {
     const binding = activeShortcuts[id];
     if (binding && chordMatches(binding, event)) return action;
   }
+  for (const { command, binding } of WINDTERM_ALIASES) {
+    if (shortcutUsesDefault(command) && chordMatches(binding, event)) {
+      return SHORTCUT_COMMANDS.find((entry) => entry.id === command)!.action;
+    }
+  }
   return tabNumberShortcut(event);
+}
+
+/** Compatibility aliases are retired when their action is rebound or disabled. */
+export const shortcutUsesDefault = (command: ShortcutCommand): boolean =>
+  sameChord(activeShortcuts[command], DEFAULT_SHORTCUTS[command]);
+
+export function matchUserShortcut(event: ShortcutKeyEvent): AppShortcut | null {
+  for (const { id, action } of SHORTCUT_COMMANDS) {
+    const binding = activeShortcuts[id];
+    if (binding && !shortcutUsesDefault(id) && chordMatches(binding, event)) return action;
+  }
+  return null;
+}
+
+const WINDTERM_ALIASES: { command: ShortcutCommand; binding: KeyChord }[] = [
+  { command: "newSession", binding: chord("KeyN", { alt: true }) },
+  { command: "prevTab", binding: chord("BracketLeft", { alt: true }) },
+  { command: "nextTab", binding: chord("BracketRight", { alt: true }) },
+  { command: "findNext", binding: chord("F3", { alt: true }) },
+  { command: "findPrevious", binding: chord("F3", { alt: true, shift: true }) },
+  { command: "copy", binding: chord("Insert", { ctrl: true }) },
+  { command: "copy", binding: chord("Delete", { shift: true }) },
+  { command: "paste", binding: chord("Insert", { shift: true }) },
+  ...(["ctrl", ...(IS_MAC ? ["meta"] : [])] as const).flatMap((modifier) => {
+    const mod = { [modifier]: true };
+    const shifted = { ...mod, shift: true };
+    return [
+      { command: "copy" as const, binding: chord("KeyC", shifted) },
+      { command: "paste" as const, binding: chord("KeyV", shifted) },
+      { command: "selectAll" as const, binding: chord("KeyA", shifted) },
+      { command: "closeSession" as const, binding: chord("KeyW", shifted) },
+      { command: "clear" as const, binding: chord("KeyL", shifted) },
+      { command: "pasteSelection" as const, binding: chord("KeyX", shifted) },
+      { command: "zoomIn" as const, binding: chord("Equal", mod) },
+      { command: "zoomIn" as const, binding: chord("Equal", shifted) },
+      { command: "zoomOut" as const, binding: chord("Minus", mod) },
+      { command: "scrollUp" as const, binding: chord("ArrowUp", shifted) },
+      { command: "scrollDown" as const, binding: chord("ArrowDown", shifted) },
+      { command: "pageUp" as const, binding: chord("PageUp", shifted) },
+      { command: "pageDown" as const, binding: chord("PageDown", shifted) },
+      { command: "scrollTop" as const, binding: chord("Home", shifted) },
+      { command: "scrollBottom" as const, binding: chord("End", shifted) },
+    ];
+  }),
+  { command: "find", binding: chord("KeyF", { ctrl: true, shift: true }) },
+];
+
+export function shortcutAliasLabels(command: ShortcutCommand): string[] {
+  return WINDTERM_ALIASES.filter((entry) => entry.command === command && !sameChord(entry.binding, DEFAULT_SHORTCUTS[command]))
+    .map((entry) => chordLabel(entry.binding));
 }

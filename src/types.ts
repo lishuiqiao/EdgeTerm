@@ -263,7 +263,7 @@ export interface SavedCommand {
 /**
  * One export / import file (Session → Export / Import Data…). `settings` is
  * the frontend's own `AppSettings`, carried through the backend untouched;
- * passwords and passphrases are never part of a data file.
+ * credentials are always redacted in previews returned to the frontend.
  */
 export interface AppData {
   app: string;
@@ -282,6 +282,17 @@ export interface DataSummary {
   senderCommands: number;
   /** Sender tags an import left out because the library was already full. */
   skippedSenderCommands: number;
+}
+
+export interface BackupPreview {
+  encrypted: boolean;
+  data: AppData | null;
+  fingerprint: string;
+}
+
+export interface DataImportResult {
+  summary: DataSummary;
+  settings: unknown;
 }
 
 /**

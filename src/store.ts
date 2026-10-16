@@ -169,6 +169,7 @@ const SUGGESTIONS_KEY = "edgeterm.suggestions";
 const RIGHT_CLICK_KEY = "edgeterm.rightClick";
 const SHORTCUTS_KEY = "edgeterm.shortcuts";
 const CURSOR_STYLE_KEY = "edgeterm.cursorStyle";
+const MAC_HOME_END_KEY = "edgeterm.macHomeEnd";
 const CURSOR_BLINK_KEY = "edgeterm.cursorBlink";
 const PASTE_WARNING_KEY = "edgeterm.pasteWarning";
 const COPY_ON_SELECT_KEY = "edgeterm.copyOnSelect";
@@ -511,6 +512,7 @@ export interface AppSettings {
   terminalScrollback: number;
   cursorStyle: CursorStyle;
   cursorBlink: boolean;
+  macHomeEnd: boolean;
   suggestionsEnabled: boolean;
   /** Confirm a paste that would submit more than one command. */
   pasteWarning: boolean;
@@ -564,6 +566,7 @@ interface AppStore {
   /** The terminal cursor's shape and whether it blinks. */
   cursorStyle: CursorStyle;
   cursorBlink: boolean;
+  macHomeEnd: boolean;
   /** Command history recording + fish-style inline suggestions. */
   suggestionsEnabled: boolean;
   /** Whether a multi-line paste is confirmed first; see `pastePrompt`. */
@@ -718,6 +721,7 @@ interface AppStore {
   setTerminalScrollback: (rows: number) => void;
   setCursorStyle: (style: CursorStyle) => void;
   setCursorBlink: (blink: boolean) => void;
+  setMacHomeEnd: (enabled: boolean) => void;
   setSuggestionsEnabled: (enabled: boolean) => void;
   setPasteWarning: (enabled: boolean) => void;
   setPastePrompt: (prompt: PastePrompt | null) => void;
@@ -877,6 +881,7 @@ export const useStore = create<AppStore>((set, get) => ({
   terminalScrollback: loadScrollback(),
   cursorStyle: loadCursorStyle(),
   cursorBlink: loadCursorBlink(),
+  macHomeEnd: (() => { try { return localStorage.getItem(MAC_HOME_END_KEY) !== "off"; } catch { return true; } })(),
   suggestionsEnabled: loadSuggestionsEnabled(),
   pasteWarning: loadPasteWarning(),
   copyOnSelect: loadCopyOnSelect(),
@@ -1348,6 +1353,11 @@ export const useStore = create<AppStore>((set, get) => ({
     saveSetting(CURSOR_STYLE_KEY, cursorStyle);
   },
 
+  setMacHomeEnd(enabled) {
+    set({ macHomeEnd: enabled });
+    saveSetting(MAC_HOME_END_KEY, enabled ? "on" : "off");
+  },
+
   setCursorBlink(blink) {
     set({ cursorBlink: blink });
     saveSetting(CURSOR_BLINK_KEY, blink ? "on" : "off");
@@ -1422,6 +1432,7 @@ export const useStore = create<AppStore>((set, get) => ({
       terminalScrollback: TERMINAL_SCROLLBACK.default,
       cursorStyle: "block",
       cursorBlink: true,
+      macHomeEnd: true,
       suggestionsEnabled: false,
       pasteWarning: true,
       copyOnSelect: defaultCopyOnSelect(),
@@ -1440,6 +1451,7 @@ export const useStore = create<AppStore>((set, get) => ({
       localStorage.removeItem(TERMINAL_SCROLLBACK_KEY);
       localStorage.removeItem(CURSOR_STYLE_KEY);
       localStorage.removeItem(CURSOR_BLINK_KEY);
+      localStorage.removeItem(MAC_HOME_END_KEY);
       localStorage.removeItem(SUGGESTIONS_KEY);
       localStorage.removeItem(PASTE_WARNING_KEY);
       localStorage.removeItem(COPY_ON_SELECT_KEY);
@@ -1469,6 +1481,7 @@ export const useStore = create<AppStore>((set, get) => ({
       terminalScrollback: state.terminalScrollback,
       cursorStyle: state.cursorStyle,
       cursorBlink: state.cursorBlink,
+      macHomeEnd: state.macHomeEnd,
       suggestionsEnabled: state.suggestionsEnabled,
       pasteWarning: state.pasteWarning,
       copyOnSelect: state.copyOnSelect,
@@ -1515,6 +1528,7 @@ export const useStore = create<AppStore>((set, get) => ({
     }
     const cursorStyle = parseCursorStyle(values.cursorStyle);
     if (cursorStyle) state.setCursorStyle(cursorStyle);
+    if (typeof values.macHomeEnd === "boolean") state.setMacHomeEnd(values.macHomeEnd);
     if (typeof values.cursorBlink === "boolean") {
       state.setCursorBlink(values.cursorBlink);
     }

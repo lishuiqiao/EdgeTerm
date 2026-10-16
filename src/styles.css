@@ -3978,6 +3978,42 @@ textarea:focus {
   margin-top: 1px;
 }
 
+.data-transfer-dialog {
+  width: min(480px, calc(100vw - 32px));
+}
+
+.data-transfer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  line-height: 1.5;
+}
+
+.data-transfer-body p {
+  margin: 0;
+}
+
+.data-transfer-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.data-transfer-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.data-transfer-hint {
+  color: var(--fg-dim);
+}
+
+.data-transfer-path {
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+}
+
 .font-size-dialog {
   width: min(500px, calc(100vw - 32px));
 }
