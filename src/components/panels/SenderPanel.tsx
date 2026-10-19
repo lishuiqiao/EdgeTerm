@@ -97,7 +97,6 @@ export function SenderPanel({ compact, canCompact, onExpandedChange }: SenderPan
   const connectionState = useStore(s => s.tabs.find(t => t.info.id === s.activeId)?.state);
   const [aiPreview, setAiPreview] = useState<AiPreview | null>(null);
   const ai = useMemo(() => new ManualAiSuggestion(setAiPreview, message => useStore.getState().setStatus(`AI: ${message}`)), []);
-  const mirrorRef = useRef<HTMLDivElement>(null);
   useEffect(() => { ai.clear(); }, [ai, text, activeId, aiEnabled, aiConfigVersion, connectionState, compact]);
   useEffect(() => { window.addEventListener("blur", ai.clear); return () => { window.removeEventListener("blur", ai.clear); ai.clear(); }; }, [ai]);
   const [tagName, setTagName] = useState("");
@@ -762,7 +761,6 @@ export function SenderPanel({ compact, canCompact, onExpandedChange }: SenderPan
               const box = commandRef.current;
               if (box && (box.selectionStart !== box.value.length || box.selectionEnd !== box.value.length)) ai.clear();
             }}
-            onScroll={event => { if (mirrorRef.current) mirrorRef.current.scrollTop = event.currentTarget.scrollTop; }}
             onKeyDown={(event) => {
               if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) { ai.clear(); return; }
               if (document.querySelector(".dialog-backdrop, [aria-modal='true']")) return;
@@ -797,7 +795,14 @@ export function SenderPanel({ compact, canCompact, onExpandedChange }: SenderPan
               }
             }}
           />
-          {aiPreview && <div ref={mirrorRef} className="sender-ai-mirror" aria-hidden="true"><span className="ai-input-spacer">{text}</span><span className="ai-ghost">{previewText(aiPreview)}</span></div>}
+          {aiPreview && (
+            <div className="sender-ai-preview ai-ghost ai-preview-scroll"
+              role="region" aria-label="AI command suggestion"
+              onMouseDown={event => event.preventDefault()}
+              onWheel={event => event.stopPropagation()}>
+              {previewText({ ...aiPreview, input: "" })}
+            </div>
+          )}
           {text.length > 0 && (
             <button
               type="button"

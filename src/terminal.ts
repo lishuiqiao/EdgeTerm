@@ -1886,6 +1886,29 @@ export class TerminalController {
       fontSize: `${this.term.options.fontSize}px`, lineHeight: `${this.cellHeight}px`,
     });
     host.appendChild(ghost); this.aiGhost = ghost;
+    // Keep short suggestions inline. At the last rows (or for long commands),
+    // use the larger side of the cursor so the entire preview can be scrolled.
+    const inlineTop = row * this.cellHeight;
+    if (rect.height > 0 && ghost.scrollHeight > rect.height - inlineTop) {
+      ghost.classList.add("ai-preview-scroll", "is-floating");
+      ghost.removeAttribute("aria-hidden");
+      ghost.setAttribute("role", "region");
+      ghost.setAttribute("aria-label", "AI command suggestion");
+      label.textContent = previewText({ ...value, input: "" });
+      ghost.style.textIndent = "0";
+      const above = Math.max(0, inlineTop - 4);
+      const below = Math.max(0, rect.height - inlineTop - this.cellHeight - 4);
+      const onTop = above > below;
+      const available = Math.max(above, below) || rect.height;
+      ghost.style.maxHeight = `${Math.min(240, available)}px`;
+      const height = ghost.getBoundingClientRect().height;
+      const top = onTop ? Math.max(0, inlineTop - height - 4)
+        : Math.min(rect.height - height, inlineTop + this.cellHeight + 4);
+      ghost.style.top = `${rect.top - parent.top + top}px`;
+      // Reading/scrolling the preview must keep the editor focused for Tab.
+      ghost.addEventListener("mousedown", event => { event.preventDefault(); event.stopPropagation(); });
+      ghost.addEventListener("wheel", event => event.stopPropagation());
+    }
   }
 
   // --- command history & inline suggestions --------------------------------

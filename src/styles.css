@@ -5110,9 +5110,28 @@ textarea:focus {
 
 /* AI previews are display-only and never enter an editor or PTY until accepted. */
 .ai-ghost { color: var(--fg-dim); opacity: 0.85; pointer-events: none; user-select: none; }
-.terminal-ai-ghost { position: absolute; z-index: 6; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 8em; overflow: hidden; }
-.sender-ai-mirror { position: absolute; inset: 0; padding: 4px 32px 4px 10px; border: 1px solid transparent; border-radius: 8px; font: inherit; font-family: var(--font-mono); line-height: 18px; white-space: pre-wrap; overflow-wrap: anywhere; overflow: hidden; pointer-events: none; user-select: none; }
-.ai-input-spacer { visibility: hidden; }
-.sender-command:has(.sender-ai-mirror) textarea { min-height: 82px; }
-
+/* Inline suggestions expand naturally; overflowing ones become a scroll region. */
+.terminal-ai-ghost { position: absolute; z-index: 6; white-space: pre-wrap; overflow-wrap: anywhere; }
 .terminal-ai-ghost > span { background: var(--bg-terminal); box-decoration-break: clone; }
+.ai-preview-scroll {
+  box-sizing: border-box;
+  pointer-events: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+}
+.terminal-ai-ghost.is-floating { background: var(--bg-terminal); opacity: 1; }
+.sender-command:has(.sender-ai-preview) { flex-direction: column; align-items: stretch; gap: 6px; }
+.sender-command:has(.sender-ai-preview) .sender-clear { top: 3px; }
+.sender-ai-preview {
+  max-height: min(180px, 30vh);
+  font-family: var(--font-mono);
+  line-height: 18px;
+  background: var(--bg-field);
+  flex-shrink: 0;
+}

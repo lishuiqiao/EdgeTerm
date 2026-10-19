@@ -83,3 +83,26 @@ it("dismisses AI before closing search and does not send either Escape to the sh
   expect(close).toHaveBeenCalledTimes(1);
   expect(h.out).toEqual([]);
 });
+
+it("keeps a long preview inside the terminal and scrollable without losing Tab acceptance", async () => {
+  const h = harness();
+  const command = "printf '%s' " + "long-command-".repeat(150);
+  vi.mocked(suggestAiCommand).mockResolvedValue(command);
+  const screen = h.root.querySelector<HTMLElement>(".xterm-screen")!;
+  vi.spyOn(screen, "getBoundingClientRect").mockReturnValue({ left: 0, top: 0, width: 300, height: 100 } as DOMRect);
+  const size = vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockImplementation(function(this: HTMLElement) {
+    return this.classList.contains("terminal-ai-ghost") ? 500 : 0;
+  });
+  await h.write("$ "); await h.type("files"); await h.generate();
+  const preview = h.root.querySelector<HTMLElement>(".terminal-ai-ghost")!;
+  expect(preview.classList.contains("ai-preview-scroll")).toBe(true);
+  expect(parseFloat(preview.style.maxHeight)).toBeLessThanOrEqual(100);
+  expect(preview.textContent).toContain(command);
+  preview.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+  preview.dispatchEvent(new WheelEvent("wheel", { bubbles: true, deltaY: 100 }));
+  expect(h.root.querySelector(".terminal-ai-ghost")).toBe(preview);
+  expect(document.activeElement).toBe(h.controller.term.textarea);
+  h.key("Tab", "Tab");
+  expect(h.out.join("")).toBe("\x7f".repeat(5) + command);
+  size.mockRestore();
+});

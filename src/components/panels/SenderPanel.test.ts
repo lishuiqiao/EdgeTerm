@@ -96,3 +96,22 @@ describe("Sender AI suggestions", () => {
     expect(suggestAiCommand).not.toHaveBeenCalled();
   });
 });
+
+it("shows a long full command in a separate scroll region and keeps acceptance focused", async () => {
+  await act(async () => useStore.getState().setAiSuggestionsEnabled(true));
+  const command = "echo hello " + "long-argument-".repeat(150);
+  vi.mocked(suggestAiCommand).mockResolvedValue(command);
+  input().setSelectionRange(input().value.length, input().value.length);
+  await key(" ", { code: "Space", ctrlKey: true, shiftKey: true });
+  const preview = container.querySelector<HTMLElement>(".sender-ai-preview")!;
+  expect(preview.textContent).toContain(command);
+  expect(preview.classList.contains("ai-preview-scroll")).toBe(true);
+  const click = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+  await act(async () => preview.dispatchEvent(click));
+  expect(click.defaultPrevented).toBe(true);
+  expect(document.activeElement).toBe(input());
+  expect(input().value).toBe("echo hello");
+  await key("Tab");
+  expect(input().value).toBe(command);
+  expect(sendUnits).not.toHaveBeenCalled();
+});
