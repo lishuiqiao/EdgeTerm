@@ -3931,6 +3931,88 @@ textarea:focus {
   font-size: 10px;
 }
 
+/* --- combo box (ComboBox.tsx) ---------------------------------------------- */
+
+/* The caret at the end of the field that lists every suggestion. */
+.combo-toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  padding: 0;
+  color: var(--fg-dim);
+  transition:
+    background-color 80ms ease,
+    color 80ms ease;
+}
+
+.combo-toggle:hover,
+.combo-toggle.is-open {
+  color: var(--fg);
+  background: var(--bg-hover);
+}
+
+.combo-toggle .icon {
+  transition: transform 120ms ease;
+}
+
+.combo-toggle.is-open .icon {
+  transform: rotate(180deg);
+}
+
+/* The suggestions wear the menus' panel, as wide as their field (placed
+   inline). They hang on <body>, so they stack above any dialog backdrop. */
+.combo-list {
+  position: fixed;
+  z-index: 210;
+  min-width: 0;
+  overflow-y: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.combo-list.is-above {
+  transform-origin: bottom left;
+}
+
+/* One highlight, moved by the pointer and the arrow keys alike, so the rows
+   carry no :hover of their own. */
+.combo-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 26px;
+  padding: 0 10px 0 8px;
+  border-radius: 6px;
+  color: var(--fg);
+  white-space: nowrap;
+  cursor: default;
+}
+
+.combo-option.is-active {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.combo-option.is-active .menu-check {
+  color: inherit;
+}
+
+.combo-option-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* What the typed text matched, the way VS Code marks a suggestion. */
+.combo-match {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.combo-option.is-active .combo-match {
+  color: inherit;
+}
+
 .dialog-footer {
   display: flex;
   flex: 0 0 auto;
