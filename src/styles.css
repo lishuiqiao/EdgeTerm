@@ -1236,8 +1236,9 @@ textarea:focus {
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
-  /* Keep scrollIntoView'd tabs clear of the edge fades and the sticky list button. */
-  scroll-padding: 0 44px 0 28px;
+  /* Keep scrollIntoView'd tabs clear of the edge fades and the sticky
+     actions block (three 22px buttons, two 2px gaps, 8px padding a side). */
+  scroll-padding: 0 114px 0 28px;
 }
 
 .tabstrip::-webkit-scrollbar {
@@ -1287,6 +1288,13 @@ textarea:focus {
   background: var(--bg-hover);
 }
 
+.tabstrip-actions .panel-action:disabled {
+  opacity: 0.5;
+  background: none;
+  color: var(--fg-faint);
+  cursor: default;
+}
+
 /* The "all sessions" dropdown: one row per tab, scrolls once it gets tall. */
 .tab-list-menu {
   max-width: 320px;
@@ -1307,6 +1315,11 @@ textarea:focus {
   align-items: center;
   gap: 7px;
   padding: 0 10px;
+  /* Tabs keep their width and the strip scrolls once they no longer fit
+     (issue #102). Shrinking is not an option here: overflow: hidden, which
+     the particle field needs, drops a flex item's automatic minimum to 0, so
+     a crowded strip squeezed every title down to "Lo…" and never overflowed. */
+  flex: none;
   max-width: 220px;
   border-right: 1px solid var(--border);
   color: var(--fg-dim);
