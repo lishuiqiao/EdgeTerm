@@ -1,6 +1,5 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { FitAddon } from "@xterm/addon-fit";
-import { SearchAddon, type ISearchOptions } from "@xterm/addon-search";
 import { Unicode11Addon } from "@xterm/addon-unicode11";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { WebglAddon } from "@xterm/addon-webgl";
@@ -23,7 +22,12 @@ import { patchImeInput } from "./imePatch";
 import { parseOsc52, type ProgramClipboardMode } from "./osc52";
 import { IS_MAC, IS_WINDOWS } from "./platform";
 import { matchAppShortcut } from "./shortcuts";
-import { SEARCH_HIGHLIGHT_LIMIT } from "./terminalSearch";
+import { TerminalFind, type FindColors } from "./terminalFind";
+import {
+  closeFindBox,
+  type FindOptions,
+  type SearchResults,
+} from "./terminalSearch";
 import {
   isShellPrompt,
   semanticLine,
@@ -317,33 +321,30 @@ const XTERM_THEMES: Record<ThemeMode, ITheme> = {
   },
 };
 
-type SearchDecorations = NonNullable<ISearchOptions["decorations"]>;
-
 /**
- * Find-in-buffer highlights, per theme. Enabling decorations is also what
- * makes the search addon report the match index / count.
+ * Find-in-buffer highlights, per theme. The Find in Selection range takes
+ * the shade VS Code gives it (`editor.findRangeHighlightBackground`, laid
+ * over each canvas), faint enough that the matches inside still stand out.
  */
-const DARK_SEARCH_DECORATIONS: SearchDecorations = {
-  matchBackground: "#623315",
-  matchOverviewRuler: "#d18616",
-  activeMatchBackground: "#9e6a03",
-  activeMatchColorOverviewRuler: "#ffb700",
+const DARK_FIND_COLORS: FindColors = {
+  match: "#623315",
+  activeMatch: "#9e6a03",
+  scope: "#2b2d30",
 };
 
-const LIGHT_SEARCH_DECORATIONS: SearchDecorations = {
-  matchBackground: "#f5d3b0",
-  matchOverviewRuler: "#d18616",
-  activeMatchBackground: "#a8ac94",
-  activeMatchColorOverviewRuler: "#ffb700",
+const LIGHT_FIND_COLORS: FindColors = {
+  match: "#f5d3b0",
+  activeMatch: "#a8ac94",
+  scope: "#e9e9e9",
 };
 
-const SEARCH_DECORATIONS: Record<ThemeMode, SearchDecorations> = {
-  dark: DARK_SEARCH_DECORATIONS,
-  light: LIGHT_SEARCH_DECORATIONS,
-  // The amber wash reads the same on serialX's two canvases, which differ
-  // from these only in how deep the dark one is.
-  "serialx-dark": DARK_SEARCH_DECORATIONS,
-  "serialx-light": LIGHT_SEARCH_DECORATIONS,
+const FIND_COLORS: Record<ThemeMode, FindColors> = {
+  dark: DARK_FIND_COLORS,
+  light: LIGHT_FIND_COLORS,
+  // The amber wash reads the same on serialX's two canvases; only the dark
+  // one is deep enough to need its own range shade.
+  "serialx-dark": { ...DARK_FIND_COLORS, scope: "#1b1e25" },
+  "serialx-light": LIGHT_FIND_COLORS,
 };
 
 interface Callbacks {
@@ -388,12 +389,7 @@ interface InputAnchor {
 export class TerminalController {
   readonly term: Terminal;
   readonly fitAddon = new FitAddon();
-  readonly searchAddon = new SearchAddon({
-    highlightLimit: SEARCH_HIGHLIGHT_LIMIT,
-  });
-  /** Fires after every search and whenever buffer changes shift the matches. */
-  readonly onSearchResults = this.searchAddon.onDidChangeResults;
-  private lastSearch: string | null = null;
+  private readonly finder: TerminalFind;
   private readonly zmodem: ZmodemController;
   private readonly xmodem: XmodemController;
   /**
@@ -554,6 +550,8 @@ export class TerminalController {
       rightClickSelectsWord: true,
     });
 
+    this.finder = new TerminalFind(this.term, FIND_COLORS[theme]);
+
     this.transferNotice = document.createElement("div");
     this.transferNotice.className = "transfer-notice is-hidden";
     this.transferNotice.setAttribute("role", "status");
@@ -573,7 +571,6 @@ export class TerminalController {
     this.xmodem = new XmodemController(sessionId, transferCallbacks);
 
     this.term.loadAddon(this.fitAddon);
-    this.term.loadAddon(this.searchAddon);
     this.term.loadAddon(new WebLinksAddon(openTerminalWebLink));
     const unicode = new Unicode11Addon();
     this.term.loadAddon(unicode);
@@ -831,6 +828,22 @@ export class TerminalController {
           return false;
         }
       }
+    }
+
+    // Esc closes an open find box from here too, not only from its own input
+    // (issue #95), as in VS Code's terminal. The shell does not get that
+    // Esc, or readline would read the next key as Meta+key.
+    if (
+      key === "escape" &&
+      !event.isComposing &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !event.metaKey &&
+      !event.shiftKey &&
+      closeFindBox()
+    ) {
+      event.preventDefault();
+      return false;
     }
 
     // Alt+arrow word jumps. xterm 5 rewrote Alt+←/→ into the readline
@@ -1521,6 +1534,8 @@ export class TerminalController {
   private clearBufferAndMetadata() {
     this.dropAnchor();
     this.term.clear();
+    // Not a write, so the find engine would go on reading the old lines.
+    this.finder.bufferChanged();
     this.resetLineMetadata();
   }
 
@@ -1585,7 +1600,7 @@ export class TerminalController {
     // The cells hold the previous palette's colors (and, between WindTerm and
     // serialX, the other engine's spans).
     this.recolorAll();
-    this.refreshSearch();
+    this.finder.setColors(FIND_COLORS[theme]);
     if (this.term.rows > 0) this.term.refresh(0, this.term.rows - 1);
   }
 
@@ -1597,45 +1612,41 @@ export class TerminalController {
     this.resetTrimMarker();
     this.trimLineMetadata();
     this.syncGutter();
+    this.finder.bufferChanged();
   }
 
   /**
    * Find `query` in the buffer and highlight every match. `incremental`
    * keeps the current match selected while the query is still being typed,
-   * instead of jumping to the next one.
+   * instead of jumping to the next one. An empty query only drops the
+   * highlights; a Find in Selection range stays.
    */
-  search(query: string, forward = true, incremental = false) {
-    if (!query) {
-      this.clearSearch();
-      return;
-    }
-    this.lastSearch = query;
-    const options: ISearchOptions = {
-      incremental,
-      decorations: SEARCH_DECORATIONS[this.themeMode],
-    };
-    if (forward) this.searchAddon.findNext(query, options);
-    else this.searchAddon.findPrevious(query, options);
+  search(
+    query: string,
+    options: FindOptions,
+    forward = true,
+    incremental = false,
+  ) {
+    this.finder.find(query, options, forward, incremental);
   }
 
-  /** Drop the match highlights; also stops re-searching on every write. */
-  clearSearch() {
-    this.lastSearch = null;
-    this.searchAddon.clearDecorations();
+  /** Fires after every search and when output has moved the matches. */
+  onSearchResults(listener: (results: SearchResults) => void) {
+    return this.finder.onResults(listener);
   }
 
   /**
-   * Re-run the last search so highlights pick up the current theme colors.
-   * The addon only re-highlights when the term or matching options change,
-   * so the decorations are cleared first.
+   * Find in Selection: search only the current selection (or, when a search
+   * has since moved the selection to a match, the one the user made). False
+   * when there is no selection to search in.
    */
-  private refreshSearch() {
-    if (this.lastSearch === null) return;
-    this.searchAddon.clearDecorations();
-    this.searchAddon.findPrevious(this.lastSearch, {
-      incremental: true,
-      decorations: SEARCH_DECORATIONS[this.themeMode],
-    });
+  setSearchScope(on: boolean): boolean {
+    return this.finder.setScope(on);
+  }
+
+  /** Drop the match highlights and the range; also stops re-searching on every write. */
+  clearSearch() {
+    this.finder.clear();
   }
 
   scrollToLine(absoluteLine: number) {
@@ -1661,6 +1672,7 @@ export class TerminalController {
     this.unloadWebgl();
     this.zmodem.dispose();
     this.xmodem.dispose();
+    this.finder.dispose();
     this.term.dispose();
     this.root = null;
     this.host = null;

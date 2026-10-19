@@ -66,6 +66,7 @@
 | `⌘N` | `Alt+N` | 新建会话 |
 | `⌘W` | `Ctrl+Shift+W` | 关闭会话 |
 | `⌘F` / `⌘G` | `Ctrl+Shift+F` / `Ctrl+Shift+G` | 查找 / 查找下一个 |
+| `⌥⌘C` / `⌥⌘W` / `⌥⌘R` / `⌥⌘L` | `Alt+C` / `W` / `R` / `L` | 查找框内：区分大小写 / 全字匹配 / 正则表达式 / 在选区中查找 |
 | `⌘K` | `Alt+K` | 清屏 |
 | `⌘J` | `Ctrl+Shift+J` | 在 Filer 中显示当前目录 |
 | `⌘[` / `⌘]` | `Alt+[` / `Alt+]` | 上一个 / 下一个标签 |
@@ -75,7 +76,7 @@
 | `⌘⌥←` / `⌘⌥→` / `⌘⌥↓` | `Ctrl+Alt+←` / `→` / `↓` | 显示 / 隐藏 Session、Filer、Sender |
 | `⌘C` / `⌘V` / `⌘A` | `Ctrl+Shift+C` / `V` / `A` | 复制 / 粘贴 / 全选 |
 
-除标签序号键外，都可在 **View → Keyboard Shortcuts…** 中修改。
+除标签序号键和查找框自身的按键外，都可在 **View → Keyboard Shortcuts…** 中修改。
 
 ## 许可证
 

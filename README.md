@@ -66,6 +66,7 @@ Download from [Releases](https://github.com/miskin-lee/EdgeTerm/releases):
 | `⌘N` | `Alt+N` | New session |
 | `⌘W` | `Ctrl+Shift+W` | Close session |
 | `⌘F` / `⌘G` | `Ctrl+Shift+F` / `Ctrl+Shift+G` | Find / find next |
+| `⌥⌘C` / `⌥⌘W` / `⌥⌘R` / `⌥⌘L` | `Alt+C` / `W` / `R` / `L` | In the find box: match case / whole word / regular expression / find in selection |
 | `⌘K` | `Alt+K` | Clear screen |
 | `⌘J` | `Ctrl+Shift+J` | Show the working directory in the Filer |
 | `⌘[` / `⌘]` | `Alt+[` / `Alt+]` | Previous / next tab |
@@ -75,7 +76,7 @@ Download from [Releases](https://github.com/miskin-lee/EdgeTerm/releases):
 | `⌘⌥←` / `⌘⌥→` / `⌘⌥↓` | `Ctrl+Alt+←` / `→` / `↓` | Toggle Session / Filer / Sender |
 | `⌘C` / `⌘V` / `⌘A` | `Ctrl+Shift+C` / `V` / `A` | Copy / paste / select all |
 
-All except the tab numbers can be changed in **View → Keyboard Shortcuts…**.
+All except the tab numbers and the find box's own keys can be changed in **View → Keyboard Shortcuts…**.
 
 ## License
 
