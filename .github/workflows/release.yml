@@ -365,6 +365,8 @@ jobs:
           )
 
           # Public download URLs avoid the anonymous GitHub REST API quota.
+          # Draft browser_download_url values can contain temporary untagged IDs;
+          # construct the final URL from TAG_NAME instead.
           # Keep signatures tied to the original bundle bytes.
           platforms='{}'
           for target in "${updater_targets[@]}"; do
@@ -372,8 +374,8 @@ jobs:
             asset_name="${target#*=}"
             signature_file="release-check/signatures/${asset_name}.sig"
 
-            if ! asset_url="$(jq -er --arg name "$asset_name" \
-              '.[] | select(.name == $name) | .browser_download_url' \
+            if ! asset_id="$(jq -er --arg name "$asset_name" \
+              '.[] | select(.name == $name) | .id' \
               release-check/assets.json)"; then
               echo "Missing release asset for ${platform}: ${asset_name}" >&2
               exit 1
@@ -386,7 +388,7 @@ jobs:
 
             platforms="$(jq -c \
               --arg platform "$platform" \
-              --arg url "$asset_url" \
+              --arg url "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG_NAME}/${asset_name}" \
               --rawfile signature "$signature_file" \
               '.[$platform] = { url: $url, signature: $signature }' \
               <<< "$platforms")"
@@ -532,8 +534,8 @@ jobs:
               echo "Unexpected updater URL for ${platform}: ${url}, expected ${expected_url}" >&2
               exit 1
             fi
-            if ! jq -e --arg name "$expected_asset" --arg url "$url" \
-              'any(.[]; .name == $name and .browser_download_url == $url)' \
+            if ! jq -e --arg name "$expected_asset" \
+              'any(.[]; .name == $name)' \
               release-check/assets.json >/dev/null; then
               echo "Updater target ${platform} does not match a release download asset." >&2
               exit 1
