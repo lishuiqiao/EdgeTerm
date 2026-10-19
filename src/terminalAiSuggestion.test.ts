@@ -3,6 +3,7 @@ vi.mock("./platform", () => ({ IS_MAC: true, IS_WINDOWS: false }));
 vi.mock("./api", () => ({ suggestAiCommand: vi.fn() }));
 import { suggestAiCommand } from "./api";
 import { TerminalController } from "./terminal";
+import { setFindCloser } from "./terminalSearch";
 import { defaultShortcuts, setActiveShortcuts } from "./shortcuts";
 const cleanup: (() => void)[] = [];
 function harness() {
@@ -24,7 +25,7 @@ function harness() {
   cleanup.push(() => { controller.dispose(); root.remove(); });
   return { controller, root, out, status, write, type, key, generate, disable: () => { enabled = false; } };
 }
-afterEach(() => { cleanup.splice(0).forEach(f => f()); vi.clearAllMocks(); setActiveShortcuts(defaultShortcuts()); });
+afterEach(() => { cleanup.splice(0).forEach(f => f()); vi.clearAllMocks(); setFindCloser(null); setActiveShortcuts(defaultShortcuts()); });
 describe("terminal AI input", () => {
   it("keeps a Chinese request unchanged until Tab, then replaces without executing", async () => {
     const h = harness();
@@ -66,4 +67,19 @@ describe("terminal AI input", () => {
     h.key(" ", "Space", { ctrlKey: true, shiftKey: true, isComposing: true });
     h.disable(); await h.generate(); expect(suggestAiCommand).not.toHaveBeenCalled();
   });
+});
+
+it("dismisses AI before closing search and does not send either Escape to the shell", async () => {
+  const h = harness();
+  vi.mocked(suggestAiCommand).mockResolvedValue("ls -al");
+  await h.write("$ "); await h.type("files"); await h.generate();
+  expect(h.root.querySelector(".ai-ghost")).not.toBeNull();
+  const close = vi.fn();
+  setFindCloser(close);
+  h.key("Escape", "Escape");
+  expect(h.root.querySelector(".ai-ghost")).toBeNull();
+  expect(close).not.toHaveBeenCalled();
+  h.key("Escape", "Escape");
+  expect(close).toHaveBeenCalledTimes(1);
+  expect(h.out).toEqual([]);
 });

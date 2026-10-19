@@ -100,6 +100,7 @@ Existing plain files remain supported, with any manually added password fields i
 | `⌘N` | `Alt+N` | New session |
 | `⌘W` | `Ctrl+Shift+W` | Close session |
 | `⌘F` / `⌘G` | `Ctrl+Shift+F` / `Ctrl+Shift+G` | Find / find next |
+| `⌥⌘C` / `⌥⌘W` / `⌥⌘R` / `⌥⌘L` | `Alt+C` / `W` / `R` / `L` | In the find box: match case / whole word / regular expression / find in selection |
 | `⌘K` | `Alt+K` | Clear screen |
 | `⌘J` | `Ctrl+Shift+J` | Show the working directory in the Filer |
 | `⌘[` / `⌘]` | `Alt+[` / `Alt+]` | Previous / next tab |
@@ -109,7 +110,7 @@ Existing plain files remain supported, with any manually added password fields i
 | `⌘⌥←` / `⌘⌥→` / `⌘⌥↓` | `Ctrl+Alt+←` / `→` / `↓` | Toggle Session / Filer / Sender |
 | `⌘C` / `⌘V` / `⌘A` | `Ctrl+Shift+C` / `V` / `A` | Copy / paste / select all |
 
-The app actions in this table, except tab numbers, can be changed in **View → Keyboard Shortcuts…**. WindTerm compatibility aliases add clipboard, previous/next search, scroll, zoom and two-stroke window commands. See the [comparison and verification](docs/windterm-keyboard-audit.md). Focused Filer / FTP / SFTP lists support F2 rename, F5 refresh, confirmed Delete and other panel actions. Sender supports Alt+Enter to send, Alt+Q to stop and Alt+X to clear.
+The app actions in this table, except tab numbers and the find box’s own keys, can be changed in **View → Keyboard Shortcuts…**. WindTerm compatibility aliases add clipboard, previous/next search, scroll, zoom and two-stroke window commands. See the [comparison and verification](docs/windterm-keyboard-audit.md). Focused Filer / FTP / SFTP lists support F2 rename, F5 refresh, confirmed Delete and other panel actions. Sender supports Alt+Enter to send, Alt+Q to stop and Alt+X to clear.
 
 On macOS, Fn+Left/Right defaults to line-start/end editing on the ordinary shell screen. Alternate-screen/application-cursor programs retain standard terminal sequences. Disable **Edit → Home/End Line Editing** when exact Home/End encoding is needed. This does not add WindTerm's separate local Vim browsing mode.
 
@@ -132,3 +133,5 @@ Only the current input and shell type are sent. The result is a single command l
 Keys are encrypted locally, excluded from plain backups and all previews, and included in password-encrypted backups. Changing the endpoint never reuses the previous endpoint's key. Requests have bounded responses and timeouts, with no automatic retries or command execution. Protocol reference: [OpenAI Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).
 
 Additional rules (up to 4000 characters) guide command selection without editing the fixed output contract. Responses must be JSON with only a command field containing one command line or null. Invalid formats, obvious prose, control characters and truncated responses are discarded without automatic retries. Enable Strict structured output for services supporting JSON Schema; otherwise leave it off to retain compatibility and local validation. Format validation does not prove command correctness or safety. Preferences are sent with requests and included in configuration exports. See the [structured output protocol](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=chat).
+
+Upstream integration: file lists support Command-click (Ctrl-click on other platforms) and Shift-click multi-selection, with batch transfers. Filer search highlights are independent of selection: changing the query never changes the files selected for transfer. Rename/Delete require a single selected item; F3 downloads the selection in remote lists. Terminal search adds case, whole-word, regex and selection scope while preserving amber/cyan highlights. Serial baud rates use a themed dropdown; crowded session tabs scroll instead of shrinking.

@@ -96,6 +96,7 @@ SSH 会话在服务器接受远程 Shell 后开始计时，本地 Shell 在进�
 | `⌘N` | `Alt+N` | 新建会话 |
 | `⌘W` | `Ctrl+Shift+W` | 关闭会话 |
 | `⌘F` / `⌘G` | `Ctrl+Shift+F` / `Ctrl+Shift+G` | 查找 / 查找下一个 |
+| `⌥⌘C` / `⌥⌘W` / `⌥⌘R` / `⌥⌘L` | `Alt+C` / `W` / `R` / `L` | 查找框内：区分大小写 / 全字匹配 / 正则表达式 / 在选区中查找 |
 | `⌘K` | `Alt+K` | 清屏 |
 | `⌘J` | `Ctrl+Shift+J` | 在 Filer 中显示当前目录 |
 | `⌘[` / `⌘]` | `Alt+[` / `Alt+]` | 上一个 / 下一个标签 |
@@ -105,7 +106,7 @@ SSH 会话在服务器接受远程 Shell 后开始计时，本地 Shell 在进�
 | `⌘⌥←` / `⌘⌥→` / `⌘⌥↓` | `Ctrl+Alt+←` / `→` / `↓` | 显示 / 隐藏 Session、Filer、Sender |
 | `⌘C` / `⌘V` / `⌘A` | `Ctrl+Shift+C` / `V` / `A` | 复制 / 粘贴 / 全选 |
 
-上表中的应用动作除标签序号键外，都可在 **View → Keyboard Shortcuts…** 中修改。另支持 WindTerm 的复制粘贴、前后搜索、滚动、字号调整和两段式窗口快捷键，详情见[快捷键对照与验证](docs/windterm-keyboard-audit.md)。列表获得焦点后，Filer / FTP / SFTP 支持 F2 重命名、F5 刷新、Delete 确认删除等；Sender 支持 Alt+Enter 发送、Alt+Q 停止、Alt+X 清空。
+上表中的应用动作除标签序号键和搜索框自身的按键外，都可在 **View → Keyboard Shortcuts…** 中修改。另支持 WindTerm 的复制粘贴、前后搜索、滚动、字号调整和两段式窗口快捷键，详情见[快捷键对照与验证](docs/windterm-keyboard-audit.md)。列表获得焦点后，Filer / FTP / SFTP 支持 F2 重命名、F5 刷新、Delete 确认删除等；Sender 支持 Alt+Enter 发送、Alt+Q 停止、Alt+X 清空。
 
 macOS 的 Fn+←/→ 在普通 Shell 屏幕中默认移动到输入行首/尾。全屏或 application-cursor 模式保持标准终端序列；需要完全标准的 Home/End 编码时，关闭 **Edit → Home/End Line Editing**。这不是 WindTerm 的独立本地 Vim 浏览模式。
 
@@ -128,3 +129,5 @@ EdgeTerm 采用 [GNU General Public License v3.0](LICENSE) 授权。
 API Key 在本地加密保存，普通备份及导入预览不含 Key；密码加密备份可以携带 Key。更换接口地址不会复用原接口的密钥。AI 请求超时或失败只显示错误，不重试、不执行命令。接口格式参考 [OpenAI Chat Completions 文档](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create)。
 
 AI 设置支持“Additional rules”补充命令偏好（最多 4000 字符），固定输出规则不可编辑。返回必须是仅含 command 字段的 JSON，值为一行命令或 null；无效格式、明显解释文本、控制字符和截断结果会被丢弃，不自动重试。支持 JSON Schema 的服务可开启“Strict structured output”，其他兼容服务保持关闭，仍执行本地校验。结构校验不保证命令语义或安全，采用后仍需自行确认再执行。补充规则会随请求发送，也随配置导出。
+
+上游功能整合：文件列表支持 Command 点击（其他平台为 Ctrl 点击）、Shift 点击多选及批量传输。Filer 搜索高亮与文件选择独立，修改搜索词不会改变待传输的选择；重命名/删除要求单选，远程列表的 F3 下载当前选择。终端搜索新增区分大小写、全词、正则和选区范围，并保留黄/青色醒目高亮。串口波特率使用主题下拉框，多会话标签拥挤时横向滚动。

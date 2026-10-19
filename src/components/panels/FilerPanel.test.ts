@@ -3,7 +3,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../../platform", () => ({ IS_MAC: true, IS_WINDOWS: false }));
-vi.mock("../../nativeDialog", () => ({ open: vi.fn(), save: vi.fn() }));
+vi.mock("../../nativeDialog", () => ({ open: vi.fn(), save: vi.fn(), ask: vi.fn() }));
 vi.mock("../../actions", () => ({ revealCwdInFiler: vi.fn() }));
 vi.mock("../FileIcon", () => ({ FileIcon: () => null }));
 vi.mock("@tauri-apps/api/webview", () => ({
@@ -360,4 +360,26 @@ describe("WindTerm Filer shortcuts", () => {
     expect(container.querySelector('[aria-label="Rename file or folder"]')).toBeNull();
     expect(document.activeElement).toBe(list());
   });
+});
+
+it("keeps multi-selection independent from search and blocks single-item shortcuts", async () => {
+  await render();
+  const rows = () => container.querySelectorAll<HTMLElement>(".filer-entry");
+  await act(async () => rows()[1].dispatchEvent(new MouseEvent("mousedown", { bubbles: true, button: 0 })));
+  await act(async () => rows()[3].dispatchEvent(new MouseEvent("mousedown", { bubbles: true, button: 0, metaKey: true })));
+  expect(container.querySelectorAll(".filer-entry.is-active")).toHaveLength(2);
+  await query("report");
+  expect(container.querySelectorAll(".filer-entry.is-active")).toHaveLength(2);
+  expect(container.querySelectorAll(".filer-search-match").length).toBeGreaterThan(0);
+  const list = container.querySelector<HTMLDivElement>(".filer-list")!;
+  list.focus();
+  for (const key of ["F2", "Delete"]) {
+    await act(async () => list.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true })));
+  }
+  expect(container.querySelector('[aria-label="Rename file or folder"]')).toBeNull();
+  expect(document.querySelector('[aria-modal="true"]')).toBeNull();
+  await act(async () => rows()[4].dispatchEvent(new MouseEvent("mousedown", { bubbles: true, button: 0, shiftKey: true })));
+  expect(Array.from(container.querySelectorAll(".filer-entry.is-active .row-label")).map(e => e.textContent)).toEqual(["other.txt", "[记录].txt"]);
+  await act(async () => list.dispatchEvent(new KeyboardEvent("keydown", { key: "F5", bubbles: true, cancelable: true })));
+  expect(container.querySelectorAll(".filer-entry.is-active")).toHaveLength(0);
 });

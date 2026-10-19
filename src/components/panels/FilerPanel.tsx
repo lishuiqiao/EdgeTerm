@@ -15,7 +15,22 @@ import {
 
 import { revealCwdInFiler } from "../../actions";
 import * as api from "../../api";
-import { open as openDialog, save as saveDialog } from "../../nativeDialog";
+import {
+  EMPTY_SELECTION,
+  batchCollisions,
+  batchItemName,
+  clickMode,
+  replacePrompt,
+  selectEntry,
+  selectForMenu,
+  selectedEntries,
+  type FileSelection,
+} from "../../fileSelection";
+import {
+  ask,
+  open as openDialog,
+  save as saveDialog,
+} from "../../nativeDialog";
 import { IS_MAC, IS_WINDOWS } from "../../platform";
 import { getController } from "../../terminalRegistry";
 import { consumePanelKey, panelKey } from "./panelKeyboard";
@@ -169,7 +184,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
   const [path, setPath] = useState("");
   const [draft, setDraft] = useState("");
   const [entries, setEntries] = useState<FileEntry[]>([]);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selection, setSelection] = useState<FileSelection>(EMPTY_SELECTION);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchMatchPath, setSearchMatchPath] = useState<string | null>(null);
@@ -422,7 +437,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
         setPath(listing.path);
         setDraft(listing.path);
         setEntries(listing.entries);
-        setSelected(null);
+        setSelection(EMPTY_SELECTION);
         setRenaming(null);
         rememberPath(remoteId ?? LOCAL_SOURCE, listing.path);
         return true;
@@ -454,7 +469,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
       setPath("");
       setDraft("");
       setEntries([]);
-      setSelected(null);
+      setSelection(EMPTY_SELECTION);
       setCreating(null);
       setError(null);
       return;
@@ -550,6 +565,98 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
     } finally {
       setBusy(false);
     }
+  };
+
+  /**
+   * Downloads several entries into one folder the user picks, each under its
+   * own name, one after another (issue #101). The folder dialog never warns
+   * about names already there, so the batch is checked first: a clash with a
+   * link or with the other kind stops it before anything is sent, and names
+   * that would be replaced or merged into are confirmed once for the batch.
+   * A failure or a cancel stops the rest; the error line names the entry.
+   */
+  const downloadMany = async (picked: FileEntry[]) => {
+    const sessionId = remoteId;
+    if (!sessionId || picked.length === 0 || busyRef.current) return;
+    const parent = await openDialog({
+      directory: true,
+      multiple: false,
+      title: `Download ${picked.length} items into…`,
+    });
+    if (typeof parent !== "string") return;
+    setError(null);
+    let present: FileEntry[];
+    try {
+      present = (await api.localList(parent)).entries;
+    } catch (e) {
+      setError(String(e));
+      return;
+    }
+    // APFS and NTFS match names case-insensitively by default.
+    const collisions = batchCollisions(
+      picked,
+      present,
+      "local",
+      IS_MAC || IS_WINDOWS,
+    );
+    if (collisions.blocked) {
+      setError(collisions.blocked);
+      return;
+    }
+    if (collisions.existing.length > 0) {
+      const prompt = replacePrompt(collisions.existing, "local");
+      const confirmed = await ask(prompt.message, {
+        title: "Download",
+        kind: "warning",
+        okLabel: prompt.okLabel,
+        cancelLabel: "Cancel",
+      });
+      if (!confirmed) return;
+    }
+
+    busyRef.current = true;
+    setBusy(true);
+    let current = picked[0];
+    try {
+      for (const [index, entry] of picked.entries()) {
+        current = entry;
+        const target = joinLocal(parent, entry.name);
+        const transfer = beginTransfer(
+          "download",
+          batchItemName(entry.name, index, picked.length),
+          true,
+        );
+        if (entry.isDir) {
+          await api.sftpDownloadDirectory(
+            sessionId,
+            entry.path,
+            target,
+            updateTransferProgress,
+            transfer,
+          );
+        } else {
+          await api.sftpDownload(
+            sessionId,
+            entry.path,
+            target,
+            updateTransferProgress,
+            transfer,
+          );
+        }
+        finishTransfer("complete");
+      }
+    } catch (e) {
+      failTransfer(`${current.name}: ${e}`);
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
+  };
+
+  /** Downloads what is selected: alone through its own dialog, else as a batch. */
+  const downloadSelection = (picked: FileEntry[]) => {
+    if (picked.length === 1) void download(picked[0]);
+    else void downloadMany(picked);
   };
 
   const uploadPaths = async (localPaths: string[]) => {
@@ -879,7 +986,9 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
     entry: FileEntry,
     event: ReactPointerEvent<HTMLDivElement>,
   ) => {
-    if (event.button !== 0) return;
+    // A drag carries the one entry a plain press selects; ⌘ / Ctrl / Shift
+    // presses only change the selection.
+    if (clickMode(event, IS_MAC) !== "replace") return;
     pointerHeld.current = true;
     dragPress.current = {
       pointerId: event.pointerId,
@@ -1146,6 +1255,31 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
     };
   };
 
+  /** Menu for a right click inside a selection of several entries. */
+  const selectionMenu = (picked: FileEntry[]): MenuItem[] => [
+    ...(remote
+      ? [
+          {
+            label: `Download ${picked.length} Items…`,
+            icon: "cloud-download" as const,
+            disabled: busy,
+            action: () => void downloadMany(picked),
+          },
+          "separator" as const,
+        ]
+      : []),
+    {
+      label: "Copy Paths",
+      icon: "copy",
+      action: () => copyText(picked.map((entry) => entry.path).join("\n")),
+    },
+    {
+      label: "Copy Names",
+      icon: "tag",
+      action: () => copyText(picked.map((entry) => entry.name).join("\n")),
+    },
+  ];
+
   const entryMenu = (entry: FileEntry): MenuItem[] => [
     entry.isDir
       ? {
@@ -1291,7 +1425,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
   const onTreeKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     const key = panelKey(event);
     if (!key || busy || offline) return;
-    const entry = entries.find((item) => item.path === selected);
+    const entry = selected.length === 1 ? selected[0] : undefined;
     let action: (() => void) | undefined;
     const paste = (text: string) => {
       if (tab?.state === "connected") getController(tab.info.id)?.paste(text);
@@ -1302,13 +1436,13 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
       case "Home":
       case "End":
         action = () => {
-          const current = entries.findIndex((item) => item.path === selected);
+          const current = entries.findIndex((item) => item.path === selection.anchor);
           const index = key === "Home" ? 0 : key === "End" ? entries.length - 1
             : current < 0 ? (key === "ArrowUp" ? entries.length - 1 : 0)
             : Math.max(0, Math.min(entries.length - 1, current + (key === "ArrowUp" ? -1 : 1)));
           const target = entries[index];
           if (target) {
-            setSelected(target.path);
+            setSelection(selectEntry(selection, entryOrder, target.path, "replace"));
             listRef.current?.querySelectorAll<HTMLElement>(".filer-entry")[index]?.scrollIntoView({ block: "nearest" });
           }
         };
@@ -1316,15 +1450,15 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
       case "Enter": if (entry) action = () => activate(entry); break;
       case "Delete": if (entry && !atDrivesRoot) action = () => setPendingDelete(entry); break;
       case "F2": if (entry && !atDrivesRoot) action = () => setRenaming({ entry, name: entry.name }); break;
-      case "F3": if (entry && !atDrivesRoot) action = () => { if (remote) void download(entry); else void copyToFolder(entry); }; break;
+      case "F3": if (selected.length && !atDrivesRoot) action = () => { if (remote) downloadSelection(selected); else if (entry) void copyToFolder(entry); }; break;
       case "F4": if (path && !atDrivesRoot) action = () => { if (remote) void upload(); else void copyFromFiles(); }; break;
       case "F5": action = () => { void load(path); }; break;
       case "Backspace": if (path && !atDrivesRoot) action = () => { void goUp(); }; break;
       case "Alt+d": action = () => { addressInputRef.current?.focus(); addressInputRef.current?.select(); }; break;
       case "F7": if (path && !atDrivesRoot) action = () => paste(path); break;
       case "F8": if (canReveal && tab) action = () => { void revealCwdInFiler(tab.info.id); }; break;
-      case "Mod+c": if (entry) action = () => copyText(entry.name); break;
-      case "Mod+Shift+c": if (entry) action = () => copyText(entry.path); break;
+      case "Mod+c": if (selected.length) action = () => copyText(selected.map(item => item.name).join("\n")); break;
+      case "Mod+Shift+c": if (selected.length) action = () => copyText(selected.map(item => item.path).join("\n")); break;
       case "Mod+p": if (entry) action = () => paste(entry.name); break;
       case "Mod+Shift+p": if (entry) action = () => paste(entry.path); break;
       case "Mod+n": if (path && !atDrivesRoot) action = () => setCreating({ kind: "file", name: "" }); break;
@@ -1356,7 +1490,8 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
   // The Windows drive list is virtual: drives can be opened but not created,
   // deleted or navigated above.
   const atDrivesRoot = !remoteId && path === api.LOCAL_DRIVES_ROOT;
-  const selectedEntry = entries.find((e) => e.path === selected) ?? null;
+  const selected = selectedEntries(entries, selection);
+  const entryOrder = entries.map((entry) => entry.path);
 
   return (
     <div
@@ -1427,10 +1562,14 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
         </button>
         <button
           className="panel-action filer-action"
-          onClick={() => selectedEntry && void download(selectedEntry)}
-          title={remoteTitle("Download file or folder")}
+          onClick={() => downloadSelection(selected)}
+          title={remoteTitle(
+            selected.length > 1
+              ? `Download ${selected.length} items`
+              : "Download file or folder",
+          )}
           aria-label="Download file or folder"
-          disabled={!remote || !selected || busy}
+          disabled={!remote || selected.length === 0 || busy}
         >
           <Icon name="cloud-download" />
         </button>
@@ -1445,10 +1584,10 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
         </button>
         <button
           className="panel-action filer-action filer-action-danger"
-          onClick={() => selectedEntry && setPendingDelete(selectedEntry)}
-          title="Delete"
+          onClick={() => selected.length === 1 && setPendingDelete(selected[0])}
+          title={selected.length > 1 ? "Delete (one item at a time)" : "Delete"}
           aria-label="Delete"
-          disabled={!selected || busy || atDrivesRoot}
+          disabled={selected.length !== 1 || busy || atDrivesRoot}
         >
           <Icon name="trash" />
         </button>
@@ -1624,14 +1763,26 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
             <div
               key={entry.path}
               ref={entry.path === activeSearchPath ? searchMatchRef : undefined}
-              className={`row filer-entry is-${kind}${entry.path === selected ? " is-active" : ""}${entry.path === activeSearchPath ? " is-search-current" : ""}${dragOut?.path === entry.path ? " is-dragging-out" : ""}`}
-              onMouseDown={() => setSelected(entry.path)}
+              className={`row filer-entry is-${kind}${selection.paths.includes(entry.path) ? " is-active" : ""}${entry.path === activeSearchPath ? " is-search-current" : ""}${dragOut?.path === entry.path ? " is-dragging-out" : ""}`}
+              onMouseDown={(event) => {
+                const mode = clickMode(event, IS_MAC);
+                if (mode) {
+                  setSelection(
+                    selectEntry(selection, entryOrder, entry.path, mode),
+                  );
+                }
+              }}
               onPointerDown={(event) => onEntryPointerDown(entry, event)}
               onPointerMove={onEntryPointerMove}
               onDoubleClick={() => activate(entry)}
               onContextMenu={(event) => {
-                setSelected(entry.path);
-                openMenu(event, entryMenu(entry));
+                const next = selectForMenu(selection, entry.path);
+                setSelection(next);
+                const targets = selectedEntries(entries, next);
+                openMenu(
+                  event,
+                  targets.length > 1 ? selectionMenu(targets) : entryMenu(entry),
+                );
               }}
               title={entryTitle(entry)}
             >
@@ -1759,7 +1910,10 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
           <span className="filer-drop-blocked">{dragOver.reason}</span>
         ) : (
           <>
-            <span>{formatEntrySummary(entries)}</span>
+            <span>
+              {formatEntrySummary(entries)}
+              {selected.length > 1 && ` · ${selected.length} selected`}
+            </span>
             {busy && <span>working…</span>}
           </>
         )}

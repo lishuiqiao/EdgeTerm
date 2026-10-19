@@ -2,6 +2,7 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("../platform", () => ({ IS_MAC: true, IS_WINDOWS: false }));
+vi.mock("../nativeDialog", () => ({ ask: vi.fn() }));
 vi.mock("./FileIcon", () => ({ FileIcon: () => null }));
 vi.mock("../api", () => ({
   LOCAL_DRIVES_ROOT: "drives:",
@@ -12,6 +13,7 @@ vi.mock("../api", () => ({
   localMkdir: vi.fn(), sftpMkdir: vi.fn(), sftpDownload: vi.fn(), sftpUpload: vi.fn(),
 }));
 import * as api from "../api";
+import { ask } from "../nativeDialog";
 import { useStore } from "../store";
 import { FtpPane } from "./FtpPane";
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -24,7 +26,7 @@ beforeEach(async () => {
   vi.mocked(api.localList).mockImplementation(async (path) => listing(path));
   vi.mocked(api.sftpList).mockImplementation(async (_id, path) => listing(path));
   vi.spyOn(window, "prompt").mockReturnValue("new.txt");
-  vi.spyOn(window, "confirm").mockReturnValue(false);
+  vi.mocked(ask).mockResolvedValue(false);
   Object.defineProperty(HTMLElement.prototype, "scrollIntoView", { configurable: true, value: vi.fn() });
   useStore.setState(initial, true);
   useStore.getState().addTab({ id: "ftp", name: "FTP", profileId: null, kind: "ftp", protocol: "ftp", address: "server", color: null, supportsRemoteFiles: true, recording: null, legacyAlgorithms: [], sharedConnection: false }, { id: "p", name: "FTP", kind: "ftp" });
@@ -49,8 +51,8 @@ describe("FTP browser WindTerm shortcuts", () => {
   it("keeps Delete confirmation, ignores repeats/IME and preserves address editing", async () => {
     list().focus(); await key("ArrowDown");
     await key("Delete", { repeat: true }); await key("Delete", { isComposing: true });
-    expect(window.confirm).not.toHaveBeenCalled();
-    await key("Delete"); expect(window.confirm).toHaveBeenCalled(); expect(api.sftpRemove).not.toHaveBeenCalled();
+    expect(ask).not.toHaveBeenCalled();
+    await key("Delete"); expect(ask).toHaveBeenCalled(); expect(api.sftpRemove).not.toHaveBeenCalled();
     await key("∂", { code: "KeyD", altKey: true });
     expect(document.activeElement?.tagName).toBe("INPUT");
     expect((await key("Delete")).defaultPrevented).toBe(false);
@@ -58,9 +60,27 @@ describe("FTP browser WindTerm shortcuts", () => {
   it("refreshes and uses F3/F4 for the existing transfer actions", async () => {
     list().focus(); await key("F5"); expect(api.sftpList).toHaveBeenCalledTimes(2);
     await key("ArrowDown");
-    vi.mocked(window.confirm).mockReturnValue(true);
+    vi.mocked(ask).mockResolvedValue(true);
     await key("F3"); expect(api.sftpDownload).toHaveBeenCalledWith("ftp", "/remote/file.txt", "/local/file.txt", expect.any(Function));
     list(1).focus(); await key("ArrowDown");
     await key("F4"); expect(api.sftpUpload).toHaveBeenCalledWith("ftp", "/local/file.txt", "/remote/file.txt", expect.any(Function));
   });
+});
+
+it("uses F3 for all selected files but requires a single item for rename/delete", async () => {
+  vi.mocked(api.sftpList).mockImplementation(async (_id, path) => {
+    const base = listing(path);
+    return { ...base, entries: [...base.entries, { ...base.entries[0], name: "second.txt", path: `${path}/second.txt` }] };
+  });
+  list().focus(); await key("F5");
+  const rows = list().querySelectorAll<HTMLElement>(".ftp-file-row");
+  await act(async () => rows[0].dispatchEvent(new MouseEvent("click", { bubbles: true, button: 0 })));
+  await act(async () => rows[1].dispatchEvent(new MouseEvent("click", { bubbles: true, button: 0, metaKey: true })));
+  expect(list().querySelectorAll('[aria-selected="true"]')).toHaveLength(2);
+  await key("F2"); await key("Delete");
+  expect(window.prompt).not.toHaveBeenCalled(); expect(ask).not.toHaveBeenCalled();
+  vi.mocked(ask).mockResolvedValue(true);
+  await key("F3");
+  expect(vi.mocked(api.sftpDownload).mock.calls.map(call => call[1])).toEqual(["/remote/file.txt", "/remote/second.txt"]);
+  expect(ask).toHaveBeenCalledOnce();
 });

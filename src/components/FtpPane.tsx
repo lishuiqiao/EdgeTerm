@@ -2,6 +2,18 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 
 import * as api from "../api";
 import { consumePanelKey, panelKey } from "./panels/panelKeyboard";
+import {
+  EMPTY_SELECTION,
+  batchCollisions,
+  batchItemName,
+  clickMode,
+  replacePrompt,
+  selectEntry,
+  selectedEntries,
+  type FileSelection,
+} from "../fileSelection";
+import { ask } from "../nativeDialog";
+import { IS_MAC, IS_WINDOWS } from "../platform";
 import { FileIcon } from "./FileIcon";
 import { Icon } from "./icons";
 import { useStore, type Tab } from "../store";
@@ -27,7 +39,7 @@ interface FileBrowserProps {
   path: string;
   draft: string;
   entries: FileEntry[];
-  selected: string | null;
+  selection: FileSelection;
   loading: boolean;
   error: string | null;
   actions?: ReactNode;
@@ -38,7 +50,7 @@ interface FileBrowserProps {
   onHome: () => void;
   onParent: () => void;
   onRefresh: () => void;
-  onSelect: (path: string) => void;
+  onSelectionChange: (selection: FileSelection) => void;
   onActivate: (entry: FileEntry) => void;
 }
 
@@ -51,7 +63,8 @@ export function FtpPane({ tab, active }: Props) {
   const [remotePath, setRemotePath] = useState("");
   const [remoteDraft, setRemoteDraft] = useState("");
   const [remoteEntries, setRemoteEntries] = useState<FileEntry[]>([]);
-  const [remoteSelected, setRemoteSelected] = useState<string | null>(null);
+  const [remoteSelection, setRemoteSelection] =
+    useState<FileSelection>(EMPTY_SELECTION);
   const [remoteLoading, setRemoteLoading] = useState(false);
   const [remoteError, setRemoteError] = useState<string | null>(null);
 
@@ -59,7 +72,8 @@ export function FtpPane({ tab, active }: Props) {
   const [localPath, setLocalPath] = useState("");
   const [localDraft, setLocalDraft] = useState("");
   const [localEntries, setLocalEntries] = useState<FileEntry[]>([]);
-  const [localSelected, setLocalSelected] = useState<string | null>(null);
+  const [localSelection, setLocalSelection] =
+    useState<FileSelection>(EMPTY_SELECTION);
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const localRequest = useRef(0);
@@ -76,7 +90,7 @@ export function FtpPane({ tab, active }: Props) {
         setRemotePath(listing.path);
         setRemoteDraft(listing.path);
         setRemoteEntries(listing.entries);
-        setRemoteSelected(null);
+        setRemoteSelection(EMPTY_SELECTION);
       } catch (error) {
         setRemoteError(friendlyFtpError(error));
       } finally {
@@ -96,7 +110,7 @@ export function FtpPane({ tab, active }: Props) {
       setLocalPath(listing.path);
       setLocalDraft(listing.path);
       setLocalEntries(listing.entries);
-      setLocalSelected(null);
+      setLocalSelection(EMPTY_SELECTION);
     } catch (error) {
       if (request !== localRequest.current) return;
       setLocalError(String(error));
@@ -129,12 +143,11 @@ export function FtpPane({ tab, active }: Props) {
     };
   }, [loadLocal, loadRemote, sessionId, tab.state]);
 
-  const selectedRemote = remoteEntries.find(
-    (entry) => entry.path === remoteSelected,
-  );
-  const selectedLocal = localEntries.find(
-    (entry) => entry.path === localSelected,
-  );
+  const selectedRemote = selectedEntries(remoteEntries, remoteSelection);
+  const selectedLocal = selectedEntries(localEntries, localSelection);
+  // Rename and delete act on exactly one entry; transfers take any number.
+  const soleRemote = selectedRemote.length === 1 ? selectedRemote[0] : null;
+  const soleLocal = selectedLocal.length === 1 ? selectedLocal[0] : null;
 
   const updateProgress = (progress: api.TransferProgress) => {
     setTransfer((current) =>
@@ -148,59 +161,88 @@ export function FtpPane({ tab, active }: Props) {
     );
   };
 
-  const upload = async () => {
-    if (!selectedLocal || !remotePath || transferring) {
-      return;
-    }
+  /**
+   * Copies the selected entries into the folder the other side shows, one
+   * after another (issue #101). The batch is checked against that folder's
+   * listing first: a clash with a link or with the other kind stops it before
+   * anything is sent, and names already there are confirmed once for the
+   * whole batch. A failure stops the rest; the reload shows what arrived.
+   */
+  const transferSelection = async (direction: "upload" | "download") => {
+    const upload = direction === "upload";
+    const items = upload ? selectedLocal : selectedRemote;
+    const destination = upload ? remotePath : localPath;
+    if (items.length === 0 || !destination || transferring) return;
 
-    const existingRemote = remoteEntries.find(
-      (entry) => entry.name === selectedLocal.name,
+    const side = upload ? "remote" : "local";
+    const setError = upload ? setRemoteError : setLocalError;
+    const collisions = batchCollisions(
+      items,
+      upload ? remoteEntries : localEntries,
+      side,
+      // APFS and NTFS match local names case-insensitively by default.
+      !upload && (IS_MAC || IS_WINDOWS),
     );
-    if (existingRemote && existingRemote.isDir !== selectedLocal.isDir) {
-      setRemoteError(
-        selectedLocal.isDir
-          ? `A remote file named “${selectedLocal.name}” already exists.`
-          : `A remote folder named “${selectedLocal.name}” already exists.`,
-      );
+    if (collisions.blocked) {
+      setError(collisions.blocked);
       return;
     }
-    if (existingRemote) {
-      const prompt = selectedLocal.isDir
-        ? `Merge into remote folder “${selectedLocal.name}”? Existing files with the same names will be replaced.`
-        : `Replace remote file “${selectedLocal.name}”?`;
-      if (!window.confirm(prompt)) return;
+    if (collisions.existing.length > 0) {
+      const prompt = replacePrompt(collisions.existing, side);
+      const confirmed = await ask(prompt.message, {
+        title: upload ? "Upload" : "Download",
+        kind: "warning",
+        okLabel: prompt.okLabel,
+        cancelLabel: "Cancel",
+      });
+      if (!confirmed) return;
     }
 
-    setRemoteError(null);
+    setError(null);
     setTransferring(true);
-    setTransfer({
-      direction: "upload",
-      name: selectedLocal.name,
-      transferred: 0,
-      total: selectedLocal.isDir ? 0 : selectedLocal.size,
-      status: "running",
-    });
     try {
-      const destination = joinRemote(remotePath, selectedLocal.name);
-      if (selectedLocal.isDir) {
-        await api.sftpUploadDirectory(
-          sessionId,
-          selectedLocal.path,
-          destination,
-          updateProgress,
-        );
-      } else {
-        await api.sftpUpload(
-          sessionId,
-          selectedLocal.path,
-          destination,
-          updateProgress,
-        );
+      for (const [index, item] of items.entries()) {
+        setTransfer({
+          direction,
+          name: batchItemName(item.name, index, items.length),
+          transferred: 0,
+          total: item.isDir ? 0 : item.size,
+          status: "running",
+        });
+        if (upload) {
+          const target = joinRemote(destination, item.name);
+          if (item.isDir) {
+            await api.sftpUploadDirectory(
+              sessionId,
+              item.path,
+              target,
+              updateProgress,
+            );
+          } else {
+            await api.sftpUpload(sessionId, item.path, target, updateProgress);
+          }
+        } else {
+          const target = joinLocal(destination, item.name);
+          if (item.isDir) {
+            await api.sftpDownloadDirectory(
+              sessionId,
+              item.path,
+              target,
+              updateProgress,
+            );
+          } else {
+            await api.sftpDownload(
+              sessionId,
+              item.path,
+              target,
+              updateProgress,
+            );
+          }
+        }
       }
       setTransfer((current) =>
         current ? { ...current, status: "complete" } : current,
       );
-      await loadRemote(remotePath);
     } catch (error) {
       setTransfer((current) =>
         current
@@ -210,74 +252,7 @@ export function FtpPane({ tab, active }: Props) {
     } finally {
       setTransferring(false);
     }
-  };
-
-  const download = async () => {
-    if (!selectedRemote || !localPath || transferring) {
-      return;
-    }
-
-    const existingLocal = localEntries.find(
-      (entry) => entry.name === selectedRemote.name,
-    );
-    if (existingLocal?.isSymlink) {
-      setLocalError(`Refusing to replace local symlink “${selectedRemote.name}”.`);
-      return;
-    }
-    if (existingLocal && existingLocal.isDir !== selectedRemote.isDir) {
-      setLocalError(
-        selectedRemote.isDir
-          ? `A local file named “${selectedRemote.name}” already exists.`
-          : `A local folder named “${selectedRemote.name}” already exists.`,
-      );
-      return;
-    }
-    if (existingLocal) {
-      const prompt = selectedRemote.isDir
-        ? `Merge into local folder “${selectedRemote.name}”? Existing files with the same names will be replaced.`
-        : `Replace local file “${selectedRemote.name}”?`;
-      if (!window.confirm(prompt)) return;
-    }
-
-    setLocalError(null);
-    setTransferring(true);
-    setTransfer({
-      direction: "download",
-      name: selectedRemote.name,
-      transferred: 0,
-      total: selectedRemote.isDir ? 0 : selectedRemote.size,
-      status: "running",
-    });
-    try {
-      const destination = joinLocal(localPath, selectedRemote.name);
-      if (selectedRemote.isDir) {
-        await api.sftpDownloadDirectory(
-          sessionId,
-          selectedRemote.path,
-          destination,
-          updateProgress,
-        );
-      } else {
-        await api.sftpDownload(
-          sessionId,
-          selectedRemote.path,
-          destination,
-          updateProgress,
-        );
-      }
-      setTransfer((current) =>
-        current ? { ...current, status: "complete" } : current,
-      );
-      await loadLocal(localPath);
-    } catch (error) {
-      setTransfer((current) =>
-        current
-          ? { ...current, status: "error", message: String(error) }
-          : current,
-      );
-    } finally {
-      setTransferring(false);
-    }
+    await (upload ? loadRemote(destination) : loadLocal(destination));
   };
 
   const createRemoteFolder = async () => {
@@ -294,14 +269,14 @@ export function FtpPane({ tab, active }: Props) {
   };
 
   const renameRemote = async () => {
-    if (!selectedRemote || transferring) return;
-    const name = window.prompt("Rename remote item", selectedRemote.name)?.trim();
-    if (!name || name === selectedRemote.name) return;
+    if (!soleRemote || transferring) return;
+    const name = window.prompt("Rename remote item", soleRemote.name)?.trim();
+    if (!name || name === soleRemote.name) return;
     setRemoteError(null);
     try {
       await api.sftpRename(
         sessionId,
-        selectedRemote.path,
+        soleRemote.path,
         joinRemote(remotePath, name),
       );
       await loadRemote(remotePath);
@@ -311,14 +286,14 @@ export function FtpPane({ tab, active }: Props) {
   };
 
   const removeRemote = async () => {
-    if (!selectedRemote || transferring) return;
-    if (!window.confirm(`Delete remote ${selectedRemote.name}?`)) return;
+    if (!soleRemote || transferring) return;
+    if (!(await confirmDelete(`Delete remote ${soleRemote.name}?`))) return;
     setRemoteError(null);
     try {
       await api.sftpRemove(
         sessionId,
-        selectedRemote.path,
-        selectedRemote.isDir,
+        soleRemote.path,
+        soleRemote.isDir,
       );
       await loadRemote(remotePath);
     } catch (error) {
@@ -340,13 +315,13 @@ export function FtpPane({ tab, active }: Props) {
   };
 
   const renameLocal = async () => {
-    if (!selectedLocal || transferring) return;
-    const name = window.prompt("Rename local item", selectedLocal.name)?.trim();
-    if (!name || name === selectedLocal.name) return;
+    if (!soleLocal || transferring) return;
+    const name = window.prompt("Rename local item", soleLocal.name)?.trim();
+    if (!name || name === soleLocal.name) return;
     setLocalError(null);
     try {
       await api.localRename(
-        selectedLocal.path,
+        soleLocal.path,
         joinLocal(localPath, name),
       );
       await loadLocal(localPath);
@@ -356,14 +331,14 @@ export function FtpPane({ tab, active }: Props) {
   };
 
   const removeLocal = async () => {
-    if (!selectedLocal || transferring) return;
-    const type = selectedLocal.isDir ? "empty local folder" : "local file";
-    if (!window.confirm(`Delete ${type} “${selectedLocal.name}”?`)) return;
+    if (!soleLocal || transferring) return;
+    const type = soleLocal.isDir ? "empty local folder" : "local file";
+    if (!(await confirmDelete(`Delete ${type} “${soleLocal.name}”?`))) return;
     setLocalError(null);
     try {
       await api.localRemove(
-        selectedLocal.path,
-        selectedLocal.isDir,
+        soleLocal.path,
+        soleLocal.isDir,
       );
       await loadLocal(localPath);
     } catch (error) {
@@ -399,7 +374,7 @@ export function FtpPane({ tab, active }: Props) {
               path={remotePath}
               draft={remoteDraft}
               entries={remoteEntries}
-              selected={remoteSelected}
+              selection={remoteSelection}
               loading={remoteLoading}
               error={remoteError}
               onDraftChange={setRemoteDraft}
@@ -407,14 +382,14 @@ export function FtpPane({ tab, active }: Props) {
               onHome={() => void loadRemote(remoteHome)}
               onParent={() => void loadRemote(remoteParent(remotePath))}
               onRefresh={() => void loadRemote(remotePath || remoteHome)}
-              onSelect={setRemoteSelected}
+              onSelectionChange={setRemoteSelection}
               keyboardDisabled={transferring || !active}
               keyboardActions={{
-                F2: selectedRemote ? () => { void renameRemote(); } : undefined,
-                Delete: selectedRemote ? () => { void removeRemote(); } : undefined,
+                F2: soleRemote ? () => { void renameRemote(); } : undefined,
+                Delete: soleRemote ? () => { void removeRemote(); } : undefined,
                 "Mod+Shift+n": () => { void createRemoteFolder(); },
-                F3: selectedRemote ? () => { void download(); } : undefined,
-                F4: selectedLocal ? () => { void upload(); } : undefined,
+                F3: selectedRemote.length ? () => { void transferSelection("download"); } : undefined,
+                F4: selectedLocal.length ? () => { void transferSelection("upload"); } : undefined,
               }}
               onActivate={(entry) => {
                 if (entry.isDir) void loadRemote(entry.path);
@@ -431,14 +406,14 @@ export function FtpPane({ tab, active }: Props) {
                   <ToolButton
                     label="Rename remote item"
                     onClick={() => void renameRemote()}
-                    disabled={!selectedRemote || remoteLoading || transferring}
+                    disabled={!soleRemote || remoteLoading || transferring}
                   >
                     <Icon name="edit" />
                   </ToolButton>
                   <ToolButton
                     label="Delete remote item"
                     onClick={() => void removeRemote()}
-                    disabled={!selectedRemote || remoteLoading || transferring}
+                    disabled={!soleRemote || remoteLoading || transferring}
                     danger
                   >
                     <Icon name="trash" />
@@ -450,18 +425,26 @@ export function FtpPane({ tab, active }: Props) {
             <div className="ftp-transfer-rail" aria-label="File transfer actions">
               <button
                 className="ftp-transfer-button"
-                onClick={() => void upload()}
-                disabled={!selectedLocal || transferring}
-                title="Upload selected local file or folder"
+                onClick={() => void transferSelection("upload")}
+                disabled={selectedLocal.length === 0 || transferring}
+                title={
+                  selectedLocal.length > 1
+                    ? `Upload ${selectedLocal.length} selected local items`
+                    : "Upload selected local file or folder"
+                }
               >
                 <span>←</span>
                 Upload
               </button>
               <button
                 className="ftp-transfer-button"
-                onClick={() => void download()}
-                disabled={!selectedRemote || transferring}
-                title={`Download selected ${protocolLabel} file or folder`}
+                onClick={() => void transferSelection("download")}
+                disabled={selectedRemote.length === 0 || transferring}
+                title={
+                  selectedRemote.length > 1
+                    ? `Download ${selectedRemote.length} selected ${protocolLabel} items`
+                    : `Download selected ${protocolLabel} file or folder`
+                }
               >
                 Download
                 <span>→</span>
@@ -474,7 +457,7 @@ export function FtpPane({ tab, active }: Props) {
               path={localPath}
               draft={localDraft}
               entries={localEntries}
-              selected={localSelected}
+              selection={localSelection}
               loading={localLoading}
               error={localError}
               onDraftChange={setLocalDraft}
@@ -484,14 +467,14 @@ export function FtpPane({ tab, active }: Props) {
                 void api.localParent(localPath).then(loadLocal);
               }}
               onRefresh={() => void loadLocal(localPath || localHome)}
-              onSelect={setLocalSelected}
+              onSelectionChange={setLocalSelection}
               keyboardDisabled={transferring || !active}
               keyboardActions={{
-                F2: selectedLocal ? () => { void renameLocal(); } : undefined,
-                Delete: selectedLocal ? () => { void removeLocal(); } : undefined,
+                F2: soleLocal ? () => { void renameLocal(); } : undefined,
+                Delete: soleLocal ? () => { void removeLocal(); } : undefined,
                 "Mod+Shift+n": () => { void createLocalFolder(); },
-                F3: selectedRemote ? () => { void download(); } : undefined,
-                F4: selectedLocal ? () => { void upload(); } : undefined,
+                F3: selectedRemote.length ? () => { void transferSelection("download"); } : undefined,
+                F4: selectedLocal.length ? () => { void transferSelection("upload"); } : undefined,
               }}
               onActivate={(entry) => {
                 if (entry.isDir) void loadLocal(entry.path);
@@ -508,14 +491,14 @@ export function FtpPane({ tab, active }: Props) {
                   <ToolButton
                     label="Rename local item"
                     onClick={() => void renameLocal()}
-                    disabled={!selectedLocal || localLoading || transferring}
+                    disabled={!soleLocal || localLoading || transferring}
                   >
                     <Icon name="edit" />
                   </ToolButton>
                   <ToolButton
                     label="Delete local item"
                     onClick={() => void removeLocal()}
-                    disabled={!selectedLocal || localLoading || transferring}
+                    disabled={!soleLocal || localLoading || transferring}
                     danger
                   >
                     <Icon name="trash" />
@@ -559,7 +542,7 @@ export function FtpPane({ tab, active }: Props) {
                 )}
               </>
             ) : (
-              <span>{`Select a local file or folder to upload, or a ${protocolLabel} file or folder to download.`}</span>
+              <span>{`Select local items to upload or ${protocolLabel} items to download; ${IS_MAC ? "⌘" : "Ctrl"}-click or Shift-click selects several.`}</span>
             )}
           </div>
         </>
@@ -574,7 +557,7 @@ function FileBrowser({
   path,
   draft,
   entries,
-  selected,
+  selection,
   loading,
   error,
   actions,
@@ -585,12 +568,13 @@ function FileBrowser({
   onHome,
   onParent,
   onRefresh,
-  onSelect,
+  onSelectionChange,
   onActivate,
 }: FileBrowserProps) {
   const theme = useStore((s) => s.theme);
   const listRef = useRef<HTMLDivElement>(null);
   const addressRef = useRef<HTMLInputElement>(null);
+  const order = entries.map((entry) => entry.path);
   return (
     <section className="ftp-file-browser">
       <div className="ftp-browser-header">
@@ -643,19 +627,20 @@ function FileBrowser({
           if (!key || loading || keyboardDisabled) return;
           let action = keyboardActions?.[key];
           if (path === api.LOCAL_DRIVES_ROOT && ["F2", "Delete", "Mod+Shift+n"].includes(key)) action = undefined;
-          const entry = entries.find((item) => item.path === selected);
+          const picked = selectedEntries(entries, selection);
+          const entry = picked.length === 1 ? picked[0] : undefined;
           if (key === "Enter" && entry) action = () => onActivate(entry);
           if (key === "Backspace" && path && path !== api.LOCAL_DRIVES_ROOT) action = onParent;
           if (key === "F5") action = onRefresh;
           if (key === "Alt+d") action = () => { addressRef.current?.focus(); addressRef.current?.select(); };
           const navigating = ["ArrowUp", "ArrowDown", "Home", "End"].includes(key);
           if (navigating) action = () => {
-            const current = entries.findIndex((item) => item.path === selected);
+            const current = entries.findIndex((item) => item.path === selection.anchor);
             const index = key === "Home" ? 0 : key === "End" ? entries.length - 1
               : current < 0 ? (key === "ArrowUp" ? entries.length - 1 : 0)
               : Math.max(0, Math.min(entries.length - 1, current + (key === "ArrowUp" ? -1 : 1)));
             if (entries[index]) {
-              onSelect(entries[index].path);
+              onSelectionChange(selectEntry(selection, order, entries[index].path, "replace"));
               listRef.current?.querySelectorAll<HTMLElement>(".ftp-file-row")[index]?.scrollIntoView({ block: "nearest" });
             }
           };
@@ -664,6 +649,7 @@ function FileBrowser({
             if (!event.repeat || navigating) action();
           }
         }}
+        aria-multiselectable
       >
         {error && <div className="ftp-browser-message is-error">{error}</div>}
         {!error && loading && <div className="ftp-browser-message">Loading…</div>}
@@ -671,29 +657,42 @@ function FileBrowser({
           <div className="ftp-browser-message">This folder is empty.</div>
         )}
         {!error &&
-          entries.map((entry) => (
-            <div
-              key={entry.path}
-              className={`ftp-file-row${selected === entry.path ? " is-selected" : ""}${entry.isDir ? " is-directory" : ""}`}
-              role="option"
-              aria-selected={selected === entry.path}
-              onClick={() => onSelect(entry.path)}
-              onDoubleClick={() => onActivate(entry)}
-              title={entry.path}
-            >
-              <span className="ftp-file-name">
-                <span className="ftp-file-icon" aria-hidden="true">
-                  <FileIcon name={entry.name} isDir={entry.isDir} theme={theme} />
+          entries.map((entry) => {
+            const selected = selection.paths.includes(entry.path);
+            return (
+              <div
+                key={entry.path}
+                className={`ftp-file-row${selected ? " is-selected" : ""}${entry.isDir ? " is-directory" : ""}`}
+                role="option"
+                aria-selected={selected}
+                onClick={(event) => {
+                  const mode = clickMode(event, IS_MAC);
+                  if (mode) {
+                    onSelectionChange(
+                      selectEntry(selection, order, entry.path, mode),
+                    );
+                  }
+                }}
+                onDoubleClick={() => onActivate(entry)}
+                title={entry.path}
+              >
+                <span className="ftp-file-name">
+                  <span className="ftp-file-icon" aria-hidden="true">
+                    <FileIcon name={entry.name} isDir={entry.isDir} theme={theme} />
+                  </span>
+                  <span>{entry.name}</span>
                 </span>
-                <span>{entry.name}</span>
-              </span>
-              <span>{entry.isDir ? "—" : formatBytes(entry.size)}</span>
-              <span>{formatDate(entry.modified)}</span>
-            </div>
-          ))}
+                <span>{entry.isDir ? "—" : formatBytes(entry.size)}</span>
+                <span>{formatDate(entry.modified)}</span>
+              </div>
+            );
+          })}
       </div>
       <div className="ftp-browser-footer">
-        <span>{entries.length} items</span>
+        <span>
+          {entries.length} items
+          {selection.paths.length > 1 && ` · ${selection.paths.length} selected`}
+        </span>
         <span>{loading ? "Loading…" : path}</span>
       </div>
     </section>
@@ -724,6 +723,19 @@ function ToolButton({
       {children}
     </button>
   );
+}
+
+/**
+ * Asks before a delete. Not `window.confirm`: the dialog plugin replaces it
+ * with an async function, so its result is a promise and always truthy.
+ */
+function confirmDelete(message: string): Promise<boolean> {
+  return ask(message, {
+    title: "Delete",
+    kind: "warning",
+    okLabel: "Delete",
+    cancelLabel: "Cancel",
+  });
 }
 
 function remoteParent(path: string): string {
