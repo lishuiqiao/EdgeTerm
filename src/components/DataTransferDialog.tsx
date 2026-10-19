@@ -126,17 +126,18 @@ export function DataTransferDialog({ request, onClose }: {
                   setIncludeCredentials(event.target.checked);
                   setPassword(""); setConfirmation(""); setError(null);
                 }} />
-              Include login passwords and private key passphrases
+              Include login passwords, private key passphrases and AI API key
             </label>
             <p className="data-transfer-hint">{includeCredentials
               ? "The entire file will be encrypted with your export password. Keep it safe: a forgotten password cannot be recovered."
-              : "The file is readable JSON. Saved login passwords and private key passphrases are excluded."}</p>
+              : "The file is readable JSON. Saved login passwords, private key passphrases and AI API key are excluded."}</p>
           </> : <>
             <p className="data-transfer-path">{path}</p>
             {!preview && <p>{busy ? "Reading backup…" : "Could not read this backup. Retry or choose another file."}</p>}
             {preview?.encrypted && !data && <p>This backup is encrypted. Enter the password set when it was exported.</p>}
             {data && <>
               <p>Import {describeData({ profiles: data.profiles.length, groups: data.groups.length, senderCommands: data.senderCommands.length })}{data.settings ? " and settings" : ""}?</p>
+              {data.ai?.baseUrl && <p className="data-transfer-hint">AI configuration: {data.ai.baseUrl} · {data.ai.model}. The saved key is kept only when the endpoint stays the same.</p>}
               <p className="data-transfer-hint">Entries with the same ID replace local entries; other entries are kept.</p>
               <p className="data-transfer-hint">{preview.encrypted
                 ? "Saved credentials in this backup replace credentials for matching sessions and are encrypted again on this device. Sessions without credentials in the backup keep any locally saved credentials."

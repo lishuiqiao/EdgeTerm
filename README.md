@@ -120,3 +120,15 @@ EdgeTerm is licensed under the [GNU General Public License v3.0](LICENSE).
 The interface icons are [Codicons](https://github.com/microsoft/vscode-codicons) by Microsoft, used under the Creative Commons Attribution 4.0 license.
 
 The name “EdgeTerm” and its icon are not covered by the open-source license above. Copyright © 2026 miskin. All rights reserved.
+
+### AI command suggestions
+
+Open **Edit → AI Command Suggestions → Settings…**, directly below Command Suggestions. Configure an OpenAI-compatible Chat Completions base URL (for example `https://service.example/v1`), model, optional API key and shell type. AI and history suggestions are mutually exclusive. Use **Test Connection** to check your service; generation never runs automatically.
+
+Type a request or partial command in Sender or an SSH/local Shell prompt, then press **Ctrl+Shift+Space**. Rebind it under **Keyboard Shortcuts → Generate AI Command**. The grey preview is display-only. **Tab replaces the input without executing it**; editing, cursor movement, Escape, focus/session changes discard it and invalidate late responses. Another manual trigger is required. With no AI preview, Tab retains its normal behavior.
+
+Only the current input and shell type are sent. The result is a single command line; Sender accepts multiline requests. Terminal replacement requires a recognized, settled ordinary prompt and the cursor at the end; use Sender for interactive programs, unknown prompts, complex graphemes, shell vi mode or custom erase bindings. Unknown remote shells are not assumed to match the local machine.
+
+Keys are encrypted locally, excluded from plain backups and all previews, and included in password-encrypted backups. Changing the endpoint never reuses the previous endpoint's key. Requests have bounded responses and timeouts, with no automatic retries or command execution. Protocol reference: [OpenAI Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).
+
+Additional rules (up to 4000 characters) guide command selection without editing the fixed output contract. Responses must be JSON with only a command field containing one command line or null. Invalid formats, obvious prose, control characters and truncated responses are discarded without automatic retries. Enable Strict structured output for services supporting JSON Schema; otherwise leave it off to retain compatibility and local validation. Format validation does not prove command correctness or safety. Preferences are sent with requests and included in configuration exports. See the [structured output protocol](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=chat).

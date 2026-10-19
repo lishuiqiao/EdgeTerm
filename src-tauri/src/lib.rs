@@ -1,3 +1,4 @@
+mod ai_suggestion;
 mod backup;
 mod commands;
 mod error;
@@ -376,6 +377,10 @@ pub fn run() {
             }
         })
         .invoke_handler(tauri::generate_handler![
+            commands::get_ai_config,
+            commands::save_ai_config,
+            commands::suggest_ai_command,
+            commands::test_ai_config,
             commands::list_profiles,
             commands::save_profile,
             commands::duplicate_profile,

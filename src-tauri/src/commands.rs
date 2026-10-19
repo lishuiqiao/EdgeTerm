@@ -205,6 +205,7 @@ pub fn read_app_data(path: String) -> Result<AppData> {
         .into_iter()
         .map(store::redact_profile)
         .collect();
+    data.ai = data.ai.map(|ai| ai.redacted());
     Ok(data)
 }
 
@@ -1242,4 +1243,26 @@ fn expect_path(response: SftpResponse) -> Result<String> {
         SftpResponse::Path(path) => Ok(path),
         _ => Err(AppError::new("unexpected sftp response")),
     }
+}
+
+// Only the backend reads saved AI keys; IPC returns a redacted configuration.
+#[tauri::command]
+pub fn get_ai_config(state: State<'_, AppState>) -> crate::ai_suggestion::AiConfig { state.store.ai_config() }
+
+#[tauri::command]
+pub fn save_ai_config(state: State<'_, AppState>, config: crate::ai_suggestion::AiConfig) -> Result<crate::ai_suggestion::AiConfig> { state.store.save_ai_config(config) }
+
+#[tauri::command]
+pub async fn suggest_ai_command(state: State<'_, AppState>, input: String, shell_hint: String) -> Result<String> {
+    if shell_hint.len() > 200 { return Err(AppError::new("Invalid shell context")); }
+    let hint = if shell_hint == "unknown local shell" {
+        std::env::var("SHELL").ok().and_then(|s| Path::new(&s).file_name().map(|p| p.to_string_lossy().into_owned())).unwrap_or(shell_hint)
+    } else { shell_hint };
+    crate::ai_suggestion::suggest(state.store.ai_request_config(), &input, &hint).await
+}
+
+#[tauri::command]
+pub async fn test_ai_config(state: State<'_, AppState>, config: crate::ai_suggestion::AiConfig) -> Result<()> {
+    let config = state.store.resolve_ai_config(config)?;
+    crate::ai_suggestion::suggest(config, "Print hello", "unknown").await.map(|_| ())
 }

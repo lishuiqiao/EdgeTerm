@@ -342,6 +342,10 @@ export default function App() {
     for (const controller of allControllers()) controller.setMacHomeEnd(macHomeEnd);
   }, [macHomeEnd]);
 
+  const aiEnabled = useStore(s => s.aiSuggestionsEnabled);
+  const aiConfigVersion = useStore(s => s.aiConfigVersion);
+  useEffect(() => { for (const controller of allControllers()) controller.clearAiSuggestion(); }, [aiEnabled, aiConfigVersion, activeId]);
+
   // --- keyboard -------------------------------------------------------------
 
   useEffect(() => installSearchShortcuts(
@@ -420,6 +424,7 @@ export default function App() {
         case "clearScreen":
         case "pasteSelection":
         case "scrollTerminal":
+        case "aiSuggest":
         case "copy":
         case "paste":
         case "selectAll":

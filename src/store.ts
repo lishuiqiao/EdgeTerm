@@ -165,6 +165,8 @@ const GUTTER_MODE_KEY = "edgeterm.gutterMode";
 const PANELS_KEY = "edgeterm.panels";
 const PANEL_DOCKS_KEY = "edgeterm.panelDocks";
 const THEME_KEY = "edgeterm.theme";
+const AI_SUGGESTIONS_KEY = "edgeterm.aiSuggestions";
+function loadAiEnabled() { try { return localStorage.getItem(AI_SUGGESTIONS_KEY) === "on"; } catch { return false; } }
 const SUGGESTIONS_KEY = "edgeterm.suggestions";
 const RIGHT_CLICK_KEY = "edgeterm.rightClick";
 const SHORTCUTS_KEY = "edgeterm.shortcuts";
@@ -514,6 +516,7 @@ export interface AppSettings {
   cursorBlink: boolean;
   macHomeEnd: boolean;
   suggestionsEnabled: boolean;
+  aiSuggestionsEnabled: boolean;
   /** Confirm a paste that would submit more than one command. */
   pasteWarning: boolean;
   /** Put a mouse selection on the clipboard as soon as it is made. */
@@ -569,6 +572,7 @@ interface AppStore {
   macHomeEnd: boolean;
   /** Command history recording + fish-style inline suggestions. */
   suggestionsEnabled: boolean;
+  aiSuggestionsEnabled: boolean;
   /** Whether a multi-line paste is confirmed first; see `pastePrompt`. */
   pasteWarning: boolean;
   /** Whether a mouse selection is copied without a Copy; see the terminal. */
@@ -722,6 +726,9 @@ interface AppStore {
   setCursorStyle: (style: CursorStyle) => void;
   setCursorBlink: (blink: boolean) => void;
   setMacHomeEnd: (enabled: boolean) => void;
+  aiConfigVersion: number;
+  invalidateAiConfig: () => void;
+  setAiSuggestionsEnabled: (enabled: boolean) => void;
   setSuggestionsEnabled: (enabled: boolean) => void;
   setPasteWarning: (enabled: boolean) => void;
   setPastePrompt: (prompt: PastePrompt | null) => void;
@@ -882,7 +889,10 @@ export const useStore = create<AppStore>((set, get) => ({
   cursorStyle: loadCursorStyle(),
   cursorBlink: loadCursorBlink(),
   macHomeEnd: (() => { try { return localStorage.getItem(MAC_HOME_END_KEY) !== "off"; } catch { return true; } })(),
-  suggestionsEnabled: loadSuggestionsEnabled(),
+  suggestionsEnabled: !loadAiEnabled() && loadSuggestionsEnabled(),
+  aiSuggestionsEnabled: loadAiEnabled(),
+  aiConfigVersion: 0,
+  invalidateAiConfig() { set({ aiConfigVersion: get().aiConfigVersion + 1 }); },
   pasteWarning: loadPasteWarning(),
   copyOnSelect: loadCopyOnSelect(),
   pastePrompt: null,
@@ -1386,8 +1396,15 @@ export const useStore = create<AppStore>((set, get) => ({
     set({ clipboardPrompt: prompt });
   },
 
+  setAiSuggestionsEnabled(enabled) {
+    set({ aiSuggestionsEnabled: enabled, ...(enabled ? { suggestionsEnabled: false } : {}) });
+    saveSetting(AI_SUGGESTIONS_KEY, enabled ? "on" : "off");
+    if (enabled) saveSetting(SUGGESTIONS_KEY, "off");
+  },
+
   setSuggestionsEnabled(enabled) {
-    set({ suggestionsEnabled: enabled });
+    set({ suggestionsEnabled: enabled, ...(enabled ? { aiSuggestionsEnabled: false } : {}) });
+    if (enabled) saveSetting(AI_SUGGESTIONS_KEY, "off");
     // The history is only fetched once someone opts in (load() is a no-op on
     // repeat calls).
     if (enabled) commandHistory.load();
@@ -1434,6 +1451,7 @@ export const useStore = create<AppStore>((set, get) => ({
       cursorBlink: true,
       macHomeEnd: true,
       suggestionsEnabled: false,
+      aiSuggestionsEnabled: false,
       pasteWarning: true,
       copyOnSelect: defaultCopyOnSelect(),
       programClipboard: "ask",
@@ -1453,6 +1471,7 @@ export const useStore = create<AppStore>((set, get) => ({
       localStorage.removeItem(CURSOR_BLINK_KEY);
       localStorage.removeItem(MAC_HOME_END_KEY);
       localStorage.removeItem(SUGGESTIONS_KEY);
+      localStorage.removeItem(AI_SUGGESTIONS_KEY);
       localStorage.removeItem(PASTE_WARNING_KEY);
       localStorage.removeItem(COPY_ON_SELECT_KEY);
       localStorage.removeItem(PROGRAM_CLIPBOARD_KEY);
@@ -1483,6 +1502,7 @@ export const useStore = create<AppStore>((set, get) => ({
       cursorBlink: state.cursorBlink,
       macHomeEnd: state.macHomeEnd,
       suggestionsEnabled: state.suggestionsEnabled,
+      aiSuggestionsEnabled: state.aiSuggestionsEnabled,
       pasteWarning: state.pasteWarning,
       copyOnSelect: state.copyOnSelect,
       programClipboard: state.programClipboard,
@@ -1535,6 +1555,7 @@ export const useStore = create<AppStore>((set, get) => ({
     if (typeof values.suggestionsEnabled === "boolean") {
       state.setSuggestionsEnabled(values.suggestionsEnabled);
     }
+    if (typeof values.aiSuggestionsEnabled === "boolean") state.setAiSuggestionsEnabled(values.aiSuggestionsEnabled);
     if (typeof values.pasteWarning === "boolean") {
       state.setPasteWarning(values.pasteWarning);
     }

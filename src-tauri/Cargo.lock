@@ -1314,7 +1314,7 @@ dependencies = [
 
 [[package]]
 name = "edgeterm"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "base64 0.22.1",
  "block2",
@@ -1333,9 +1333,11 @@ dependencies = [
  "objc2-foundation",
  "parking_lot",
  "portable-pty",
+ "reqwest",
  "ring",
  "russh",
  "russh-sftp",
+ "rustls",
  "serde",
  "serde_json",
  "serialport",

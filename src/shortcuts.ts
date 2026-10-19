@@ -32,6 +32,7 @@ export interface KeyChord {
 
 /** Every action a user can put on a key. */
 export type ShortcutCommand =
+  | "aiSuggest"
   | "newSession"
   | "closeSession"
   | "find"
@@ -67,6 +68,7 @@ export type ShortcutCommand =
 export type ShortcutBindings = Record<ShortcutCommand, KeyChord | null>;
 
 export type AppShortcut =
+  | { kind: "aiSuggest" }
   | { kind: "newSession" }
   | { kind: "closeSession" }
   | { kind: "find" }
@@ -96,6 +98,7 @@ export const SHORTCUT_COMMANDS: {
   hint: string;
   action: AppShortcut;
 }[] = [
+  { id: "aiSuggest", label: "Generate AI Command", hint: "Manually suggest a command for the focused terminal or Sender input", action: { kind: "aiSuggest" } },
   {
     id: "newSession",
     label: "New Session",
@@ -236,6 +239,7 @@ const chord = (
  * modified clipboard, scrolling and window commands below.
  */
 const MAC_DEFAULTS: ShortcutBindings = {
+  aiSuggest: chord("Space", { ctrl: true, shift: true }),
   newSession: chord("KeyN", { meta: true }),
   closeSession: chord("KeyW", { meta: true }),
   find: chord("KeyF", { meta: true }),
@@ -281,6 +285,7 @@ const MAC_DEFAULTS: ShortcutBindings = {
  * ^K kills to end of line); the Ctrl+L action sends that same control byte.
  */
 const OTHER_DEFAULTS: ShortcutBindings = {
+  aiSuggest: chord("Space", { ctrl: true, shift: true }),
   newSession: chord("KeyN", { alt: true }),
   closeSession: chord("KeyW", { ctrl: true, shift: true }),
   find: chord("KeyF", { ctrl: true, shift: true }),

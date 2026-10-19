@@ -406,6 +406,8 @@ pub const APP_DATA_EXTENSION: &str = "edgeterm";
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AppData {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ai: Option<crate::ai_suggestion::AiConfig>,
     pub app: String,
     pub format: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]

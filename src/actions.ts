@@ -100,6 +100,12 @@ export async function ensureController(id: string): Promise<TerminalController> 
     id,
     {
       onData: (data) => void api.writeSession(id, data).catch(() => undefined),
+      aiContext: () => {
+        const state = useStore.getState();
+        const tab = state.tabs.find(t => t.info.id === id);
+        if (!tab || !["ssh", "local"].includes(tab.info.kind) || tab.state !== "connected") return null;
+        return { enabled: state.aiSuggestionsEnabled, shell: tab.info.kind === "ssh" ? "unknown remote shell" : (state.profiles.find(p => p.id === tab.info.profileId)?.shell?.split(/[\\/]/).pop() || "unknown local shell") };
+      },
       onCommand: (command) => commandHistory.record(command, historyHost(id)),
       onCommandState: (state, kind) => {
         const store = useStore.getState();

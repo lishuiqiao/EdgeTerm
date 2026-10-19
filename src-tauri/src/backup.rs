@@ -182,6 +182,7 @@ fn plain_data(bytes: &[u8]) -> Result<AppData> {
         .map_err(|_| AppError::new("not a valid EdgeTerm data file"))?;
     validate_app_data(&data)?;
     data.profiles = data.profiles.into_iter().map(redact_profile).collect();
+    data.ai = data.ai.map(|ai| ai.redacted());
     Ok(data)
 }
 
@@ -193,6 +194,7 @@ pub fn preview(path: &Path, password: Option<&str>) -> Result<BackupPreview> {
     };
     let data = data.map(|mut data| {
         data.profiles = data.profiles.into_iter().map(redact_profile).collect();
+    data.ai = data.ai.map(|ai| ai.redacted());
         data
     });
     Ok(BackupPreview {
@@ -229,6 +231,7 @@ pub fn export(
     };
     // Wipe credential strings after serialization, even if encryption failed.
     data.profiles = data.profiles.into_iter().map(redact_profile).collect();
+    data.ai = data.ai.map(|ai| ai.redacted());
     let bytes = encoded?;
     if bytes.len() > MAX_FILE_SIZE {
         return Err(AppError::new("EdgeTerm data file exceeds the 32 MiB limit"));

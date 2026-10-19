@@ -677,3 +677,9 @@ export function bytesToBase64(bytes: Uint8Array): string {
   for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
   return btoa(binary);
 }
+
+// AI keys are never read back into the webview.
+export const getAiConfig = () => invoke<import("./aiSuggestion").AiConfig>("get_ai_config");
+export const saveAiConfig = (config: import("./aiSuggestion").AiConfig) => invoke<import("./aiSuggestion").AiConfig>("save_ai_config", { config });
+export const testAiConfig = (config: import("./aiSuggestion").AiConfig) => invoke<void>("test_ai_config", { config });
+export const suggestAiCommand = (input: string, shellHint: string) => invoke<string>("suggest_ai_command", { input, shellHint });

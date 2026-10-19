@@ -116,3 +116,15 @@ EdgeTerm 采用 [GNU General Public License v3.0](LICENSE) 授权。
 界面图标来自 Microsoft 的 [Codicons](https://github.com/microsoft/vscode-codicons)，依据 Creative Commons Attribution 4.0 许可使用。
 
 应用名称“EdgeTerm”及其图标不在上述开源许可范围内，版权 © 2026 miskin，保留所有权利。
+
+### AI 指令建议
+
+在 **Edit → Command Suggestions** 下方打开 **AI Command Suggestions → Settings…**，配置 OpenAI 兼容 Chat Completions 的 API Base URL（如 `https://service.example/v1`）、模型和可选 API Key。可测试连接，Shell 类型可自动判断已知本地配置或手动选择；SSH 的远程 Shell 未知时不会假定与本机相同。开启 AI 建议会关闭历史 Command Suggestions，反之亦然。
+
+在 Sender 或 SSH / Shell 终端输入需求或部分命令，按 **Ctrl+Shift+Space** 手动生成灰色预览。可在 **Keyboard Shortcuts → Generate AI Command** 中改键。**Tab 将原输入替换为建议，不执行**；Esc、编辑输入、移动光标、失焦或切换会话会丢弃预览及迟到的结果。修改不会重新请求，必须再次主动触发。原始文本保留到采用为止；没有 AI 预览时 Tab 保持原功能。
+
+只发送本次输入和 Shell 类型，不发送历史输出或文件内容。第一版返回单行命令；Sender 可用多行描述需求。终端要求普通 Shell 提示符、输入回显已到达、光标在末尾且没有选区；交互程序、密码提示、未知提示符、复杂组合字符或行尾有其他文本时请用 Sender。终端替换针对常规行编辑模式，Shell vi 模式和自定义退格行为请改用 Sender。
+
+API Key 在本地加密保存，普通备份及导入预览不含 Key；密码加密备份可以携带 Key。更换接口地址不会复用原接口的密钥。AI 请求超时或失败只显示错误，不重试、不执行命令。接口格式参考 [OpenAI Chat Completions 文档](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create)。
+
+AI 设置支持“Additional rules”补充命令偏好（最多 4000 字符），固定输出规则不可编辑。返回必须是仅含 command 字段的 JSON，值为一行命令或 null；无效格式、明显解释文本、控制字符和截断结果会被丢弃，不自动重试。支持 JSON Schema 的服务可开启“Strict structured output”，其他兼容服务保持关闭，仍执行本地校验。结构校验不保证命令语义或安全，采用后仍需自行确认再执行。补充规则会随请求发送，也随配置导出。

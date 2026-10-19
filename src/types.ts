@@ -266,6 +266,7 @@ export interface SavedCommand {
  * credentials are always redacted in previews returned to the frontend.
  */
 export interface AppData {
+  ai?: import("./aiSuggestion").AiConfig;
   app: string;
   format: number;
   exportedAt?: string | null;

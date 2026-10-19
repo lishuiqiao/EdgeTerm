@@ -98,6 +98,7 @@ export async function importAppData(path: string, preview: BackupPreview, passwo
   const store = useStore.getState();
   const { summary: result, settings } = await api.importAppDataFile(path, preview.fingerprint, password);
   const hasSettings = !!settings && typeof settings === "object";
+  store.invalidateAiConfig();
   if (hasSettings) store.applySettings(settings);
   await store.loadProfiles();
   store.bumpSenderLibrary();

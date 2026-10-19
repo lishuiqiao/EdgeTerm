@@ -1,3 +1,4 @@
+import { AiSettingsDialog } from "./AiSettingsDialog";
 import {
   type MouseEvent as ReactMouseEvent,
   type ReactElement,
@@ -280,6 +281,10 @@ export function MenuBar(props: Props) {
   const setGutterMode = useStore((s) => s.setGutterMode);
   const theme = useStore((s) => s.theme);
   const setTheme = useStore((s) => s.setTheme);
+  const [aiSettingsOpen, setAiSettingsOpen] = useState(false);
+  const closeAiSettings = useCallback(() => setAiSettingsOpen(false), []);
+  const aiEnabled = useStore(s => s.aiSuggestionsEnabled);
+  const setAiEnabled = useStore(s => s.setAiSuggestionsEnabled);
   const suggestionsEnabled = useStore((s) => s.suggestionsEnabled);
   const setSuggestionsEnabled = useStore((s) => s.setSuggestionsEnabled);
   const rightClickAction = useStore((s) => s.rightClickAction);
@@ -558,6 +563,14 @@ export function MenuBar(props: Props) {
           action: () => setSuggestionsEnabled(!suggestionsEnabled),
         },
         {
+          label: "AI Command Suggestions",
+          checked: aiEnabled,
+          children: [
+            { label: "Enable", checked: aiEnabled, action: () => setAiEnabled(!aiEnabled) },
+            { label: "Settings…", action: () => setAiSettingsOpen(true) },
+          ],
+        },
+        {
           label: "Clear Command History…",
           action: () => {
             void (async () => {
@@ -800,6 +813,7 @@ export function MenuBar(props: Props) {
         </div>
         {!IS_MAC && <WindowControls maximized={maximized} />}
       </div>
+      {aiSettingsOpen && <AiSettingsDialog onClose={closeAiSettings} />}
       {dataTransfer && <DataTransferDialog request={dataTransfer} onClose={closeDataTransfer} />}
     </div>
   );

@@ -9,6 +9,7 @@ use ring::{aead, hkdf};
 use serde::{Deserialize, Serialize};
 use zeroize::Zeroize;
 
+use crate::ai_suggestion::AiConfig;
 use crate::error::{AppError, Result};
 use crate::model::{
     AppData, AuthKind, CommandHistoryEntry, CommandScope, DataSummary, SavedCommand, SessionGroup,
@@ -199,6 +200,7 @@ pub struct Store {
     groups_path: PathBuf,
     sender_commands_path: PathBuf,
     command_history_path: PathBuf,
+    ai: Mutex<AiConfig>,
     profiles: Mutex<Vec<SessionProfile>>,
     credentials: Mutex<HashMap<String, StoredSecrets>>,
     vault_key: VaultKey,
@@ -258,7 +260,14 @@ impl Store {
             profile.passphrase = None;
         }
 
+        let ai_path = path.with_file_name("ai_settings.json");
+        let mut ai: AiConfig = read_json(&ai_path).unwrap_or_default();
+        ai.api_key = read_json::<EncryptedCredentials>(&path.with_file_name("ai_credentials.json"))
+            .and_then(|e| open_credentials(&e).ok())
+            .and_then(|(mut map, _)| map.remove("api"))
+            .filter(|s| s.passphrase.as_deref() == Some(ai.base_url.as_str())).and_then(|s| s.password);
         let store = Store {
+            ai: Mutex::new(ai),
             credentials_path: credentials_path_for(&path),
             groups_path,
             sender_commands_path,
@@ -676,6 +685,7 @@ impl Store {
     /// caller fills in the frontend's settings and the timestamp.
     pub fn snapshot(&self) -> AppData {
         AppData {
+            ai: Some(self.ai_config()),
             app: APP_DATA_APP.to_string(),
             format: APP_DATA_FORMAT,
             exported_at: None,
@@ -696,6 +706,7 @@ impl Store {
     /// Never return this snapshot through an IPC command.
     pub(crate) fn snapshot_with_credentials(&self) -> AppData {
         let mut data = self.snapshot();
+        data.ai = Some(self.ai.lock().clone());
         let credentials = self.credentials.lock();
         for profile in &mut data.profiles {
             if let Some(secrets) = credentials.get(&profile.id) {
@@ -725,6 +736,10 @@ impl Store {
 
     fn merge_data(&self, data: AppData, include_credentials: bool) -> Result<DataSummary> {
         validate_app_data(&data)?;
+        if let Some(mut ai) = data.ai.clone() {
+            if !include_credentials { ai.api_key = None; }
+            self.save_ai_config(ai)?;
+        }
         let mut summary = DataSummary::default();
 
         {
@@ -813,6 +828,34 @@ impl Store {
         self.persist()?;
         self.persist_sender_commands()?;
         Ok(summary)
+    }
+
+    pub fn ai_config(&self) -> AiConfig { self.ai.lock().redacted() }
+
+    pub fn resolve_ai_config(&self, mut config: AiConfig) -> Result<AiConfig> {
+        config.base_url = config.base_url.trim().trim_end_matches('/').to_owned();
+        config.model = config.model.trim().to_owned();
+        config.validate()?;
+        let old = self.ai.lock();
+        // Never reuse a stored key at a different endpoint (including imported configs).
+        if config.api_key.is_none() && config.base_url == old.base_url { config.api_key = old.api_key.clone(); }
+        Ok(config)
+    }
+
+    pub fn ai_request_config(&self) -> AiConfig { self.ai.lock().clone() }
+
+    pub fn save_ai_config(&self, config: AiConfig) -> Result<AiConfig> {
+        let config = self.resolve_ai_config(config)?;
+        let public = config.redacted();
+        let mut secrets = HashMap::new();
+        secrets.insert("api".to_owned(), StoredSecrets { password: config.api_key.clone(), passphrase: Some(config.base_url.clone()) });
+        let bytes = zeroize::Zeroizing::new(serde_json::to_vec(&secrets)?);
+        let envelope = seal_credentials(&self.vault_key, &bytes)?;
+        std::fs::create_dir_all(self.path.parent().ok_or_else(|| AppError::new("Missing config directory"))?)?;
+        write_owner_only(&self.path.with_file_name("ai_credentials.json"), &serde_json::to_string(&envelope)?)?;
+        write_owner_only(&self.path.with_file_name("ai_settings.json"), &serde_json::to_string(&public)?)?;
+        *self.ai.lock() = config;
+        Ok(public)
     }
 
     // --- persistence ----------------------------------------------------------
@@ -983,6 +1026,7 @@ pub fn is_data_file_path(path: &Path) -> bool {
 
 /// Refuses files that are not EdgeTerm exports or come from a newer layout.
 pub fn validate_app_data(data: &AppData) -> Result<()> {
+    if let Some(ai) = &data.ai { ai.validate()?; }
     if data.app != APP_DATA_APP {
         return Err(AppError::new("not an EdgeTerm data file"));
     }

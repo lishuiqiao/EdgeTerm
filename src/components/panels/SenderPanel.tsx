@@ -1,3 +1,5 @@
+import { ManualAiSuggestion, previewText, type AiPreview } from "../../aiSuggestion";
+import { matchAppShortcut } from "../../shortcuts";
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import * as api from "../../api";
@@ -90,6 +92,14 @@ export function SenderPanel({ compact, canCompact, onExpandedChange }: SenderPan
   const libraryVersion = useStore((s) => s.senderLibraryVersion);
 
   const [text, setText] = useState("");
+  const aiEnabled = useStore(s => s.aiSuggestionsEnabled);
+  const aiConfigVersion = useStore(s => s.aiConfigVersion);
+  const connectionState = useStore(s => s.tabs.find(t => t.info.id === s.activeId)?.state);
+  const [aiPreview, setAiPreview] = useState<AiPreview | null>(null);
+  const ai = useMemo(() => new ManualAiSuggestion(setAiPreview, message => useStore.getState().setStatus(`AI: ${message}`)), []);
+  const mirrorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { ai.clear(); }, [ai, text, activeId, aiEnabled, aiConfigVersion, connectionState, compact]);
+  useEffect(() => { window.addEventListener("blur", ai.clear); return () => { window.removeEventListener("blur", ai.clear); ai.clear(); }; }, [ai]);
   const [tagName, setTagName] = useState("");
   const [ending, setEnding] = useState<LineEnding>("lf");
   const [savedCommands, setSavedCommands] = useState<SavedCommand[]>([]);
@@ -527,6 +537,7 @@ export function SenderPanel({ compact, canCompact, onExpandedChange }: SenderPan
 
   const onSenderKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.defaultPrevented || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+    if (event.target === commandRef.current && matchAppShortcut(event)?.kind === "aiSuggest") return;
     if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     if (document.querySelector(".dialog-backdrop, [aria-modal='true'], [role='menu']")) return;
     const key = /^Key[A-Z]$/.test(event.code) ? event.code.slice(3).toLowerCase() : event.key.toLowerCase();
@@ -741,10 +752,39 @@ export function SenderPanel({ compact, canCompact, onExpandedChange }: SenderPan
             value={text}
             placeholder={`Type a command (${endingLabel(ending)}); Shift+Enter adds a line`}
             onChange={(event) => {
+              ai.clear();
               if (!editing) setSelectedCommandId(null);
               setText(event.target.value);
             }}
+            onCompositionStart={() => ai.clear()}
+            onBlur={() => ai.clear()}
+            onSelect={() => {
+              const box = commandRef.current;
+              if (box && (box.selectionStart !== box.value.length || box.selectionEnd !== box.value.length)) ai.clear();
+            }}
+            onScroll={event => { if (mirrorRef.current) mirrorRef.current.scrollTop = event.currentTarget.scrollTop; }}
             onKeyDown={(event) => {
+              if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) { ai.clear(); return; }
+              if (document.querySelector(".dialog-backdrop, [aria-modal='true']")) return;
+              if (matchAppShortcut(event)?.kind === "aiSuggest") {
+                event.preventDefault(); event.stopPropagation();
+                if (!event.repeat) {
+                  const box = event.currentTarget;
+                  if (!aiEnabled) setStatus("Enable AI Command Suggestions first.");
+                  else if (!text.trim()) setStatus("Enter a request or partial command first.");
+                  else if (box.selectionStart !== text.length || box.selectionEnd !== text.length) setStatus("Move the cursor to the end of the input first.");
+                  else void ai.generate(text, activeTab?.info.kind === "local" ? (profiles.find(p => p.id === activeTab.info.profileId)?.shell?.split(/[\\/]/).pop() || "unknown local shell") : "unknown remote shell");
+                }
+                return;
+              }
+              if (event.key === "Tab" && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey && ai.value?.command) {
+                event.preventDefault(); event.stopPropagation();
+                const command = ai.take(text);
+                if (command !== null) { setText(command); requestAnimationFrame(() => commandRef.current?.setSelectionRange(command.length, command.length)); }
+                return;
+              }
+              if (event.key === "Escape" && ai.value) { event.preventDefault(); event.stopPropagation(); ai.clear(); return; }
+              if (!["Shift", "Control", "Alt", "Meta"].includes(event.key)) ai.clear();
               // Enter runs, Shift+Enter adds a line. An Enter that ends an
               // IME composition belongs to the input method.
               if (event.key === "Enter" && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey) {
@@ -757,6 +797,7 @@ export function SenderPanel({ compact, canCompact, onExpandedChange }: SenderPan
               }
             }}
           />
+          {aiPreview && <div ref={mirrorRef} className="sender-ai-mirror" aria-hidden="true"><span className="ai-input-spacer">{text}</span><span className="ai-ghost">{previewText(aiPreview)}</span></div>}
           {text.length > 0 && (
             <button
               type="button"

@@ -2,8 +2,9 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("../../platform", () => ({ IS_MAC: true, IS_WINDOWS: false }));
-vi.mock("../../api", () => ({ listSenderCommands: vi.fn().mockResolvedValue([]) }));
+vi.mock("../../api", () => ({ listSenderCommands: vi.fn().mockResolvedValue([]), suggestAiCommand: vi.fn() }));
 vi.mock("../../senderSend", async (importOriginal) => ({ ...await importOriginal<typeof import("../../senderSend")>(), sendUnits: vi.fn() }));
+import { suggestAiCommand } from "../../api";
 import { sendUnits, type StopSignal } from "../../senderSend";
 import { useStore } from "../../store";
 import { SenderPanel } from "./SenderPanel";
@@ -54,5 +55,44 @@ describe("WindTerm Sender shortcuts", () => {
     const dialog = document.createElement("div"); dialog.setAttribute("aria-modal", "true"); document.body.append(dialog);
     expect((await key("x", { altKey: true })).defaultPrevented).toBe(false); dialog.remove();
     expect(input().value).toBe("echo hello"); expect(sendUnits).not.toHaveBeenCalled();
+  });
+});
+
+
+describe("Sender AI suggestions", () => {
+  it("requires a manual shortcut and replaces text with Tab without sending", async () => {
+    await act(async () => useStore.getState().setAiSuggestionsEnabled(true));
+    vi.mocked(suggestAiCommand).mockResolvedValue("ls -al");
+    input().setSelectionRange(input().value.length, input().value.length);
+    expect(suggestAiCommand).not.toHaveBeenCalled();
+    await key(" ", { code: "Space", ctrlKey: true, shiftKey: true });
+    expect(suggestAiCommand).toHaveBeenCalledWith("echo hello", expect.any(String));
+    expect(input().value).toBe("echo hello");
+    expect(container.querySelector(".ai-ghost")?.textContent).toContain("ls -al");
+    expect((await key("Tab")).defaultPrevented).toBe(true);
+    expect(input().value).toBe("ls -al"); expect(sendUnits).not.toHaveBeenCalled();
+    expect(container.querySelector(".ai-ghost")).toBeNull();
+  });
+  it("drops a pending reply after input changes without requesting another one", async () => {
+    await act(async () => useStore.getState().setAiSuggestionsEnabled(true));
+    let reply!: (s: string) => void;
+    vi.mocked(suggestAiCommand).mockImplementation(() => new Promise(r => { reply = r; }));
+    input().setSelectionRange(input().value.length, input().value.length);
+    await key(" ", { code: "Space", ctrlKey: true, shiftKey: true });
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(input(), "new text");
+      input().dispatchEvent(new Event("input", { bubbles: true }));
+      reply("old command");
+    });
+    expect(container.querySelector(".ai-ghost")).toBeNull();
+    expect(input().value).toBe("new text"); expect(suggestAiCommand).toHaveBeenCalledTimes(1);
+    expect((await key("Tab")).defaultPrevented).toBe(false);
+  });
+  it("does not trigger while disabled or composing", async () => {
+    input().setSelectionRange(input().value.length, input().value.length);
+    await key(" ", { code: "Space", ctrlKey: true, shiftKey: true });
+    await act(async () => useStore.getState().setAiSuggestionsEnabled(true));
+    await key(" ", { code: "Space", ctrlKey: true, shiftKey: true, isComposing: true });
+    expect(suggestAiCommand).not.toHaveBeenCalled();
   });
 });

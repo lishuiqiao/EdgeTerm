@@ -757,6 +757,7 @@ fn sender_command_scopes_fall_back_and_follow_their_targets() {
     imported.id = "imported-profile".into();
     let summary = reloaded
         .import_data(AppData {
+            ai: None,
             app: APP_DATA_APP.into(),
             format: APP_DATA_FORMAT,
             exported_at: None,
@@ -873,6 +874,7 @@ fn store_import_merges_by_id_and_drops_secrets_and_bad_links() {
     renamed_command.name = "Renamed".into();
 
     let data = AppData {
+            ai: None,
         app: APP_DATA_APP.into(),
         format: APP_DATA_FORMAT,
         exported_at: None,
@@ -2232,4 +2234,58 @@ Host db
         None,
         "db is saved as a plain session; its chain was left off"
     );
+}
+
+#[test]
+fn ai_keys_are_sealed_redacted_and_bound_to_the_configured_endpoint() {
+    use crate::ai_suggestion::AiConfig;
+    let dir = temp_dir("ai-config");
+    let store = Store::load_from(dir.join("sessions.json"));
+    let config: AiConfig = serde_json::from_value(serde_json::json!({
+        "baseUrl":"https://example.com/v1", "model":"test-model", "shell":"bash", "apiKey":"test-secret-not-real", "additionalRules":"Prefer built-in tools", "strictOutput":true
+    })).unwrap();
+    let public = store.save_ai_config(config).unwrap();
+    assert!(public.has_api_key && public.api_key.is_none());
+    for file in ["ai_settings.json", "ai_credentials.json"] {
+        assert!(!std::fs::read_to_string(dir.join(file)).unwrap().contains("test-secret-not-real"));
+    }
+    let reloaded = Store::load_from(dir.join("sessions.json"));
+    assert!(reloaded.ai_config().has_api_key);
+    assert_eq!(reloaded.ai_config().additional_rules, "Prefer built-in tools");
+    assert!(reloaded.ai_config().strict_output);
+    assert_eq!(reloaded.ai_request_config().api_key.as_deref(), Some("test-secret-not-real"));
+    assert!(reloaded.snapshot().ai.unwrap().api_key.is_none());
+    assert_eq!(reloaded.snapshot_with_credentials().ai.unwrap().api_key.as_deref(), Some("test-secret-not-real"));
+    let mut imported = reloaded.snapshot();
+    imported.ai.as_mut().unwrap().api_key = Some("plaintext-injection".into());
+    reloaded.import_data(imported).unwrap();
+    assert_eq!(reloaded.ai_request_config().api_key.as_deref(), Some("test-secret-not-real"));
+    let mut changed = reloaded.ai_config();
+    changed.base_url = "https://another.example/v1".into();
+    reloaded.save_ai_config(changed).unwrap();
+    assert!(!reloaded.ai_config().has_api_key);
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn ai_encrypted_backup_roundtrip_redacts_preview_and_restores_key() {
+    let dir = temp_dir("ai-backup");
+    let source = Store::load_from(dir.join("source/sessions.json"));
+    source.save_ai_config(serde_json::from_value(serde_json::json!({
+        "baseUrl":"https://example.com/v1", "model":"test-model", "apiKey":"backup-secret-not-real", "additionalRules":"Prefer read-only commands", "strictOutput":true
+    })).unwrap()).unwrap();
+    let path = dir.join("backup.edgeterm");
+    crate::backup::export(&source, &path, serde_json::json!({}), "now".into(), Some("backup password")).unwrap();
+    assert!(!std::fs::read_to_string(&path).unwrap().contains("backup-secret-not-real"));
+    let preview = crate::backup::preview(&path, Some("backup password")).unwrap();
+    assert!(preview.data.as_ref().unwrap().ai.as_ref().unwrap().api_key.is_none());
+    let plain_path = dir.join("plain.edgeterm");
+    crate::backup::export(&source, &plain_path, serde_json::json!({}), "now".into(), None).unwrap();
+    assert!(read_app_data(plain_path.to_string_lossy().into_owned()).unwrap().ai.unwrap().api_key.is_none());
+    let target = Store::load_from(dir.join("target/sessions.json"));
+    crate::backup::import(&target, &path, Some("backup password"), &preview.fingerprint).unwrap();
+    assert_eq!(target.ai_request_config().api_key.as_deref(), Some("backup-secret-not-real"));
+    assert_eq!(target.ai_config().additional_rules, "Prefer read-only commands");
+    assert!(target.ai_config().strict_output);
+    std::fs::remove_dir_all(dir).unwrap();
 }

@@ -1,3 +1,4 @@
+import { ManualAiSuggestion, previewText } from "./aiSuggestion";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { FitAddon } from "@xterm/addon-fit";
 import { SearchAddon, type ISearchOptions } from "@xterm/addon-search";
@@ -354,6 +355,7 @@ const SEARCH_DECORATIONS: Record<ThemeMode, SearchDecorations> = {
 
 interface Callbacks {
   onData: (data: string) => void;
+  aiContext?: () => { enabled: boolean; shell: string } | null;
   onResize: (cols: number, rows: number) => void;
   onStatus: (message: string, error?: boolean) => void;
   /** An executed command line, captured from the buffer after Enter. */
@@ -441,6 +443,10 @@ export class TerminalController {
   private locked = false;
   /** Command history capture + completion popup. Opt-in via the Edit menu. */
   private suggestionsOn = false;
+  private aiGhost: HTMLDivElement | null = null;
+  private readonly ai = new ManualAiSuggestion(() => this.renderAiPreview(), message => this.callbacks.onStatus(`AI: ${message}`));
+  private readonly clearAiOnBlur = () => this.ai.clear();
+  private echoPending = false;
   /** Edit → Warn Before Multi-line Paste; see `paste`. */
   private pasteWarning = true;
   /** Edit → Copy on Select; see `onSelectionMouseUp`. */
@@ -590,6 +596,7 @@ export class TerminalController {
     // keystrokes or paste data in the middle of a binary frame corrupts it.
     this.term.onData((data) => {
       if (this.isTransferActive()) return;
+      if (!TERMINAL_REPORT.test(data)) { this.ai.clear(); this.echoPending = true; }
       this.trackInput(data);
       this.callbacks.onData(data);
     });
@@ -659,6 +666,8 @@ export class TerminalController {
       return false;
     });
     this.term.onWriteParsed(() => {
+      this.echoPending = false;
+      if (this.ai.value && this.aiInput() !== this.ai.value.input) this.ai.clear();
       // New output: xterm has updated the buffer and queued its repaint but
       // not painted yet, so cells painted here show in that same frame. Coloring only from `onRender` (which fires *after* the
       // renderer has drawn) showed every freshly written row plain for one
@@ -684,6 +693,7 @@ export class TerminalController {
     });
 
     this.term.onResize(({ cols, rows }) => {
+      this.ai.clear();
       this.callbacks.onResize(cols, rows);
       // Reflow regroups rows, and a band ends at the width it was painted
       // at; everything is colored again.
@@ -707,6 +717,7 @@ export class TerminalController {
       this.syncGutter();
     });
     this.term.onScroll(() => {
+      this.ai.clear();
       // Fires synchronously while xterm handles the scroll (wheel, scrollbar
       // drag, or its own scrollTop during an output flood), before the
       // repaint it queues. The work is deferred to a microtask: that still
@@ -785,7 +796,30 @@ export class TerminalController {
     // The IME owns its marked text. Composition/input events complete it
     // through our input patch; this key must not trigger a shortcut or send
     // a terminal sequence, even if the browser gives it a normal keyCode.
-    if (event.isComposing || event.keyCode === 229) return false;
+    if (event.isComposing || event.keyCode === 229) { this.ai.clear(); return false; }
+    if (document.querySelector(".dialog-backdrop, [aria-modal='true']")) { this.ai.clear(); return false; }
+    if (matchAppShortcut(event)?.kind === "aiSuggest") {
+      event.preventDefault(); event.stopPropagation();
+      if (!event.repeat) this.generateAiSuggestion();
+      return false;
+    }
+    if (this.ai.value && event.key === "Escape") {
+      event.preventDefault(); event.stopPropagation(); this.ai.clear(); return false;
+    }
+    if (this.ai.value?.command && event.key === "Tab" && !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey) {
+      event.preventDefault(); event.stopPropagation();
+      const input = this.aiInput();
+      const command = input === null ? null : this.ai.take(input);
+      this.ai.clear();
+      if (command !== null && input !== null) {
+        // One erase per editable character, then paste without a line ending.
+        // Complex grapheme inputs are refused by aiInput rather than guessing.
+        const replacement = command.startsWith(input) ? command.slice(input.length) : this.erase.repeat([...input].length) + command;
+        if (replacement) { this.echoPending = true; this.callbacks.onData(replacement); }
+      }
+      return false;
+    }
+    if (!["Shift", "Control", "Alt", "Meta"].includes(event.key)) this.ai.clear();
 
     // IDE-style completion popup. While it is *passive* every key still
     // reaches the shell (so ↑ history, Tab completion and a remote shell's
@@ -1012,6 +1046,13 @@ export class TerminalController {
     // against the terminal content, past the gutter, and survives
     // re-parenting above.
     this.host.appendChild(this.popup);
+    this.host.removeEventListener("focusout", this.clearAiOnBlur);
+    this.host.addEventListener("focusout", this.clearAiOnBlur);
+    this.host.addEventListener("compositionstart", this.clearAiOnBlur);
+    this.host.removeEventListener("mousedown", this.clearAiOnBlur);
+    this.host.addEventListener("mousedown", this.clearAiOnBlur);
+    window.removeEventListener("blur", this.clearAiOnBlur);
+    window.addEventListener("blur", this.clearAiOnBlur);
 
     // WebGL comes with being shown (setVisible); it needs the host, so a
     // terminal that was shown before it was attached loads it here.
@@ -1028,6 +1069,7 @@ export class TerminalController {
    * WEBGL_MAX_TERMINALS.
    */
   setVisible(visible: boolean) {
+    if (!visible) this.ai.clear();
     if (this.visible === visible) return;
     this.visible = visible;
     if (visible) {
@@ -1262,6 +1304,7 @@ export class TerminalController {
   setLocked(locked: boolean) {
     if (this.locked === locked) return;
     this.locked = locked;
+    this.ai.clear();
     this.term.options.disableStdin = locked;
     this.term.write(locked ? "\x1b[?25l" : "\x1b[?25h");
     if (locked) {
@@ -1724,6 +1767,11 @@ export class TerminalController {
   }
 
   dispose() {
+    this.ai.clear();
+    this.host?.removeEventListener("focusout", this.clearAiOnBlur);
+    this.host?.removeEventListener("compositionstart", this.clearAiOnBlur);
+    this.host?.removeEventListener("mousedown", this.clearAiOnBlur);
+    window.removeEventListener("blur", this.clearAiOnBlur);
     this.disposed = true;
     document.removeEventListener("mousedown", this.onSelectionMouseDown);
     window.removeEventListener("mouseup", this.onSelectionMouseUp);
@@ -1769,6 +1817,65 @@ export class TerminalController {
         kind === "error" ? 7000 : 4500,
       );
     }
+  }
+
+  clearAiSuggestion() { this.ai.clear(); }
+
+  private aiInput(): string | null {
+    const anchor = this.inputAnchor;
+    const buf = this.term.buffer.active;
+    if (!this.callbacks.aiContext?.()?.enabled || this.locked || this.disposed || this.commandRunning ||
+      this.isTransferActive() || this.echoPending || buf.type !== "normal" || this.term.modes.applicationCursorKeysMode ||
+      this.term.hasSelection() || !anchor || !this.anchorOnCursorLine(anchor)) return null;
+    const prefix = buf.getLine(anchor.marker.line)?.translateToString(false, 0, anchor.col) ?? "";
+    if (!isShellPrompt(`${prefix} `)) return null;
+    const input = this.readInput(anchor, { row: buf.baseY + buf.cursorY, col: buf.cursorX });
+    const full = this.readInput(anchor);
+    // Do not erase an unknown suffix, a right prompt, shell autosuggestion,
+    // or graphemes for which one backspace need not equal one code point.
+    if (!input?.trim() || full !== input.trimEnd() || /[\p{M}\u200d\u0000-\u001f\u007f]/u.test(input)) return null;
+    return input;
+  }
+
+  generateAiSuggestion() {
+    const context = this.callbacks.aiContext?.();
+    if (!context?.enabled) { this.callbacks.onStatus("Enable AI Command Suggestions first (SSH / Shell only)."); return; }
+    const input = this.aiInput();
+    if (input === null) {
+      this.callbacks.onStatus("AI: use a settled shell prompt with the cursor at the end, or enter the request in Sender.");
+      return;
+    }
+    this.hidePopup();
+    void this.ai.generate(input, context.shell);
+  }
+
+  private renderAiPreview() {
+    this.aiGhost?.remove(); this.aiGhost = null;
+    const value = this.ai.value;
+    const host = this.host;
+    const screen = host?.querySelector<HTMLElement>(".xterm-screen");
+    if (!value || !host || !screen || this.disposed) return;
+    const buf = this.term.buffer.active;
+    const row = buf.baseY + buf.cursorY - buf.viewportY;
+    if (row < 0 || row >= this.term.rows) return;
+    if (this.cellHeight <= 0) this.measureCell();
+    const rect = screen.getBoundingClientRect(), parent = host.getBoundingClientRect();
+    const col = Math.min(buf.cursorX, this.term.cols - 1);
+    const ghost = document.createElement("div");
+    ghost.className = "terminal-ai-ghost ai-ghost";
+    ghost.setAttribute("aria-hidden", "true");
+    const label = document.createElement("span");
+    label.textContent = previewText(value);
+    ghost.appendChild(label);
+    Object.assign(ghost.style, {
+      left: `${rect.left - parent.left}px`,
+      textIndent: `${col * rect.width / this.term.cols}px`,
+      top: `${rect.top - parent.top + row * this.cellHeight}px`,
+      width: `${rect.width}px`,
+      fontFamily: this.term.options.fontFamily,
+      fontSize: `${this.term.options.fontSize}px`, lineHeight: `${this.cellHeight}px`,
+    });
+    host.appendChild(ghost); this.aiGhost = ghost;
   }
 
   // --- command history & inline suggestions --------------------------------
@@ -2299,6 +2406,7 @@ export class TerminalController {
   }
 
   private dropAnchor() {
+    this.ai.clear();
     this.inputAnchor?.marker.dispose();
     this.inputAnchor = null;
     this.dismissedInput = "";
