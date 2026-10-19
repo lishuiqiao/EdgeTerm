@@ -364,14 +364,16 @@ jobs:
             "linux-aarch64-rpm=EdgeTerm-${APP_VERSION}-1.aarch64.rpm"
           )
 
+          # Public download URLs avoid the anonymous GitHub REST API quota.
+          # Keep signatures tied to the original bundle bytes.
           platforms='{}'
           for target in "${updater_targets[@]}"; do
             platform="${target%%=*}"
             asset_name="${target#*=}"
             signature_file="release-check/signatures/${asset_name}.sig"
 
-            if ! asset_id="$(jq -er --arg name "$asset_name" \
-              '.[] | select(.name == $name) | .id' \
+            if ! asset_url="$(jq -er --arg name "$asset_name" \
+              '.[] | select(.name == $name) | .browser_download_url' \
               release-check/assets.json)"; then
               echo "Missing release asset for ${platform}: ${asset_name}" >&2
               exit 1
@@ -384,7 +386,7 @@ jobs:
 
             platforms="$(jq -c \
               --arg platform "$platform" \
-              --arg url "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/assets/${asset_id}" \
+              --arg url "$asset_url" \
               --rawfile signature "$signature_file" \
               '.[$platform] = { url: $url, signature: $signature }' \
               <<< "$platforms")"
@@ -504,14 +506,13 @@ jobs:
             exit 1
           fi
 
-          expected_url_prefix="https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/assets/"
+          expected_url_prefix="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG_NAME}/"
 
           verify_update() {
             local platform="$1"
             local expected_asset="$2"
             local url
-            local asset_id
-            local actual_asset
+            local expected_url
 
             if ! url="$(jq -er --arg platform "$platform" \
               '.platforms[$platform].url | select(type == "string" and length > 0)' \
@@ -526,25 +527,15 @@ jobs:
               exit 1
             fi
 
-            if [[ "$url" != "${expected_url_prefix}"* ]]; then
-              echo "Unexpected updater URL for ${platform}: ${url}" >&2
+            expected_url="${expected_url_prefix}${expected_asset}"
+            if [[ "$url" != "$expected_url" ]]; then
+              echo "Unexpected updater URL for ${platform}: ${url}, expected ${expected_url}" >&2
               exit 1
             fi
-
-            asset_id="${url#"$expected_url_prefix"}"
-            if [[ ! "$asset_id" =~ ^[0-9]+$ ]]; then
-              echo "Invalid updater asset ID for ${platform}: ${asset_id}" >&2
-              exit 1
-            fi
-
-            if ! actual_asset="$(jq -er --argjson asset_id "$asset_id" \
-              '.[] | select(.id == $asset_id) | .name' \
-              release-check/assets.json)"; then
-              echo "Updater target ${platform} points to asset ${asset_id}, which is not on the release." >&2
-              exit 1
-            fi
-            if [[ "$actual_asset" != "$expected_asset" ]]; then
-              echo "Updater target ${platform} points to ${actual_asset}, expected ${expected_asset}." >&2
+            if ! jq -e --arg name "$expected_asset" --arg url "$url" \
+              'any(.[]; .name == $name and .browser_download_url == $url)' \
+              release-check/assets.json >/dev/null; then
+              echo "Updater target ${platform} does not match a release download asset." >&2
               exit 1
             fi
           }
