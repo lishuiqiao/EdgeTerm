@@ -65,7 +65,7 @@ describe("Sender AI suggestions", () => {
     vi.mocked(suggestAiCommand).mockResolvedValue("ls -al");
     input().setSelectionRange(input().value.length, input().value.length);
     expect(suggestAiCommand).not.toHaveBeenCalled();
-    await key(" ", { code: "Space", ctrlKey: true, shiftKey: true });
+    await key("G", { code: "KeyG", metaKey: true, shiftKey: true });
     expect(suggestAiCommand).toHaveBeenCalledWith("echo hello", expect.any(String));
     expect(input().value).toBe("echo hello");
     expect(container.querySelector(".ai-ghost")?.textContent).toContain("ls -al");
@@ -78,7 +78,7 @@ describe("Sender AI suggestions", () => {
     let reply!: (s: string) => void;
     vi.mocked(suggestAiCommand).mockImplementation(() => new Promise(r => { reply = r; }));
     input().setSelectionRange(input().value.length, input().value.length);
-    await key(" ", { code: "Space", ctrlKey: true, shiftKey: true });
+    await key("G", { code: "KeyG", metaKey: true, shiftKey: true });
     await act(async () => {
       Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(input(), "new text");
       input().dispatchEvent(new Event("input", { bubbles: true }));
@@ -90,9 +90,9 @@ describe("Sender AI suggestions", () => {
   });
   it("does not trigger while disabled or composing", async () => {
     input().setSelectionRange(input().value.length, input().value.length);
-    await key(" ", { code: "Space", ctrlKey: true, shiftKey: true });
+    await key("G", { code: "KeyG", metaKey: true, shiftKey: true });
     await act(async () => useStore.getState().setAiSuggestionsEnabled(true));
-    await key(" ", { code: "Space", ctrlKey: true, shiftKey: true, isComposing: true });
+    await key("G", { code: "KeyG", metaKey: true, shiftKey: true, isComposing: true });
     expect(suggestAiCommand).not.toHaveBeenCalled();
   });
 });
@@ -102,7 +102,7 @@ it("shows a long full command in a separate scroll region and keeps acceptance f
   const command = "echo hello " + "long-argument-".repeat(150);
   vi.mocked(suggestAiCommand).mockResolvedValue(command);
   input().setSelectionRange(input().value.length, input().value.length);
-  await key(" ", { code: "Space", ctrlKey: true, shiftKey: true });
+  await key("G", { code: "KeyG", metaKey: true, shiftKey: true });
   const preview = container.querySelector<HTMLElement>(".sender-ai-preview")!;
   expect(preview.textContent).toContain(command);
   expect(preview.classList.contains("ai-preview-scroll")).toBe(true);

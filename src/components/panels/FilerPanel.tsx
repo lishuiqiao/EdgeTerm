@@ -1660,7 +1660,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
             }}
             onKeyDown={(event) => {
               if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
-              if (matchAppShortcut(event.nativeEvent)?.kind === "findPrevious") {
+              if (matchAppShortcut(event.nativeEvent, "search")?.kind === "findPrevious") {
                 event.preventDefault();
                 event.stopPropagation();
                 moveSearch(-1);

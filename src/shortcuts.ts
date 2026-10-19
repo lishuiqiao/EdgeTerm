@@ -239,7 +239,7 @@ const chord = (
  * modified clipboard, scrolling and window commands below.
  */
 const MAC_DEFAULTS: ShortcutBindings = {
-  aiSuggest: chord("Space", { ctrl: true, shift: true }),
+  aiSuggest: chord("KeyG", { meta: true, shift: true }),
   newSession: chord("KeyN", { meta: true }),
   closeSession: chord("KeyW", { meta: true }),
   find: chord("KeyF", { meta: true }),
@@ -630,8 +630,9 @@ export function setActiveShortcuts(bindings: Readonly<ShortcutBindings>): void {
  * Resolves a key event to the app shortcut it triggers, or null when the key
  * must keep reaching whatever has focus.
  */
-export function matchAppShortcut(event: ShortcutKeyEvent): AppShortcut | null {
+export function matchAppShortcut(event: ShortcutKeyEvent, context?: "search"): AppShortcut | null {
   for (const { id, action } of SHORTCUT_COMMANDS) {
+    if (context === "search" && id === "aiSuggest") continue;
     const binding = activeShortcuts[id];
     if (binding && chordMatches(binding, event)) return action;
   }

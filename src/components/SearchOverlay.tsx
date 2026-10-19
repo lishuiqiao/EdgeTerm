@@ -48,9 +48,9 @@ export interface SearchOverlayHandle {
 // Ctrl+Shift+F / Ctrl+Shift+G elsewhere. The window-level shortcut handler
 // ignores key events from inputs, so the shortcuts are mirrored here.
 const isFindKey = (event: KeyboardEvent) =>
-  matchAppShortcut(event)?.kind === "find";
+  matchAppShortcut(event, "search")?.kind === "find";
 const isFindNextKey = (event: KeyboardEvent) =>
-  matchAppShortcut(event)?.kind === "findNext";
+  matchAppShortcut(event, "search")?.kind === "findNext";
 
 /**
  * The toggles' keys, VS Code's: Alt+letter, and ⌥⌘letter on macOS, where

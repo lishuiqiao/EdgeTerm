@@ -108,3 +108,19 @@ describe("application keyboard ownership", () => {
     expect(closedSessionShortcut(eof, "error")).toBe("close");
   });
 });
+
+it("leaves CmdShiftG to AI in command editors but routes it to search in search fields", () => {
+  const filer = vi.fn(() => false), terminal = vi.fn();
+  cleanup.push(installSearchShortcuts(filer, terminal));
+  for (const className of ["xterm", "sender-command-input"]) {
+    const editor = document.createElement("textarea"); editor.className = className; document.body.append(editor);
+    expect(press("KeyG", { metaKey: true, shiftKey: true }, editor).defaultPrevented).toBe(false);
+  }
+  expect(filer).not.toHaveBeenCalled(); expect(terminal).not.toHaveBeenCalled();
+  for (const className of ["terminal-search", "filer-search"]) {
+    const field = document.createElement("input"); field.className = className; document.body.append(field);
+    expect(press("KeyG", { metaKey: true, shiftKey: true }, field).defaultPrevented).toBe(true);
+  }
+  expect(terminal).toHaveBeenCalledTimes(2);
+  expect(terminal).toHaveBeenLastCalledWith("previous");
+});

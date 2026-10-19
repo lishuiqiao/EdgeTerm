@@ -9,7 +9,12 @@ export function installSearchShortcuts(
     if (event.defaultPrevented || event.isComposing || event.keyCode === 229) return;
     // Dialogs (especially shortcut recording) own their keyboard input.
     if (document.querySelector(".dialog-backdrop, [aria-modal='true']")) return;
-    const action = matchAppShortcut(event);
+    const target = event.target instanceof Element ? event.target : null;
+    // AI owns its shortcut only in command editors. Search keeps the same
+    // chord in search fields and elsewhere, even when the mouse is over Filer.
+    if (target?.closest(".xterm, .sender-command-input") &&
+      matchAppShortcut(event)?.kind === "aiSuggest") return;
+    const action = matchAppShortcut(event, "search");
     if (action?.kind !== "find" && action?.kind !== "findNext" && action?.kind !== "findPrevious") return;
     event.preventDefault();
     event.stopPropagation();

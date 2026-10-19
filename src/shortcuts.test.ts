@@ -228,3 +228,15 @@ describe("storage", () => {
     expect(parsed).toEqual(bindings);
   });
 });
+
+it("shares CmdShiftG by context and preserves saved overrides", () => {
+  expect(matchAppShortcut(press("KeyG", { metaKey: true, shiftKey: true }))).toEqual({ kind: "aiSuggest" });
+  expect(matchAppShortcut(press("KeyG", { metaKey: true, shiftKey: true }), "search")).toEqual({ kind: "findPrevious" });
+  expect(matchAppShortcut(press("Space", { ctrlKey: true, shiftKey: true }))).toBeNull();
+  expect(parseShortcuts({}, DEFAULT_SHORTCUTS)?.aiSuggest).toEqual(chord("KeyG", { meta: true, shift: true }));
+  for (const saved of [chord("F9", { meta: true }), chord("Space", { ctrl: true, shift: true }), null]) {
+    const parsed = parseShortcuts({ aiSuggest: saved }, DEFAULT_SHORTCUTS)!;
+    expect(parsed.aiSuggest).toEqual(saved);
+    expect(parseShortcuts(shortcutOverrides(parsed), DEFAULT_SHORTCUTS)?.aiSuggest).toEqual(saved);
+  }
+});

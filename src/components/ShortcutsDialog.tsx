@@ -56,10 +56,11 @@ export function ShortcutsDialog({ bindings, onApply, onClose }: Props) {
         setNotice(problem);
         return;
       }
-      // One chord, one command: whoever held it before gives it up, so the
-      // table can never be applied with two commands on the same keys.
+      // AI generation and previous-search may share a chord: focus decides.
+      // Other assignments keep one command per chord.
       const taken = SHORTCUT_COMMANDS.find(
-        ({ id }) => id !== recording && sameChord(draft[id], chord),
+        ({ id }) => id !== recording && sameChord(draft[id], chord) &&
+          !([id, recording].includes("aiSuggest") && [id, recording].includes("findPrevious")),
       );
       setRecording(null);
       setNotice(

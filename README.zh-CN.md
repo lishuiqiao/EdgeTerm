@@ -122,7 +122,7 @@ EdgeTerm 采用 [GNU General Public License v3.0](LICENSE) 授权。
 
 在 **Edit → Command Suggestions** 下方打开 **AI Command Suggestions → Settings…**，配置 OpenAI 兼容 Chat Completions 的 API Base URL（如 `https://service.example/v1`）、模型和可选 API Key。可测试连接，Shell 类型可自动判断已知本地配置或手动选择；SSH 的远程 Shell 未知时不会假定与本机相同。开启 AI 建议会关闭历史 Command Suggestions，反之亦然。
 
-在 Sender 或 SSH / Shell 终端输入需求或部分命令，按 **Ctrl+Shift+Space** 手动生成灰色预览。可在 **Keyboard Shortcuts → Generate AI Command** 中改键。**Tab 将原输入替换为建议，不执行**；Esc、编辑输入、移动光标、失焦或切换会话会丢弃预览及迟到的结果。修改不会重新请求，必须再次主动触发。原始文本保留到采用为止；没有 AI 预览时 Tab 保持原功能。
+在 Sender 或 SSH / Shell 终端输入需求或部分命令，按 **⌘⇧G**（macOS）或 **Ctrl+Shift+Space**（Windows / Linux） 手动生成灰色预览。搜索框内的 ⌘⇧G 仍用于上一个匹配，已保存的自定义快捷键保持不变。可在 **Keyboard Shortcuts → Generate AI Command** 中改键。**Tab 将原输入替换为建议，不执行**；Esc、编辑输入、移动光标、失焦或切换会话会丢弃预览及迟到的结果。修改不会重新请求，必须再次主动触发。原始文本保留到采用为止；没有 AI 预览时 Tab 保持原功能。
 
 只发送本次输入和 Shell 类型，不发送历史输出或文件内容。第一版返回单行命令；Sender 可用多行描述需求。终端要求普通 Shell 提示符、输入回显已到达、光标在末尾且没有选区；交互程序、密码提示、未知提示符、复杂组合字符或行尾有其他文本时请用 Sender。终端替换针对常规行编辑模式，Shell vi 模式和自定义退格行为请改用 Sender。
 

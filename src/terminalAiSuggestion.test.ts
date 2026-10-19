@@ -20,7 +20,7 @@ function harness() {
     const event = new KeyboardEvent("keydown", { key, code, keyCode: key === "Tab" ? 9 : key === "Escape" ? 27 : 32, bubbles: true, cancelable: true, ...modifiers });
     controller.term.textarea!.dispatchEvent(event); return event;
   };
-  const generate = async () => { key(" ", "Space", { ctrlKey: true, shiftKey: true }); await Promise.resolve(); await Promise.resolve(); };
+  const generate = async () => { key("G", "KeyG", { metaKey: true, shiftKey: true }); await Promise.resolve(); await Promise.resolve(); };
   const type = async (s: string) => { controller.term.input(s, true); await write(s); out.length = 0; };
   cleanup.push(() => { controller.dispose(); root.remove(); });
   return { controller, root, out, status, write, type, key, generate, disable: () => { enabled = false; } };
@@ -64,7 +64,7 @@ describe("terminal AI input", () => {
     expect(suggestAiCommand).not.toHaveBeenCalled();
     await h.write("\x1b[?1049h"); await h.type("foo"); await h.generate();
     expect(suggestAiCommand).not.toHaveBeenCalled();
-    h.key(" ", "Space", { ctrlKey: true, shiftKey: true, isComposing: true });
+    h.key("G", "KeyG", { metaKey: true, shiftKey: true, isComposing: true });
     h.disable(); await h.generate(); expect(suggestAiCommand).not.toHaveBeenCalled();
   });
 });

@@ -53,12 +53,12 @@ describe("manual AI suggestions", () => {
   });
   it("supports rebinding generation without retaining the default key", () => {
     const defaults = defaultShortcuts();
-    const event = { key: " ", code: "Space", ctrlKey: true, shiftKey: true, metaKey: false, altKey: false };
+    const event = { key: "G", code: "KeyG", ctrlKey: false, shiftKey: true, metaKey: true, altKey: false };
     try {
       setActiveShortcuts(defaults); expect(matchAppShortcut(event)?.kind).toBe("aiSuggest");
       setActiveShortcuts({ ...defaults, aiSuggest: { ctrl: false, shift: false, meta: false, alt: false, code: "F9" } });
-      expect(matchAppShortcut(event)).toBeNull();
-      expect(matchAppShortcut({ ...event, ctrlKey: false, shiftKey: false, key: "F9", code: "F9" })?.kind).toBe("aiSuggest");
+      expect(matchAppShortcut(event)?.kind).toBe("findPrevious");
+      expect(matchAppShortcut({ ...event, metaKey: false, ctrlKey: false, shiftKey: false, key: "F9", code: "F9" })?.kind).toBe("aiSuggest");
     } finally { setActiveShortcuts(defaults); }
   });
 });
