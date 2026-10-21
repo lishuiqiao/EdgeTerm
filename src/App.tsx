@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { exit } from "@tauri-apps/plugin-process";
@@ -72,6 +73,8 @@ const hasLiveSessions = () =>
     .tabs.some((tab) => tab.state === "connecting" || tab.state === "connected");
 
 export default function App() {
+  const language = useStore(s => s.language);
+  useEffect(() => { document.documentElement.lang = language; }, [language]);
   const updater = useUpdater();
   const activeId = useStore((s) => s.activeId);
   const panels = useStore((s) => s.panels);
@@ -731,18 +734,12 @@ export default function App() {
             style={{ width: 380 }}
             onMouseDown={(event) => event.stopPropagation()}
           >
-            <div className="dialog-header">About EdgeTerm</div>
+            <div className="dialog-header">{t("About EdgeTerm")}</div>
             <div className="dialog-body" style={{ lineHeight: 1.7 }}>
-              <strong>
-                EdgeTerm{updater.appVersion ? ` ${updater.appVersion}` : ""}
+              <strong>{"EdgeTerm"}{updater.appVersion ? ` ${updater.appVersion}` : ""}
               </strong>
-              <span>
-                A small, fast terminal, SSH, SFTP, FTP and serial client. The
-                installer is tiny, it starts instantly, and it stays out of
-                your way.
-              </span>
-              <span style={{ color: "var(--fg-faint)" }}>
-                Made by miskin ·{" "}
+              <span>{t("A small, fast terminal, SSH, SFTP, FTP and serial client. The installer is tiny, it starts instantly, and it stays out of your way.")}</span>
+              <span style={{ color: "var(--fg-faint)" }}>{t("Made by miskin ·")}{" "}
                 <a
                   className="about-link"
                   href={REPO_URL}
@@ -752,15 +749,11 @@ export default function App() {
                       console.error("Failed to open repository:", error);
                     });
                   }}
-                >
-                  github.com/miskin-lee/EdgeTerm
-                </a>
+                >{"github.com/miskin-lee/EdgeTerm"}</a>
               </span>
             </div>
             <div className="dialog-footer">
-              <button className="btn" onClick={() => setAboutOpen(false)}>
-                Close
-              </button>
+              <button className="btn" onClick={() => setAboutOpen(false)}>{t("Close")}</button>
             </div>
           </div>
         </div>

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 
 import { IS_MAC } from "../platform";
@@ -24,8 +25,8 @@ interface Props {
 
 /** The shortcuts this dialog cannot change, shown so they are not hunted for. */
 const FIXED_SHORTCUTS: { keys: string; label: string }[] = IS_MAC
-  ? [{ keys: "⌘1–⌘9", label: "Switch to tab N" }, { keys: "⌥W, ⌥S/F/X", label: "Toggle Sessions / Filer / Sender" }, { keys: "⌥W, ⌥H/V", label: "Split down / right" }, { keys: "Alt+T, Alt+N/T", label: "Toggle line numbers / timestamps" }]
-  : [{ keys: "Alt+1–Alt+9", label: "Switch to tab N" }, { keys: "Alt+W, Alt+S/F/X", label: "Toggle Sessions / Filer / Sender" }, { keys: "Alt+W, Alt+H/V", label: "Split down / right" }, { keys: "Alt+T, Alt+N/T", label: "Toggle line numbers / timestamps" }];
+  ? [{ keys: "⌘1–⌘9", get label() { return t("Switch to tab N"); } }, { keys: "⌥W, ⌥S/F/X", get label() { return t("Toggle Sessions / Filer / Sender"); } }, { keys: "⌥W, ⌥H/V", get label() { return t("Split down / right"); } }, { keys: "Alt+T, Alt+N/T", get label() { return t("Toggle line numbers / timestamps"); } }]
+  : [{ keys: "Alt+1–Alt+9", get label() { return t("Switch to tab N"); } }, { keys: "Alt+W, Alt+S/F/X", get label() { return t("Toggle Sessions / Filer / Sender"); } }, { keys: "Alt+W, Alt+H/V", get label() { return t("Split down / right"); } }, { keys: "Alt+T, Alt+N/T", get label() { return t("Toggle line numbers / timestamps"); } }];
 
 /**
  * Rebinds the application's keyboard shortcuts. A row records the next chord
@@ -110,7 +111,7 @@ export function ShortcutsDialog({ bindings, onApply, onClose }: Props) {
           onApply(draft);
         }}
       >
-        <div className="dialog-header">Keyboard Shortcuts</div>
+        <div className="dialog-header">{t("Keyboard Shortcuts")}</div>
         <div className="dialog-body shortcuts-dialog-body">
           <div className="shortcuts-list">
             {SHORTCUT_COMMANDS.map(({ id, label, hint }) => {
@@ -122,30 +123,30 @@ export function ShortcutsDialog({ bindings, onApply, onClose }: Props) {
                     <strong>{label}</strong>
                     <small>{hint}</small>
                     {sameChord(chord, DEFAULT_SHORTCUTS[id]) && shortcutAliasLabels(id).length > 0 &&
-                      <small>Also: {shortcutAliasLabels(id).join(" · ")}</small>}
+                      <small>{t("Also: ")}{shortcutAliasLabels(id).join(" · ")}</small>}
                   </span>
                   <button
                     type="button"
                     className={`shortcut-key${armed ? " is-recording" : ""}${
                       !armed && !chord ? " is-unset" : ""
                     }`}
-                    aria-label={`${label} shortcut`}
+                    aria-label={t("{0} shortcut", { 0: label })}
                     onClick={() => {
                       setNotice(null);
                       setRecording(armed ? null : id);
                     }}
                   >
                     {armed
-                      ? "Press keys…"
+                      ? t("Press keys…")
                       : chord
                         ? chordLabel(chord)
-                        : "Unassigned"}
+                        : t("Unassigned")}
                   </button>
                   <button
                     type="button"
                     className="shortcut-clear"
-                    title="Remove shortcut"
-                    aria-label={`Remove the ${label} shortcut`}
+                    title={t("Remove shortcut")}
+                    aria-label={t("Remove the {0} shortcut", { 0: label })}
                     disabled={!chord}
                     onClick={() => unassign(id)}
                   >
@@ -164,7 +165,7 @@ export function ShortcutsDialog({ bindings, onApply, onClose }: Props) {
           </p>
 
           <div className="shortcuts-fixed">
-            <strong>Fixed</strong>
+            <strong>{t("Fixed")}</strong>
             {FIXED_SHORTCUTS.map(({ keys, label }) => (
               <span key={keys}>
                 <kbd>{keys}</kbd> {label}
@@ -181,15 +182,9 @@ export function ShortcutsDialog({ bindings, onApply, onClose }: Props) {
               setNotice(null);
               setDraft(defaultShortcuts());
             }}
-          >
-            Reset Defaults
-          </button>
-          <button type="button" className="btn" onClick={onClose}>
-            Cancel
-          </button>
-          <button type="submit" className="btn is-primary">
-            Apply
-          </button>
+          >{t("Reset Defaults")}</button>
+          <button type="button" className="btn" onClick={onClose}>{t("Cancel")}</button>
+          <button type="submit" className="btn is-primary">{t("Apply")}</button>
         </div>
       </form>
     </div>

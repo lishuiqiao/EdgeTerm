@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import type { SessionGroup, SessionKind, SessionProfile } from "./types";
 
 /**
@@ -7,12 +8,12 @@ import type { SessionGroup, SessionKind, SessionProfile } from "./types";
  * Sender's kind-scope description.
  */
 export const KIND_LABELS: Record<SessionKind, string> = {
-  ssh: "SSH Sessions",
-  telnet: "Telnet Sessions",
-  sftp: "SFTP Sessions",
-  ftp: "FTP Sessions",
-  serial: "Serial Sessions",
-  local: "Shell Sessions",
+  get ssh() { return t("SSH Sessions"); },
+  get telnet() { return t("Telnet Sessions"); },
+  get sftp() { return t("SFTP Sessions"); },
+  get ftp() { return t("FTP Sessions"); },
+  get serial() { return t("Serial Sessions"); },
+  get local() { return t("Shell Sessions"); },
 };
 
 /**
@@ -42,10 +43,10 @@ export interface SessionSection {
 
 /** Top-level headings of the Session panel, in display order. */
 export const SESSION_SECTIONS: readonly SessionSection[] = [
-  { kind: "ssh", kinds: ["ssh", "telnet"], label: "SSH / Telnet Sessions" },
-  { kind: "ftp", kinds: ["ftp", "sftp"], label: "(S)FTP Sessions" },
-  { kind: "serial", kinds: ["serial"], label: "Serial Sessions" },
-  { kind: "local", kinds: ["local"], label: "Shell Sessions" },
+  { kind: "ssh", kinds: ["ssh", "telnet"], get label() { return t("SSH / Telnet Sessions"); } },
+  { kind: "ftp", kinds: ["ftp", "sftp"], get label() { return t("(S)FTP Sessions"); } },
+  { kind: "serial", kinds: ["serial"], get label() { return t("Serial Sessions"); } },
+  { kind: "local", kinds: ["local"], get label() { return t("Shell Sessions"); } },
 ];
 
 /** The heading a kind is listed under — merged for FTP / SFTP. */

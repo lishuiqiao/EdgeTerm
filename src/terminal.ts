@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { ManualAiSuggestion, previewText } from "./aiSuggestion";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { FitAddon } from "@xterm/addon-fit";
@@ -438,7 +439,7 @@ export class TerminalController {
   /** Command history capture + completion popup. Opt-in via the Edit menu. */
   private suggestionsOn = false;
   private aiGhost: HTMLDivElement | null = null;
-  private readonly ai = new ManualAiSuggestion(() => this.renderAiPreview(), message => this.callbacks.onStatus(`AI: ${message}`));
+  private readonly ai = new ManualAiSuggestion(() => this.renderAiPreview(), message => this.callbacks.onStatus(t("AI: {0}", { 0: message })));
   private readonly clearAiOnBlur = () => this.ai.clear();
   private echoPending = false;
   /** Edit → Warn Before Multi-line Paste; see `paste`. */
@@ -1361,11 +1362,11 @@ export class TerminalController {
   private canStartTransfer(label: string): boolean {
     if (this.disposed) return false;
     if (this.locked) {
-      this.callbacks.onStatus(`${label}: the session is not connected`, true);
+      this.callbacks.onStatus(t("{0}: the session is not connected", { 0: label }), true);
       return false;
     }
     if (this.isTransferActive()) {
-      this.callbacks.onStatus(`${label}: a transfer is already running`, true);
+      this.callbacks.onStatus(t("{0}: a transfer is already running", { 0: label }), true);
       return false;
     }
     return true;
@@ -1421,7 +1422,7 @@ export class TerminalController {
         if (text) this.paste(text);
       },
       (error: unknown) => {
-        this.showTransferNotice(`Paste failed: ${errorMessage(error)}`, "error");
+        this.showTransferNotice(t("Paste failed: {0}", { 0: errorMessage(error) }), "error");
       },
     );
   }
@@ -1518,7 +1519,7 @@ export class TerminalController {
         ? writeClipboardText(text)
         : navigator.clipboard.writeText(text);
     void write.catch((error: unknown) => {
-      this.showTransferNotice(`Copy failed: ${errorMessage(error)}`, "error");
+      this.showTransferNotice(t("Copy failed: {0}", { 0: errorMessage(error) }), "error");
     });
   }
 
@@ -1849,10 +1850,10 @@ export class TerminalController {
 
   generateAiSuggestion() {
     const context = this.callbacks.aiContext?.();
-    if (!context?.enabled) { this.callbacks.onStatus("Enable AI Command Suggestions first (SSH / Shell only)."); return; }
+    if (!context?.enabled) { this.callbacks.onStatus(t("Enable AI Command Suggestions first (SSH / Shell only).")); return; }
     const input = this.aiInput();
     if (input === null) {
-      this.callbacks.onStatus("AI: use a settled shell prompt with the cursor at the end, or enter the request in Sender.");
+      this.callbacks.onStatus(t("AI: use a settled shell prompt with the cursor at the end, or enter the request in Sender."));
       return;
     }
     this.hidePopup();

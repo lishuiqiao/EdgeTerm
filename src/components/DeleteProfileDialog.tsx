@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useRef } from "react";
 
 import type { SessionProfile } from "../types";
@@ -50,12 +51,6 @@ export function DeleteProfileDialog({
     return () => window.removeEventListener("keydown", onKeyDown, true);
   }, [onCancel, onConfirm]);
 
-  const commands =
-    scopedCommands === 0
-      ? ""
-      : scopedCommands === 1
-        ? " and its 1 saved Sender command"
-        : ` and its ${scopedCommands} saved Sender commands`;
 
   return (
     <div className="dialog-backdrop" onMouseDown={onCancel}>
@@ -65,36 +60,24 @@ export function DeleteProfileDialog({
         aria-labelledby="delete-profile-title"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <div className="dialog-header" id="delete-profile-title">
-          Delete Session
-        </div>
+        <div className="dialog-header" id="delete-profile-title">{t("Delete Session")}</div>
         <div className="dialog-body confirm-dialog-body">
-          <span>
-            Delete <strong>{profile.name}</strong>?
-          </span>
+          <span>{t("Delete {name}?", { name: profile.name })}</span>
           <span className="confirm-dialog-target">
             {profile.kind} · {target}
           </span>
-          <span className="confirm-dialog-hint">
-            The saved session, any stored credentials for it{commands} will
-            be removed. This cannot be undone.
-          </span>
+          <span className="confirm-dialog-hint">{scopedCommands === 0 ? t("The saved session and its stored credentials will be removed. This cannot be undone.") : t("The saved session, its stored credentials and {count} saved Sender commands will be removed. This cannot be undone.", { count: scopedCommands })}</span>
         </div>
         <div className="dialog-footer confirm-dialog-footer">
           <span className="confirm-dialog-keys">
-            <kbd>Enter</kbd> delete · <kbd>Esc</kbd> cancel
-          </span>
-          <button type="button" className="btn" onClick={onCancel}>
-            Cancel
-          </button>
+            <kbd>{"Enter"}</kbd>{t(" delete · ")}<kbd>{"Esc"}</kbd>{t(" cancel")}</span>
+          <button type="button" className="btn" onClick={onCancel}>{t("Cancel")}</button>
           <button
             ref={confirmRef}
             type="button"
             className="btn is-danger"
             onClick={onConfirm}
-          >
-            Delete
-          </button>
+          >{t("Delete")}</button>
         </div>
       </div>
     </div>

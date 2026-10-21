@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 
 import * as api from "./api";
 import { open as openDialog, save as saveDialog } from "./nativeDialog";
@@ -671,7 +672,7 @@ export class XmodemController {
       const selected = await openDialog({
         multiple: false,
         directory: false,
-        title: `Send via ${label}`,
+        get title() { return t("Send via {0}", {0: label}); },
       });
       path = typeof selected === "string" ? selected : null;
     } catch (error) {
@@ -726,7 +727,7 @@ export class XmodemController {
     try {
       target = await saveDialog({
         defaultPath: "xmodem.bin",
-        title: "Receive via XMODEM",
+        get title() { return t("Receive via XMODEM"); },
       });
     } catch (error) {
       this.release();

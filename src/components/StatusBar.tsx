@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useState } from "react";
 
 import * as api from "../api";
@@ -45,28 +46,23 @@ export function StatusBar() {
         <>
           {legacy.length > 0 && (
             <span className="status-item status-legacy" title={legacyTitle(legacy)}>
-              <Icon name="warning" />
-              Legacy SSH
-            </span>
+              <Icon name="warning" />{t("Legacy SSH")}</span>
           )}
           {recording && (
             <button
               type="button"
               className="status-item status-recording"
-              title={`Recording to ${recording} — click to open the folder`}
+              title={t("Recording to {0} — click to open the folder", { 0: recording })}
               onClick={() =>
                 void api.openLocalPath(parentDir(recording)).catch(() => undefined)
               }
             >
-              <Icon name="record" />
-              REC
-            </button>
+              <Icon name="record" />{"REC"}</button>
           )}
           {isFileSession(tab.info.kind) ? (
-            <span className="status-item">Dual-pane file transfer</span>
+            <span className="status-item">{t("Dual-pane file transfer")}</span>
           ) : (
-            <span className="status-item">
-              Window {tab.rows}×{tab.cols}
+            <span className="status-item">{t("Window ")}{tab.rows}×{tab.cols}
             </span>
           )}
           <span className="status-item">{tab.info.protocol}</span>

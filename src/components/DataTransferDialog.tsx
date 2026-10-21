@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -116,57 +117,49 @@ export function DataTransferDialog({ request, onClose }: {
         onKeyDown={(event) => event.stopPropagation()}
         onSubmit={(event) => { event.preventDefault(); void submit(); }}
       >
-        <div className="dialog-header" id="data-transfer-title">{exporting ? "Export Data" : "Import Data"}</div>
+        <div className="dialog-header" id="data-transfer-title">{exporting ? t("Export Data") : t("Import Data")}</div>
         <div className="dialog-body data-transfer-body">
           {exporting ? <>
-            <p>Export sessions, groups, Sender commands and application settings.</p>
+            <p>{t("Export sessions, groups, Sender commands and application settings.")}</p>
             <label className="data-transfer-option">
               <input type="checkbox" checked={includeCredentials} disabled={busy}
                 onChange={(event) => {
                   setIncludeCredentials(event.target.checked);
                   setPassword(""); setConfirmation(""); setError(null);
-                }} />
-              Include login passwords, private key passphrases and AI API key
-            </label>
+                }} />{t("Include login passwords, private key passphrases and AI API key")}</label>
             <p className="data-transfer-hint">{includeCredentials
-              ? "The entire file will be encrypted with your export password. Keep it safe: a forgotten password cannot be recovered."
-              : "The file is readable JSON. Saved login passwords, private key passphrases and AI API key are excluded."}</p>
+              ? t("The entire file will be encrypted with your export password. Keep it safe: a forgotten password cannot be recovered.")
+              : t("The file is readable JSON. Saved login passwords, private key passphrases and AI API key are excluded.")}</p>
           </> : <>
             <p className="data-transfer-path">{path}</p>
-            {!preview && <p>{busy ? "Reading backup…" : "Could not read this backup. Retry or choose another file."}</p>}
-            {preview?.encrypted && !data && <p>This backup is encrypted. Enter the password set when it was exported.</p>}
+            {!preview && <p>{busy ? t("Reading backup…") : t("Could not read this backup. Retry or choose another file.")}</p>}
+            {preview?.encrypted && !data && <p>{t("This backup is encrypted. Enter the password set when it was exported.")}</p>}
             {data && <>
-              <p>Import {describeData({ profiles: data.profiles.length, groups: data.groups.length, senderCommands: data.senderCommands.length })}{data.settings ? " and settings" : ""}?</p>
-              {data.ai?.baseUrl && <p className="data-transfer-hint">AI configuration: {data.ai.baseUrl} · {data.ai.model}. The saved key is kept only when the endpoint stays the same.</p>}
-              <p className="data-transfer-hint">Entries with the same ID replace local entries; other entries are kept.</p>
+              <p>{t("Import ")}{describeData({ profiles: data.profiles.length, groups: data.groups.length, senderCommands: data.senderCommands.length })}{data.settings ? t(" and settings") : ""}?</p>
+              {data.ai?.baseUrl && <p className="data-transfer-hint">{t("AI configuration: ")}{data.ai.baseUrl} · {data.ai.model}{t(". The saved key is kept only when the endpoint stays the same.")}</p>}
+              <p className="data-transfer-hint">{t("Entries with the same ID replace local entries; other entries are kept.")}</p>
               <p className="data-transfer-hint">{preview.encrypted
-                ? "Saved credentials in this backup replace credentials for matching sessions and are encrypted again on this device. Sessions without credentials in the backup keep any locally saved credentials."
-                : "This file does not import saved passwords. Existing local credentials are kept; new sessions may ask for a password."}</p>
+                ? t("Saved credentials in this backup replace credentials for matching sessions and are encrypted again on this device. Sessions without credentials in the backup keep any locally saved credentials.")
+                : t("This file does not import saved passwords. Existing local credentials are kept; new sessions may ask for a password.")}</p>
             </>}
           </>}
-          {needsPassword && <label className="data-transfer-field">
-            Export password
-            <input ref={passwordRef} type="password" aria-label="Export password"
+          {needsPassword && <label className="data-transfer-field">{t("Export password")}<input ref={passwordRef} type="password" aria-label={t("Export password")}
               autoComplete={exporting ? "new-password" : "off"} spellCheck={false}
               value={password} disabled={busy} maxLength={1024}
               onChange={(event) => setPassword(event.target.value)} />
           </label>}
-          {exporting && includeCredentials && <label className="data-transfer-field">
-            Confirm password
-            <input type="password" aria-label="Confirm password" autoComplete="new-password"
+          {exporting && includeCredentials && <label className="data-transfer-field">{t("Confirm password")}<input type="password" aria-label={t("Confirm password")} autoComplete="new-password"
               value={confirmation} disabled={busy} maxLength={1024}
               onChange={(event) => setConfirmation(event.target.value)} />
           </label>}
-          {(includeCredentials || preview?.encrypted) && <p className="data-transfer-hint">
-            Private key files are not included. Copy them separately and adjust their paths on the destination device.
-          </p>}
+          {(includeCredentials || preview?.encrypted) && <p className="data-transfer-hint">{t("Private key files are not included. Copy them separately and adjust their paths on the destination device.")}</p>}
           {error && <div className="dialog-error" role="alert">{error}</div>}
         </div>
         <div className="dialog-footer">
-          <button type="button" className="btn" disabled={busy} onClick={onClose}>Cancel</button>
+          <button type="button" className="btn" disabled={busy} onClick={onClose}>{t("Cancel")}</button>
           <button ref={primaryRef} type="submit" className="btn is-primary"
             disabled={busy || (!exporting && Boolean(needsPassword) && !password)}>
-            {busy ? "Working…" : exporting ? "Export…" : data ? "Import" : preview?.encrypted ? "Unlock" : "Retry"}
+            {busy ? t("Working…") : exporting ? t("Export…") : data ? t("Import") : preview?.encrypted ? t("Unlock") : t("Retry")}
           </button>
         </div>
       </form>

@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import type { PanelName } from "./store";
 
 /**
@@ -17,15 +18,15 @@ export const PANEL_NAMES: readonly PanelName[] = [
 export const DOCK_NAMES: readonly PanelDock[] = ["left", "right", "bottom"];
 
 export const PANEL_LABELS: Record<PanelName, string> = {
-  sessions: "Session",
-  filer: "Filer",
-  sender: "Sender",
+  get sessions() { return t("Session"); },
+  get filer() { return t("Filer"); },
+  get sender() { return t("Sender"); },
 };
 
 export const DOCK_LABELS: Record<PanelDock, string> = {
-  left: "Left",
-  right: "Right",
-  bottom: "Bottom",
+  get left() { return t("Left"); },
+  get right() { return t("Right"); },
+  get bottom() { return t("Bottom"); },
 };
 
 const DEFAULT_DOCK: Record<PanelName, PanelDock> = {

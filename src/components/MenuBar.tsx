@@ -1,3 +1,4 @@
+import { LANGUAGE_OPTIONS, t } from "../i18n";
 import { AiSettingsDialog } from "./AiSettingsDialog";
 import {
   type MouseEvent as ReactMouseEvent,
@@ -178,15 +179,15 @@ function WindowControls({ maximized }: { maximized: boolean }) {
   const toggleMaximize = () => windowControl("toggle-maximize");
   const controls: WindowControl[] = [
     {
-      label: "Minimize",
+      get label() { return t("Minimize"); },
       icon: MINIMIZE_ICON,
       action: () => windowControl("minimize"),
     },
     maximized
-      ? { label: "Restore Down", icon: RESTORE_ICON, action: toggleMaximize }
-      : { label: "Maximize", icon: MAXIMIZE_ICON, action: toggleMaximize },
+      ? { get label() { return t("Restore Down"); }, icon: RESTORE_ICON, action: toggleMaximize }
+      : { get label() { return t("Maximize"); }, icon: MAXIMIZE_ICON, action: toggleMaximize },
     {
-      label: "Close",
+      get label() { return t("Close"); },
       icon: CLOSE_ICON,
       action: (win) => win.close(),
       className: " is-close",
@@ -281,6 +282,8 @@ export function MenuBar(props: Props) {
   const setGutterMode = useStore((s) => s.setGutterMode);
   const theme = useStore((s) => s.theme);
   const setTheme = useStore((s) => s.setTheme);
+  const language = useStore(s => s.language);
+  const setLanguage = useStore(s => s.setLanguage);
   const [aiSettingsOpen, setAiSettingsOpen] = useState(false);
   const closeAiSettings = useCallback(() => setAiSettingsOpen(false), []);
   const aiEnabled = useStore(s => s.aiSuggestionsEnabled);
@@ -329,7 +332,7 @@ export function MenuBar(props: Props) {
     withActive((id) => {
       const terminal = getController(id);
       if (terminal) fn(terminal);
-      else setStatus("File transfers need a terminal session");
+      else setStatus(t("File transfers need a terminal session"));
     });
 
   // One gutter mode and one theme are in force at a time: radios, not boxes.
@@ -359,14 +362,14 @@ export function MenuBar(props: Props) {
     ...PANEL_NAMES.flatMap((panel, index): (Entry | "separator")[] => [
       ...(index > 0 ? ["separator" as const] : []),
       ...DOCK_NAMES.map((dock): Entry => ({
-        label: `${PANEL_LABELS[panel]} on ${DOCK_LABELS[dock]}`,
+        get label() { return t("{0} on {1}", {0: PANEL_LABELS[panel], 1: DOCK_LABELS[dock]}); },
         checked: dockOf(panelDocks, panel) === dock,
         mark: "radio",
         action: () => movePanel(panel, dock),
       })),
     ]),
     "separator",
-    { label: "Reset Panel Layout", action: resetPanelLayout },
+    { get label() { return t("Reset Panel Layout"); }, action: resetPanelLayout },
   ];
 
   const programClipboardEntry = (mode: ProgramClipboardMode): Entry => ({
@@ -378,31 +381,31 @@ export function MenuBar(props: Props) {
 
   const menus: Menu[] = [
     {
-      title: "Session",
+      get title() { return t("Session"); },
       entries: [
         {
-          label: "New Session…",
+          get label() { return t("New Session…"); },
           shortcut: accel("newSession"),
           action: props.onNewSession,
         },
         "separator",
         {
-          label: "Previous Session",
+          get label() { return t("Previous Session"); },
           shortcut: accel("prevTab"),
           action: () => activateAdjacentTab(-1),
         },
         {
-          label: "Next Session",
+          get label() { return t("Next Session"); },
           shortcut: accel("nextTab"),
           action: () => activateAdjacentTab(1),
         },
         {
-          label: "Previous Pane",
+          get label() { return t("Previous Pane"); },
           shortcut: accel("prevPane"),
           action: () => activateAdjacentPane(-1),
         },
         {
-          label: "Next Pane",
+          get label() { return t("Next Pane"); },
           shortcut: accel("nextPane"),
           action: () => activateAdjacentPane(1),
         },
@@ -412,42 +415,42 @@ export function MenuBar(props: Props) {
           // whichever side of the switch applies to the active session now.
           label:
             activeState === "closed" || activeState === "error"
-              ? "Reconnect Session"
-              : "Disconnect Session",
+              ? t("Reconnect Session")
+              : t("Disconnect Session"),
           action: withActive(toggleSessionConnection),
         },
         {
-          label: "Duplicate Session",
+          get label() { return t("Duplicate Session"); },
           shortcut: accel("duplicateSession"),
           action: () => { if (activeTab) void openSession(activeTab.profile); },
         },
         {
-          label: "Close Session",
+          get label() { return t("Close Session"); },
           shortcut: accel("closeSession"),
           action: withActive(requestCloseTab),
         },
         {
           // ZMODEM starts itself when `rz` / `sz` runs in the terminal;
           // XMODEM has no such handshake and is started from here.
-          label: "File Transfer",
+          get label() { return t("File Transfer"); },
           children: [
             {
-              label: "Send via XMODEM…",
+              get label() { return t("Send via XMODEM…"); },
               action: withTerminal((terminal) => terminal.sendXmodem(128)),
             },
             {
-              label: "Send via XMODEM-1K…",
+              get label() { return t("Send via XMODEM-1K…"); },
               action: withTerminal((terminal) => terminal.sendXmodem(1024)),
             },
             {
-              label: "Receive via XMODEM…",
+              get label() { return t("Receive via XMODEM…"); },
               action: withTerminal((terminal) => terminal.receiveXmodem()),
             },
             {
-              label: "Cancel Transfer",
+              get label() { return t("Cancel Transfer"); },
               action: withTerminal((terminal) => {
                 if (!terminal.cancelTransfer()) {
-                  setStatus("No file transfer is running");
+                  setStatus(t("No file transfer is running"));
                 }
               }),
             },
@@ -455,44 +458,44 @@ export function MenuBar(props: Props) {
         },
         "separator",
         {
-          label: "Timestamp & Line",
+          get label() { return t("Timestamp & Line"); },
           children: [
-            gutterEntry("Timestamp + Line Number", "both"),
-            gutterEntry("Line Number Only", "line"),
-            gutterEntry("Timestamp Only", "time"),
-            gutterEntry("No Gutter", "off"),
+            gutterEntry(t("Timestamp + Line Number"), "both"),
+            gutterEntry(t("Line Number Only"), "line"),
+            gutterEntry(t("Timestamp Only"), "time"),
+            gutterEntry(t("No Gutter"), "off"),
           ],
         },
         "separator",
-        { label: "Export Data…", action: () => setDataTransfer({ mode: "export" }) },
-        { label: "Import Data…", action: () => {
+        { get label() { return t("Export Data…"); }, action: () => setDataTransfer({ mode: "export" }) },
+        { get label() { return t("Import Data…"); }, action: () => {
           void chooseDataImport().then((path) => {
             if (path) setDataTransfer({ mode: "import", path });
           });
         } },
         {
-          label: "Import OpenSSH Config…",
+          get label() { return t("Import OpenSSH Config…"); },
           action: () => void importSshConfig(),
         },
       ],
     },
     {
-      title: "Edit",
+      get title() { return t("Edit"); },
       entries: [
         {
-          label: "Copy",
+          get label() { return t("Copy"); },
           shortcut: accel("copy"),
           action: withActive((id) => getController(id)?.copySelection()),
         },
         {
-          label: "Paste",
+          get label() { return t("Paste"); },
           shortcut: accel("paste"),
           action: withActive((id) => getController(id)?.pasteFromClipboard()),
         },
-        { label: "Paste Selection", shortcut: accel("pasteSelection"),
+        { get label() { return t("Paste Selection"); }, shortcut: accel("pasteSelection"),
           action: withTerminal((terminal) => terminal.pasteSelection()) },
         {
-          label: "Select All",
+          get label() { return t("Select All"); },
           shortcut: accel("selectAll"),
           action: withActive((id) => getController(id)?.selectAll()),
         },
@@ -500,21 +503,21 @@ export function MenuBar(props: Props) {
         {
           // The X11 / PuTTY habit: a selection is on the clipboard the
           // moment the mouse button comes up.
-          label: "Copy on Select",
+          get label() { return t("Copy on Select"); },
           checked: copyOnSelect,
           action: () => setCopyOnSelect(!copyOnSelect),
         },
         {
           // Every line of a paste after the first runs as its own command,
           // so a paste that holds several is confirmed first (issue #63).
-          label: "Warn Before Multi-line Paste",
+          get label() { return t("Warn Before Multi-line Paste"); },
           checked: pasteWarning,
           action: () => setPasteWarning(!pasteWarning),
         },
         {
           // OSC 52: tmux, vim and TUI agents copy through the terminal
           // (issue #65). Reading the clipboard back is never allowed.
-          label: "Programs Can Set Clipboard",
+          get label() { return t("Programs Can Set Clipboard"); },
           children: [
             programClipboardEntry("ask"),
             programClipboardEntry("allow"),
@@ -522,7 +525,7 @@ export function MenuBar(props: Props) {
           ],
         },
         ...(IS_MAC ? [{
-          label: "Home/End Line Editing",
+          get label() { return t("Home/End Line Editing"); },
           checked: macHomeEnd,
           action: () => useStore.getState().setMacHomeEnd(!macHomeEnd),
         }] : []),
@@ -533,13 +536,13 @@ export function MenuBar(props: Props) {
           : [
               "separator" as const,
               {
-                label: "Right Click",
+                get label() { return t("Right Click"); },
                 children: [
-                  rightClickEntry("Show Menu", "menu"),
+                  rightClickEntry(t("Show Menu"), "menu"),
                   // With Copy on Select the selection is copied already,
                   // so this mode only pastes (see TerminalPane).
                   rightClickEntry(
-                    copyOnSelect ? "Paste" : "Copy or Paste",
+                    copyOnSelect ? t("Paste") : t("Copy or Paste"),
                     "copyPaste",
                   ),
                 ],
@@ -547,37 +550,37 @@ export function MenuBar(props: Props) {
             ]),
         "separator",
         {
-          label: "Redraw Screen",
+          get label() { return t("Redraw Screen"); },
           shortcut: accel("clearScreen"),
           action: withTerminal((terminal) => terminal.clearScreen()),
         },
         {
-          label: "Clear Buffer",
+          get label() { return t("Clear Buffer"); },
           shortcut: accel("clear"),
           action: withActive((id) => getController(id)?.clear()),
         },
         "separator",
         {
-          label: "Command Suggestions",
+          get label() { return t("Command Suggestions"); },
           checked: suggestionsEnabled,
           action: () => setSuggestionsEnabled(!suggestionsEnabled),
         },
         {
-          label: "AI Command Suggestions",
+          get label() { return t("AI Command Suggestions"); },
           checked: aiEnabled,
           children: [
-            { label: "Enable", checked: aiEnabled, action: () => setAiEnabled(!aiEnabled) },
-            { label: "Settings…", action: () => setAiSettingsOpen(true) },
+            { get label() { return t("Enable"); }, checked: aiEnabled, action: () => setAiEnabled(!aiEnabled) },
+            { get label() { return t("Settings…"); }, action: () => setAiSettingsOpen(true) },
           ],
         },
         {
-          label: "Clear Command History…",
+          get label() { return t("Clear Command History…"); },
           action: () => {
             void (async () => {
               const confirmed = await ask(
-                "Delete the recorded command history used for inline suggestions?",
+                t("Delete the recorded command history used for inline suggestions?"),
                 {
-                  title: "Clear Command History",
+                  get title() { return t("Clear Command History"); },
                   kind: "warning",
                   okLabel: "Clear",
                   cancelLabel: "Cancel",
@@ -586,9 +589,9 @@ export function MenuBar(props: Props) {
               if (!confirmed) return;
               try {
                 await commandHistory.clear();
-                setStatus("Command history cleared");
+                setStatus(t("Command history cleared"));
               } catch (error) {
-                setStatus(`Failed to clear command history: ${error}`);
+                setStatus(t("Failed to clear command history: {0}", { 0: error }));
               }
             })();
           },
@@ -596,102 +599,106 @@ export function MenuBar(props: Props) {
       ],
     },
     {
-      title: "Search",
+      get title() { return t("Search"); },
       entries: [
         {
-          label: "Find…",
+          get label() { return t("Find…"); },
           shortcut: accel("find"),
           action: props.onFind,
         },
         {
-          label: "Find Next",
+          get label() { return t("Find Next"); },
           shortcut: accel("findNext"),
           action: props.onFindNext,
         },
-        { label: "Find Previous", shortcut: accel("findPrevious"), action: props.onFindPrevious },
+        { get label() { return t("Find Previous"); }, shortcut: accel("findPrevious"), action: props.onFindPrevious },
       ],
     },
     {
-      title: "View",
+      get title() { return t("View"); },
       entries: [
         {
-          label: "Session",
+          get label() { return t("Session"); },
           shortcut: accel("panelSessions"),
           checked: panels.sessions,
           action: () => togglePanel("sessions"),
         },
         {
-          label: "Filer",
+          get label() { return t("Filer"); },
           shortcut: accel("panelFiler"),
           checked: panels.filer,
           action: () => togglePanel("filer"),
         },
         {
-          label: "Sender",
+          get label() { return t("Sender"); },
           shortcut: accel("panelSender"),
           checked: panels.sender,
           action: () => togglePanel("sender"),
         },
-        { label: "Panel Layout", children: panelLayoutEntries() },
+        { get label() { return t("Panel Layout"); }, children: panelLayoutEntries() },
         "separator",
         {
           // A split opens the active session's profile again beside it; see
           // splitSession.
-          label: "Split Right",
+          get label() { return t("Split Right"); },
           shortcut: accel("splitRight"),
           action: withActive((id) => void splitSession(id, "right")),
         },
         {
-          label: "Split Down",
+          get label() { return t("Split Down"); },
           shortcut: accel("splitDown"),
           action: withActive((id) => void splitSession(id, "down")),
         },
         "separator",
         {
-          label: "Reveal Working Directory in Filer",
+          get label() { return t("Reveal Working Directory in Filer"); },
           shortcut: accel("revealCwd"),
           action: withActive((id) => void revealCwdInFiler(id)),
         },
         "separator",
         {
-          label: "Theme",
+          get label() { return t("Language"); },
+          children: LANGUAGE_OPTIONS.map(option => ({ label: option.label, mark: "radio" as const, checked: language === option.value, action: () => setLanguage(option.value) })),
+        },
+        {
+          get label() { return t("Theme"); },
           children: (Object.keys(THEME_LABELS) as ThemeMode[]).map(themeEntry),
         },
         "separator",
-        { label: "Increase Terminal Font", shortcut: accel("zoomIn"), action: () => {
+        { get label() { return t("Increase Terminal Font"); }, shortcut: accel("zoomIn"), action: () => {
           const state = useStore.getState(); state.setBufferFontSize(state.bufferFontSize + 1);
         } },
-        { label: "Decrease Terminal Font", shortcut: accel("zoomOut"), action: () => {
+        { get label() { return t("Decrease Terminal Font"); }, shortcut: accel("zoomOut"), action: () => {
           const state = useStore.getState(); state.setBufferFontSize(state.bufferFontSize - 1);
         } },
-        { label: "Display Settings…", action: props.onFontSettings },
+        { get label() { return t("Display Settings…"); }, action: props.onFontSettings },
         {
-          label: "Keyboard Shortcuts…",
+          get label() { return t("Keyboard Shortcuts…"); },
           action: props.onKeyboardShortcuts,
         },
       ],
     },
     {
-      title: "Help",
+      get title() { return t("Help"); },
       entries: [
         {
-          label: "Tutorial",
+          get label() { return t("Tutorial"); },
           action: () => {
             void openUrl(TUTORIAL_URL).catch((error) => {
-              setStatus(`Failed to open tutorial: ${error}`);
+              setStatus(t("Failed to open tutorial: {0}", { 0: error }));
             });
           },
         },
-        { label: "Check for Updates…", action: props.onCheckForUpdates },
+        { get label() { return t("Check for Updates…"); }, action: props.onCheckForUpdates },
         "separator",
         {
-          label: "Restore Default Settings…",
+          get label() { return t("Restore Default Settings…"); },
           action: () => {
             void (async () => {
               const confirmed = await ask(
-                "Restore panel visibility and layout, timestamp and line display, theme, font sizes, scrollback, command suggestions, keyboard shortcuts, and mouse copy / paste to their defaults?",
+                t("Restore panel visibility and layout, timestamp and line display, theme, font sizes, scrollback, command suggestions, keyboard shortcuts, and mouse copy / paste to their defaults?"),
                 {
-                  title: "Restore Default Settings",
+                  get title() { return t("Restore Default Settings"); },
                   kind: "warning",
                   okLabel: "Restore",
                   cancelLabel: "Cancel",
@@ -699,12 +706,12 @@ export function MenuBar(props: Props) {
               );
               if (!confirmed) return;
               resetSettings();
-              setStatus("Default settings restored");
+              setStatus(t("Default settings restored"));
             })();
           },
         },
         "separator",
-        { label: "About EdgeTerm", action: props.onAbout },
+        { get label() { return t("About EdgeTerm"); }, action: props.onAbout },
       ],
     },
   ];
@@ -759,7 +766,7 @@ export function MenuBar(props: Props) {
           <img
             className="menubar-icon"
             src={appIcon}
-            alt=""
+            alt={""}
             draggable={false}
             data-tauri-drag-region
           />
@@ -796,8 +803,8 @@ export function MenuBar(props: Props) {
             className="panel-action"
             disabled={!activeId}
             onClick={withActive((id) => void splitSession(id, "right"))}
-            title={`Split Right${accel("splitRight") ? ` (${accel("splitRight")})` : ""}`}
-            aria-label="Split Right"
+            title={t("Split Right{0}", { 0: accel("splitRight") ? ` (${accel("splitRight")})` : "" })}
+            aria-label={t("Split Right")}
           >
             <Icon name="split-horizontal" />
           </button>
@@ -805,8 +812,8 @@ export function MenuBar(props: Props) {
             className="panel-action"
             disabled={!activeId}
             onClick={withActive((id) => void splitSession(id, "down"))}
-            title={`Split Down${accel("splitDown") ? ` (${accel("splitDown")})` : ""}`}
-            aria-label="Split Down"
+            title={t("Split Down{0}", { 0: accel("splitDown") ? ` (${accel("splitDown")})` : "" })}
+            aria-label={t("Split Down")}
           >
             <Icon name="split-vertical" />
           </button>

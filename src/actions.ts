@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import * as api from "./api";
 import { fontStack } from "./fonts";
 import { commandHistory } from "./history";
@@ -249,7 +250,7 @@ export async function disconnectSession(id: string): Promise<void> {
   // notice into the terminal that a peer-initiated close gets (see App.tsx).
   getController(id)?.writeText(SESSION_CLOSED_NOTICE);
   if (failure) store.setError(failure, id);
-  else store.setStatus(`Disconnected from ${tabTitle(current)}`);
+  else store.setStatus(t("Disconnected from {0}", { 0: tabTitle(current) }));
 }
 
 /**
@@ -300,7 +301,7 @@ async function connectSession(
     ? tabTitle(pending)
     : profile.name || profile.host || profile.portName || "session";
 
-  store.setStatus(`Connecting to ${label}…`);
+  store.setStatus(t("Connecting to {0}…", { 0: label }));
   store.setError(null);
   store.applyState(id, "connecting");
 
@@ -339,8 +340,8 @@ async function connectSession(
     connectedStore.applyState(id, "connected");
     connectedStore.setStatus(
       info.sharedConnection
-        ? `Connected to ${tabTitle({ info, ordinal: tab.ordinal })} on the same connection`
-        : `Connected to ${tabTitle({ info, ordinal: tab.ordinal })}`,
+        ? t("Connected to {0} on the same connection", { 0: tabTitle({ info, ordinal: tab.ordinal }) })
+        : t("Connected to {0}", { 0: tabTitle({ info, ordinal: tab.ordinal }) }),
     );
 
     // The pane was fitted while the backend was still connecting, so its
@@ -367,7 +368,7 @@ function failSession(id: string, message: string): void {
   const store = useStore.getState();
   store.applyState(id, "error", message);
   store.setError(message, id);
-  store.setStatus(`Failed: ${message}`);
+  store.setStatus(t("Failed: {0}", { 0: message }));
   const terminalMessage = message.replace(/[\x00-\x1f\x7f]/g, " ");
   getController(id)?.writeText(
     `\r\n\x1b[31m[connection failed: ${terminalMessage}]\x1b[0m\r\n`,
@@ -453,18 +454,18 @@ export async function revealCwdInFiler(id: string): Promise<void> {
   if (!tab) return;
   if (tab.info.kind !== "local" && tab.info.kind !== "ssh") {
     store.setStatus(
-      "Filer: only shell and SSH sessions have a working directory",
+      t("Filer: only shell and SSH sessions have a working directory"),
     );
     return;
   }
   if (tab.state !== "connected") {
-    store.setStatus("Filer: the session is not connected");
+    store.setStatus(t("Filer: the session is not connected"));
     return;
   }
   try {
     const path = await shellCwd(tab);
     useStore.getState().revealInFiler(id, path);
-    useStore.getState().setStatus(`Filer: ${path}`);
+    useStore.getState().setStatus(t("Filer: {0}", { 0: path }));
   } catch (error) {
     useStore.getState().setError(`Filer: ${String(error)}`, id);
   }

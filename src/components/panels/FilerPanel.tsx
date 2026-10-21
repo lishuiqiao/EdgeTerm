@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import type { PhysicalPosition } from "@tauri-apps/api/dpi";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import {
@@ -162,7 +163,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
   const offline = sshFiles && !remote;
   const offlineReason = offline
     ? tab?.state === "connecting"
-      ? "Connecting…"
+      ? t("Connecting…")
       : "Session disconnected — reconnect to browse and upload files"
     : null;
   // Null for every session without remote files, so switching between local tabs does not
@@ -531,7 +532,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
       const parent = await openDialog({
         directory: true,
         multiple: false,
-        title: `Save folder “${entry.name}” into…`,
+        get title() { return t("Save folder “{0}” into…", {0: entry.name}); },
       });
       if (typeof parent === "string") target = joinLocal(parent, entry.name);
     } else {
@@ -581,7 +582,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
     const parent = await openDialog({
       directory: true,
       multiple: false,
-      title: `Download ${picked.length} items into…`,
+      get title() { return t("Download {0} items into…", {0: picked.length}); },
     });
     if (typeof parent !== "string") return;
     setError(null);
@@ -606,7 +607,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
     if (collisions.existing.length > 0) {
       const prompt = replacePrompt(collisions.existing, "local");
       const confirmed = await ask(prompt.message, {
-        title: "Download",
+        get title() { return t("Download"); },
         kind: "warning",
         okLabel: prompt.okLabel,
         cancelLabel: "Cancel",
@@ -753,7 +754,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
 
   const copyToFolder = async (entry: FileEntry) => {
     try {
-      const destination = await openDialog({ directory: true, title: "Copy to folder" });
+      const destination = await openDialog({ directory: true, get title() { return t("Copy to folder"); } });
       if (typeof destination === "string") await copyPaths([entry.path], destination);
     } catch (error) {
       setError(String(error));
@@ -764,7 +765,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
 
   const copyFromFiles = async () => {
     try {
-      const sources = await openDialog({ multiple: true, title: "Copy files into current folder" });
+      const sources = await openDialog({ multiple: true, get title() { return t("Copy files into current folder"); } });
       await copyPaths(pickedPaths(sources));
     } catch (error) {
       setError(String(error));
@@ -1214,7 +1215,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
       return;
     }
     const picked = await openDialog({
-      title: `Open “${entry.name}” with…`,
+      get title() { return t("Open “{0}” with…", {0: entry.name}); },
       multiple: false,
       directory: false,
       ...(IS_MAC
@@ -1241,7 +1242,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
     };
     if (openWithApps.length === 0) return { ...other, icon: "link-external" };
     return {
-      label: "Open With",
+      get label() { return t("Open With"); },
       icon: "link-external",
       children: [
         ...openWithApps.map((app) => ({
@@ -1260,7 +1261,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
     ...(remote
       ? [
           {
-            label: `Download ${picked.length} Items…`,
+            get label() { return t("Download {0} Items…", {0: picked.length}); },
             icon: "cloud-download" as const,
             disabled: busy,
             action: () => void downloadMany(picked),
@@ -1269,12 +1270,12 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
         ]
       : []),
     {
-      label: "Copy Paths",
+      get label() { return t("Copy Paths"); },
       icon: "copy",
       action: () => copyText(picked.map((entry) => entry.path).join("\n")),
     },
     {
-      label: "Copy Names",
+      get label() { return t("Copy Names"); },
       icon: "tag",
       action: () => copyText(picked.map((entry) => entry.name).join("\n")),
     },
@@ -1283,12 +1284,12 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
   const entryMenu = (entry: FileEntry): MenuItem[] => [
     entry.isDir
       ? {
-          label: "Open",
+          get label() { return t("Open"); },
           icon: "folder-opened",
           action: () => void load(entry.path),
         }
       : {
-          label: "Open",
+          get label() { return t("Open"); },
           icon: "go-to-file",
           disabled: busy,
           action: () => void openEntry(entry),
@@ -1297,7 +1298,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
     ...(remote
       ? [
           {
-            label: "Download…",
+            get label() { return t("Download…"); },
             icon: "cloud-download" as const,
             disabled: busy,
             action: () => void download(entry),
@@ -1305,12 +1306,12 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
         ]
       : []),
     "separator",
-    { label: "Rename…", icon: "rename", disabled: busy || atDrivesRoot, action: () => setRenaming({ entry, name: entry.name }) },
-    { label: "Copy Path", icon: "copy", action: () => copyText(entry.path) },
-    { label: "Copy Name", icon: "tag", action: () => copyText(entry.name) },
+    { get label() { return t("Rename…"); }, icon: "rename", disabled: busy || atDrivesRoot, action: () => setRenaming({ entry, name: entry.name }) },
+    { get label() { return t("Copy Path"); }, icon: "copy", action: () => copyText(entry.path) },
+    { get label() { return t("Copy Name"); }, icon: "tag", action: () => copyText(entry.name) },
     "separator",
     {
-      label: "Delete…",
+      get label() { return t("Delete…"); },
       icon: "trash",
       danger: true,
       disabled: busy || atDrivesRoot,
@@ -1321,13 +1322,13 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
   /** Menu for the empty part of the list: actions on the current folder. */
   const folderMenu = (): MenuItem[] => [
     {
-      label: "New File…",
+      get label() { return t("New File…"); },
       icon: "new-file",
       disabled: busy || !path || atDrivesRoot,
       action: () => setCreating({ kind: "file", name: "" }),
     },
     {
-      label: "New Folder…",
+      get label() { return t("New Folder…"); },
       icon: "new-folder",
       disabled: busy || !path || atDrivesRoot,
       action: () => setCreating({ kind: "folder", name: "" }),
@@ -1336,13 +1337,13 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
       ? [
           "separator" as const,
           {
-            label: "Upload Files…",
+            get label() { return t("Upload Files…"); },
             icon: "cloud-upload" as const,
             disabled: busy || !path,
             action: () => void upload(),
           },
           {
-            label: "Upload Folder…",
+            get label() { return t("Upload Folder…"); },
             icon: "cloud-upload" as const,
             disabled: busy || !path,
             action: () => void uploadFolder(),
@@ -1351,13 +1352,13 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
       : []),
     "separator",
     {
-      label: "Copy Folder Path",
+      get label() { return t("Copy Folder Path"); },
       icon: "copy",
       disabled: !path || atDrivesRoot,
       action: () => copyText(path),
     },
     {
-      label: "Refresh",
+      get label() { return t("Refresh"); },
       icon: "refresh",
       disabled: busy,
       action: () => void load(path),
@@ -1482,7 +1483,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
         : null
     : null;
   const transferLabel = transfer
-    ? TRANSFER_LABELS[transfer.kind][transfer.status]
+    ? t(TRANSFER_LABELS[transfer.kind][transfer.status])
     : "";
 
   const remoteTitle = (label: string) =>
@@ -1503,22 +1504,20 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
     >
       <div className="panel-header">
         <div className="panel-title is-filer">
-          <Icon name="folder" />
-          Filer
-          <span className="panel-badge">
-            {remote || offline ? tab?.info.protocol : "local"}
+          <Icon name="folder" />{t("Filer")}<span className="panel-badge">
+            {remote || offline ? tab?.info.protocol : t("local")}
           </span>
         </div>
       </div>
 
       {/* Upload and download stay visible on local sessions, just disabled. */}
-      <div className="filer-toolbar" role="toolbar" aria-label="File actions">
+      <div className="filer-toolbar" role="toolbar" aria-label={t("File actions")}>
         <button
           ref={searchButtonRef}
           className={`panel-action filer-action${searchOpen ? " is-open" : ""}`}
           onClick={() => searchOpen ? closeSearch() : setSearchOpen(true)}
-          title={`Search files in current folder${findKey ? ` (${findKey})` : ""}`}
-          aria-label="Search files"
+          title={t("Search files in current folder{0}", { 0: findKey ? ` (${findKey})` : "" })}
+          aria-label={t("Search files")}
           aria-expanded={searchOpen}
           disabled={busy || !path}
         >
@@ -1527,8 +1526,8 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
         <button
           className="panel-action filer-action"
           onClick={() => setCreating({ kind: "file", name: "" })}
-          title="New file"
-          aria-label="New file"
+          title={t("New file")}
+          aria-label={t("New file")}
           disabled={busy || !path || atDrivesRoot}
         >
           <Icon name="new-file" />
@@ -1536,8 +1535,8 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
         <button
           className="panel-action filer-action"
           onClick={() => setCreating({ kind: "folder", name: "" })}
-          title="New folder"
-          aria-label="New folder"
+          title={t("New folder")}
+          aria-label={t("New folder")}
           disabled={busy || !path || atDrivesRoot}
         >
           <Icon name="new-folder" />
@@ -1553,7 +1552,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
             setUploadMenu({ x: rect.left, y: rect.bottom + 2 });
           }}
           title={remoteTitle("Upload files or folders")}
-          aria-label="Upload files or folders"
+          aria-label={t("Upload files or folders")}
           aria-haspopup="menu"
           aria-expanded={uploadMenu !== null}
           disabled={!remote || busy || !path}
@@ -1566,9 +1565,9 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
           title={remoteTitle(
             selected.length > 1
               ? `Download ${selected.length} items`
-              : "Download file or folder",
+              : t("Download file or folder"),
           )}
-          aria-label="Download file or folder"
+          aria-label={t("Download file or folder")}
           disabled={!remote || selected.length === 0 || busy}
         >
           <Icon name="cloud-download" />
@@ -1576,8 +1575,8 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
         <button
           className="panel-action filer-action"
           onClick={() => void load(path)}
-          title="Refresh"
-          aria-label="Refresh"
+          title={t("Refresh")}
+          aria-label={t("Refresh")}
           disabled={busy || offline}
         >
           <Icon name="refresh" />
@@ -1585,8 +1584,8 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
         <button
           className="panel-action filer-action filer-action-danger"
           onClick={() => selected.length === 1 && setPendingDelete(selected[0])}
-          title={selected.length > 1 ? "Delete (one item at a time)" : "Delete"}
-          aria-label="Delete"
+          title={selected.length > 1 ? t("Delete (one item at a time)") : t("Delete")}
+          aria-label={t("Delete")}
           disabled={selected.length !== 1 || busy || atDrivesRoot}
         >
           <Icon name="trash" />
@@ -1598,12 +1597,12 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
           y={uploadMenu.y}
           items={[
             {
-              label: "Upload files…",
+              get label() { return t("Upload files…"); },
               icon: "cloud-upload",
               action: () => void upload(),
             },
             {
-              label: "Upload folder…",
+              get label() { return t("Upload folder…"); },
               icon: "cloud-upload",
               action: () => void uploadFolder(),
             },
@@ -1616,8 +1615,8 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
         <button
           className="panel-action filer-action"
           onClick={goUp}
-          title="Parent folder"
-          aria-label="Parent folder"
+          title={t("Parent folder")}
+          aria-label={t("Parent folder")}
           disabled={busy || !path || atDrivesRoot}
         >
           <Icon name="arrow-up" />
@@ -1625,15 +1624,15 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
         <button
           className="panel-action filer-action"
           onClick={() => tab && void revealCwdInFiler(tab.info.id)}
-          title={revealKey ? `Terminal folder (${revealKey})` : "Terminal folder"}
-          aria-label="Terminal folder"
+          title={revealKey ? t("Terminal folder ({0})", { 0: revealKey }) : t("Terminal folder")}
+          aria-label={t("Terminal folder")}
           disabled={busy || !canReveal}
         >
           <Icon name="target" />
         </button>
         <input
           ref={addressInputRef}
-          aria-label="Folder path"
+          aria-label={t("Folder path")}
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={(event) => {
@@ -1644,12 +1643,12 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
       </div>
 
       {searchOpen && (
-        <div className="filer-search" role="search" aria-label="Search current folder">
+        <div className="filer-search" role="search" aria-label={t("Search current folder")}>
           <input
             ref={searchInputRef}
             autoFocus
-            aria-label="Search file names"
-            placeholder="Find names in current folder"
+            aria-label={t("Search file names")}
+            placeholder={t("Find names in current folder")}
             value={searchQuery}
             autoCapitalize="none"
             autoCorrect="off"
@@ -1676,13 +1675,13 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
           />
           <span className="filer-search-count" role="status" aria-live="polite">
             {searchQuery
-              ? matchedPaths.length ? `${searchIndex + 1}/${matchedPaths.length}` : "No results"
+              ? matchedPaths.length ? `${searchIndex + 1}/${matchedPaths.length}` : t("No results")
               : ""}
           </span>
           <button
             className="panel-action filer-action"
-            aria-label="Previous file match"
-            title="Previous match (Shift+Enter)"
+            aria-label={t("Previous file match")}
+            title={t("Previous match (Shift+Enter)")}
             disabled={!matchedPaths.length}
             onClick={() => moveSearch(-1)}
           >
@@ -1690,8 +1689,8 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
           </button>
           <button
             className="panel-action filer-action"
-            aria-label="Next file match"
-            title="Next match (Enter)"
+            aria-label={t("Next file match")}
+            title={t("Next match (Enter)")}
             disabled={!matchedPaths.length}
             onClick={() => moveSearch(1)}
           >
@@ -1699,8 +1698,8 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
           </button>
           <button
             className="panel-action filer-action"
-            aria-label="Close file search"
-            title="Close search (Esc)"
+            aria-label={t("Close file search")}
+            title={t("Close search (Esc)")}
             onClick={closeSearch}
           >
             <Icon name="close" />
@@ -1709,8 +1708,8 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
       )}
 
       <div className="filer-columns">
-        <span className="filer-col-name">Name</span>
-        <span className="filer-col-date">Modified</span>
+        <span className="filer-col-name">{t("Name")}</span>
+        <span className="filer-col-date">{t("Modified")}</span>
       </div>
 
       <div
@@ -1724,8 +1723,8 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
         onContextMenu={(event) => openMenu(event, folderMenu())}
         aria-label={
           remote
-            ? `${tab?.info.protocol.toUpperCase()} file list. Drop files or folders here to upload, or drag an entry out of the window to download it.`
-            : "Local file list. Drop files or folders here to copy them into this folder, or drag an entry out of the window."
+            ? t("{0} file list. Drop files or folders here to upload, or drag an entry out of the window to download it.", { 0: tab?.info.protocol.toUpperCase() })
+            : t("Local file list. Drop files or folders here to copy them into this folder, or drag an entry out of the window.")
         }
       >
         {offlineReason && !error && (
@@ -1743,7 +1742,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
               autoFocus
               value={creating.name}
               placeholder={
-                creating.kind === "folder" ? "New folder name" : "New file name"
+                creating.kind === "folder" ? t("New folder name") : t("New file name")
               }
               onChange={(event) =>
                 setCreating({ ...creating, name: event.target.value })
@@ -1794,7 +1793,7 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
               {renaming?.entry.path === entry.path ? (
                 <input
                   autoFocus
-                  aria-label="Rename file or folder"
+                  aria-label={t("Rename file or folder")}
                   onDoubleClick={(event) => event.stopPropagation()}
                   value={renaming.name}
                   onFocus={(event) => event.currentTarget.select()}
@@ -1860,9 +1859,9 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
               </span>
               <span className="filer-transfer-value">
                 {transfer.status === "error"
-                  ? "Failed"
+                  ? t("Failed")
                   : transfer.status === "cancelled"
-                    ? "Cancelled"
+                    ? t("Cancelled")
                     : transferPercent === null
                       ? formatBytes(transfer.transferred)
                       : `${transferPercent}%`}
@@ -1871,8 +1870,8 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
                 <button
                   className="panel-action filer-action filer-transfer-cancel"
                   onClick={cancelTransfer}
-                  title="Cancel"
-                  aria-label={`Cancel: ${transfer.name}`}
+                  title={t("Cancel")}
+                  aria-label={t("Cancel: {0}", { 0: transfer.name })}
                 >
                   <Icon name="close" />
                 </button>
@@ -1895,16 +1894,15 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
                 {formatBytes(transfer.transferred)}
                 {transfer.total > 0 && ` / ${formatBytes(transfer.total)}`}
               </span>
-              <span title="Transfer speed">
-                {formatBytes(transfer.bytesPerSecond)}/s
-              </span>
+              <span title={t("Transfer speed")}>
+                {formatBytes(transfer.bytesPerSecond)}{"/s"}</span>
             </div>
           </div>
         ) : dragOver?.accept ? (
           <span className="filer-drop-message">
             {remote
-              ? "Drop files or folders to upload"
-              : "Drop files or folders to copy here"}
+              ? t("Drop files or folders to upload")
+              : t("Drop files or folders to copy here")}
           </span>
         ) : dragOver?.reason ? (
           <span className="filer-drop-blocked">{dragOver.reason}</span>
@@ -1912,9 +1910,9 @@ export const FilerPanel = forwardRef<FilerPanelHandle>(function FilerPanel(_, re
           <>
             <span>
               {formatEntrySummary(entries)}
-              {selected.length > 1 && ` · ${selected.length} selected`}
+              {selected.length > 1 && t(" · {count} selected", { count: selected.length })}
             </span>
-            {busy && <span>working…</span>}
+            {busy && <span>{t("working…")}</span>}
           </>
         )}
       </div>
@@ -2047,9 +2045,9 @@ function entryKind(entry: FileEntry): FilerEntryKind {
 }
 
 function entryKindLabel(kind: FilerEntryKind): string {
-  if (kind === "directory") return "Folder";
+  if (kind === "directory") return t("Folder");
   if (kind === "symlink") return "Link";
-  return "File";
+  return t("File");
 }
 
 function entryTitle(entry: FileEntry): string {
@@ -2079,11 +2077,11 @@ function formatEntrySummary(entries: FileEntry[]): string {
   }
 
   const parts = [
-    folders > 0 ? `${folders} ${folders === 1 ? "folder" : "folders"}` : "",
-    files > 0 ? `${files} ${files === 1 ? "file" : "files"}` : "",
-    links > 0 ? `${links} ${links === 1 ? "link" : "links"}` : "",
+    folders > 0 ? t(folders === 1 ? "{count} folder" : "{count} folders", { count: folders }) : "",
+    files > 0 ? t(files === 1 ? "{count} file" : "{count} files", { count: files }) : "",
+    links > 0 ? t(links === 1 ? "{count} link" : "{count} links", { count: links }) : "",
   ].filter(Boolean);
-  return parts.length > 0 ? parts.join(" · ") : "0 items";
+  return parts.length > 0 ? parts.join(" · ") : t("0 items");
 }
 
 function formatDate(seconds: number | null): string {

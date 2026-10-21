@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { suggestAiCommand } from "./api";
 
 export interface AiConfig {
@@ -32,7 +33,7 @@ export class ManualAiSuggestion {
       const command = await this.request(input, shellHint);
       if (revision !== this.revision) return;
       // Defence in depth: no terminal control bytes or implicit execution.
-      if (!command || /[\x00-\x1f\x7f-\x9f\u2028\u2029]/u.test(command)) throw new Error("Invalid command returned by AI");
+      if (!command || /[\x00-\x1f\x7f-\x9f\u2028\u2029]/u.test(command)) throw new Error(t("Invalid command returned by AI"));
       this.value = { input, command, pending: false };
       this.changed(this.value);
     } catch (error) {
@@ -49,7 +50,7 @@ export class ManualAiSuggestion {
   }
 }
 export function previewText(value: AiPreview): string {
-  if (value.pending) return "  Generating…";
+  if (value.pending) return t("  Generating…");
   const command = value.command ?? "";
-  return (command.startsWith(value.input) ? command.slice(value.input.length) : `  → ${command}`) + "  [Tab to accept · Esc to dismiss]";
+  return (command.startsWith(value.input) ? command.slice(value.input.length) : `  → ${command}`) + t("  [Tab to accept · Esc to dismiss]");
 }

@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import {
   effectiveGroupId,
   effectiveParentId,
@@ -101,11 +102,11 @@ export function scopeLabel(
       return KIND_LABELS[scope.kind];
     case "group": {
       const path = groupPath(groups, scope.id);
-      return path.length > 0 ? `Group “${path.join(" / ")}”` : "Group";
+      return path.length > 0 ? `Group “${path.join(" / ")}”` : t("Group");
     }
     case "profile": {
       const profile = profiles.find((candidate) => candidate.id === scope.id);
-      return profile ? `Session “${profile.name}”` : "Session";
+      return profile ? `Session “${profile.name}”` : t("Session");
     }
   }
 }

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useMemo, useState } from "react";
 
 import { listSystemFonts, type FontFamily } from "../api";
@@ -123,12 +124,12 @@ export function FontSizeDialog({
           });
         }}
       >
-        <div className="dialog-header">Display Settings</div>
+        <div className="dialog-header">{t("Display Settings")}</div>
         <div className="dialog-body font-size-dialog-body">
           <label className="font-size-setting">
             <span>
-              <strong>Panels</strong>
-              <small>Filer, Session, and Sender panels</small>
+              <strong>{t("Panels")}</strong>
+              <small>{t("Filer, Session, and Sender panels")}</small>
             </span>
             <input
               type="range"
@@ -138,7 +139,7 @@ export function FontSizeDialog({
               onChange={(event) => setPanelSize(event.target.valueAsNumber)}
             />
             <input
-              aria-label="Panel font size"
+              aria-label={t("Panel font size")}
               className="font-size-number"
               type="number"
               min={PANEL_FONT_SIZE.min}
@@ -153,13 +154,13 @@ export function FontSizeDialog({
                 )
               }
             />
-            <span className="font-size-unit">px</span>
+            <span className="font-size-unit">{"px"}</span>
           </label>
 
           <FontFamilyField
             id="panel-font-family"
-            label="Interface font"
-            hint="Menus, tabs, panels and dialogs"
+            label={t("Interface font")}
+            hint={t("Menus, tabs, panels and dialogs")}
             role="ui"
             value={panelFamily}
             fonts={uiFonts}
@@ -168,8 +169,8 @@ export function FontSizeDialog({
 
           <label className="font-size-setting">
             <span>
-              <strong>Buffer</strong>
-              <small>Terminal output and its gutter</small>
+              <strong>{t("Buffer")}</strong>
+              <small>{t("Terminal output and its gutter")}</small>
             </span>
             <input
               type="range"
@@ -179,7 +180,7 @@ export function FontSizeDialog({
               onChange={(event) => setBufferSize(event.target.valueAsNumber)}
             />
             <input
-              aria-label="Buffer font size"
+              aria-label={t("Buffer font size")}
               className="font-size-number"
               type="number"
               min={BUFFER_FONT_SIZE.min}
@@ -194,13 +195,13 @@ export function FontSizeDialog({
                 )
               }
             />
-            <span className="font-size-unit">px</span>
+            <span className="font-size-unit">{"px"}</span>
           </label>
 
           <FontFamilyField
             id="buffer-font-family"
-            label="Buffer font"
-            hint="Terminal typeface; pick a monospaced one"
+            label={t("Buffer font")}
+            hint={t("Terminal typeface; pick a monospaced one")}
             role="mono"
             value={bufferFamily}
             fonts={monoFonts}
@@ -210,36 +211,34 @@ export function FontSizeDialog({
           {/* A div, not a label: the row holds two controls of its own. */}
           <div className="font-size-setting cursor-setting">
             <span>
-              <strong>Cursor</strong>
-              <small>Shape of the terminal cursor</small>
+              <strong>{t("Cursor")}</strong>
+              <small>{t("Shape of the terminal cursor")}</small>
             </span>
             <select
-              aria-label="Cursor style"
+              aria-label={t("Cursor style")}
               className="cursor-style-select"
               value={cursor}
               onChange={(event) => setCursor(event.target.value as CursorStyle)}
             >
-              <option value="block">Block</option>
-              <option value="underline">Underline</option>
-              <option value="bar">Bar</option>
+              <option value="block">{t("Block")}</option>
+              <option value="underline">{t("Underline")}</option>
+              <option value="bar">{t("Bar")}</option>
             </select>
             <label className="cursor-blink">
               <input
                 type="checkbox"
                 checked={blink}
                 onChange={(event) => setBlink(event.target.checked)}
-              />
-              Blink
-            </label>
+              />{t("Blink")}</label>
           </div>
 
           <label className="font-size-setting scrollback-setting">
             <span>
-              <strong>Scrollback</strong>
-              <small>Terminal history retained per session</small>
+              <strong>{t("Scrollback")}</strong>
+              <small>{t("Terminal history retained per session")}</small>
             </span>
             <input
-              aria-label="Terminal scrollback lines"
+              aria-label={t("Terminal scrollback lines")}
               className="scrollback-number"
               type="number"
               min={TERMINAL_SCROLLBACK.min}
@@ -255,7 +254,7 @@ export function FontSizeDialog({
                 )
               }
             />
-            <span className="font-size-unit">lines</span>
+            <span className="font-size-unit">{t("lines")}</span>
           </label>
         </div>
         <div className="dialog-footer font-size-dialog-footer">
@@ -271,15 +270,9 @@ export function FontSizeDialog({
               setCursor("block");
               setBlink(true);
             }}
-          >
-            Reset Defaults
-          </button>
-          <button type="button" className="btn" onClick={onClose}>
-            Cancel
-          </button>
-          <button type="submit" className="btn is-primary">
-            Apply
-          </button>
+          >{t("Reset Defaults")}</button>
+          <button type="button" className="btn" onClick={onClose}>{t("Cancel")}</button>
+          <button type="submit" className="btn is-primary">{t("Apply")}</button>
         </div>
       </form>
     </div>
@@ -325,7 +318,7 @@ function FontFamilyField({
         list={listId}
         spellCheck={false}
         autoComplete="off"
-        placeholder="System default"
+        placeholder={t("System default")}
         value={value}
         style={{ fontFamily: fontStack(role, value, [], systemMonoFamily) }}
         onChange={(event) => onChange(event.target.value)}

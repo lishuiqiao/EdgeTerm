@@ -1,0 +1,2946 @@
+{
+  "Language": [
+    "语言",
+    "語言"
+  ],
+  "Session": [
+    "会话",
+    "連線"
+  ],
+  "Edit": [
+    "编辑",
+    "編輯"
+  ],
+  "Search": [
+    "搜索",
+    "搜尋"
+  ],
+  "View": [
+    "视图",
+    "檢視"
+  ],
+  "Help": [
+    "帮助",
+    "說明"
+  ],
+  "Filer": [
+    "文件管理",
+    "檔案管理"
+  ],
+  "Sender": [
+    "命令发送",
+    "指令傳送"
+  ],
+  "Theme": [
+    "主题",
+    "佈景主題"
+  ],
+  "Panels": [
+    "面板",
+    "面板"
+  ],
+  "Panel Layout": [
+    "面板布局",
+    "面板配置"
+  ],
+  "New Session": [
+    "新建会话",
+    "新增連線"
+  ],
+  "New Session…": [
+    "新建会话…",
+    "新增連線…"
+  ],
+  "New session": [
+    "新建会话",
+    "新增連線"
+  ],
+  "Edit Session": [
+    "编辑会话",
+    "編輯連線"
+  ],
+  "Close Session": [
+    "关闭会话",
+    "關閉連線"
+  ],
+  "Close session": [
+    "关闭会话",
+    "關閉連線"
+  ],
+  "Duplicate Session": [
+    "复制会话",
+    "複製連線"
+  ],
+  "Duplicate SSH Channel": [
+    "复制 SSH 通道",
+    "複製 SSH 通道"
+  ],
+  "Delete Session": [
+    "删除会话",
+    "刪除連線"
+  ],
+  "SSH / Telnet Sessions": [
+    "SSH / Telnet 会话",
+    "SSH / Telnet 連線"
+  ],
+  "(S)FTP Sessions": [
+    "(S)FTP 会话",
+    "(S)FTP 連線"
+  ],
+  "Shell Sessions": [
+    "Shell 会话",
+    "Shell 工作階段"
+  ],
+  "Serial Sessions": [
+    "串口会话",
+    "串列埠連線"
+  ],
+  "SSH Sessions (no group)": [
+    "SSH 会话（未分组）",
+    "SSH 連線（未分類）"
+  ],
+  "SSH / Telnet": [
+    "SSH / Telnet",
+    "SSH / Telnet"
+  ],
+  "(S)FTP": [
+    "(S)FTP",
+    "(S)FTP"
+  ],
+  "(S)FTP connection": [
+    "(S)FTP 连接",
+    "(S)FTP 連線"
+  ],
+  "SSH connection": [
+    "SSH 连接",
+    "SSH 連線"
+  ],
+  "Telnet connection": [
+    "Telnet 连接",
+    "Telnet 連線"
+  ],
+  "Serial connection": [
+    "串口连接",
+    "串列埠連線"
+  ],
+  "Local shell": [
+    "本地 Shell",
+    "本機 Shell"
+  ],
+  "Local Shell": [
+    "本地 Shell",
+    "本機 Shell"
+  ],
+  "Shell": [
+    "Shell",
+    "Shell"
+  ],
+  "Serial": [
+    "串口",
+    "串列埠"
+  ],
+  "Filter sessions": [
+    "筛选会话",
+    "篩選連線"
+  ],
+  "Right-click to add a group": [
+    "右键单击以添加分组",
+    "按滑鼠右鍵新增群組"
+  ],
+  "Right-click a heading in the Session panel to create groups.": [
+    "右键单击会话面板中的标题以创建分组。",
+    "在連線面板的標題上按滑鼠右鍵，即可新增群組。"
+  ],
+  "New Group": [
+    "新建分组",
+    "新增群組"
+  ],
+  "New Group…": [
+    "新建分组…",
+    "新增群組…"
+  ],
+  "New Subgroup": [
+    "新建子分组",
+    "新增子群組"
+  ],
+  "New Subgroup…": [
+    "新建子分组…",
+    "新增子群組…"
+  ],
+  "Rename Group": [
+    "重命名分组",
+    "重新命名群組"
+  ],
+  "Rename Group…": [
+    "重命名分组…",
+    "重新命名群組…"
+  ],
+  "Delete Group": [
+    "删除分组",
+    "刪除群組"
+  ],
+  "Delete Group…": [
+    "删除分组…",
+    "刪除群組…"
+  ],
+  "Move to Group": [
+    "移至分组",
+    "移至群組"
+  ],
+  "Group": [
+    "分组",
+    "群組"
+  ],
+  "Group name": [
+    "分组名称",
+    "群組名稱"
+  ],
+  "No groups yet": [
+    "暂无分组",
+    "尚未有群組"
+  ],
+  "Name": [
+    "名称",
+    "名稱"
+  ],
+  "Host": [
+    "主机",
+    "主機"
+  ],
+  "Hosts": [
+    "主机",
+    "主機"
+  ],
+  "Port": [
+    "端口",
+    "連接埠"
+  ],
+  "Username": [
+    "用户名",
+    "用戶名稱"
+  ],
+  "Password": [
+    "密码",
+    "密碼"
+  ],
+  "Passphrase": [
+    "私钥密码",
+    "私鑰密碼"
+  ],
+  "Private key": [
+    "私钥",
+    "私鑰"
+  ],
+  "Public key": [
+    "公钥",
+    "公鑰"
+  ],
+  "Auth": [
+    "认证",
+    "驗證"
+  ],
+  "Authentication": [
+    "身份认证",
+    "身份驗證"
+  ],
+  "SSH agent": [
+    "SSH 代理",
+    "SSH 代理程式"
+  ],
+  "Ask on connect": [
+    "连接时询问",
+    "連線時詢問"
+  ],
+  "Jump host": [
+    "跳板机",
+    "跳板主機"
+  ],
+  "None — connect directly": [
+    "无，直接连接",
+    "無，直接連線"
+  ],
+  "Connect through a saved SSH session (ProxyJump) to reach a host that is only visible from its network.": [
+    "通过已保存的 SSH 会话（ProxyJump）连接仅能从其所在网络访问的主机。",
+    "透過已儲存的 SSH 連線（ProxyJump），連接只能從該網絡存取的主機。"
+  ],
+  "Connect": [
+    "连接",
+    "連線"
+  ],
+  "Disconnect": [
+    "断开连接",
+    "中斷連線"
+  ],
+  "Connecting…": [
+    "正在连接…",
+    "正在連線…"
+  ],
+  "Connecting to {0}…": [
+    "正在连接 {0}…",
+    "正在連接 {0}…"
+  ],
+  "Connected to {0}": [
+    "已连接到 {0}",
+    "已連接至 {0}"
+  ],
+  "Connected to {0} on the same connection": [
+    "已通过同一连接打开 {0}",
+    "已透過同一連線開啟 {0}"
+  ],
+  "Disconnected from {0}": [
+    "已断开与 {0} 的连接",
+    "已中斷與 {0} 的連線"
+  ],
+  "Connects to": [
+    "连接目标",
+    "連線目標"
+  ],
+  "No active session": [
+    "没有活动会话",
+    "沒有使用中的連線"
+  ],
+  "No sessions match “": [
+    "没有匹配的会话：“",
+    "沒有符合的連線：「"
+  ],
+  "All sessions": [
+    "所有会话",
+    "所有連線"
+  ],
+  "all sessions": [
+    "所有会话",
+    "所有連線"
+  ],
+  "one session": [
+    "一个会话",
+    "一個連線"
+  ],
+  "Current Session": [
+    "当前会话",
+    "目前連線"
+  ],
+  "All Sessions (": [
+    "所有会话（",
+    "所有連線（"
+  ],
+  " sessions": [
+    " 个会话",
+    " 個連線"
+  ],
+  " active session": [
+    " 个活动会话",
+    " 個使用中的連線"
+  ],
+  "(deleted session)": [
+    "（会话已删除）",
+    "（連線已刪除）"
+  ],
+  "Identity and protocol": [
+    "名称与协议",
+    "名稱與通訊協定"
+  ],
+  "Server and authentication": [
+    "服务器与身份认证",
+    "伺服器與身份驗證"
+  ],
+  "Process and working directory": [
+    "进程与工作目录",
+    "程序與工作目錄"
+  ],
+  "Protocol": [
+    "协议",
+    "通訊協定"
+  ],
+  "Working directory": [
+    "工作目录",
+    "工作目錄"
+  ],
+  "Directory": [
+    "目录",
+    "目錄"
+  ],
+  "Default folder": [
+    "默认文件夹",
+    "預設資料夾"
+  ],
+  "Home directory": [
+    "主目录",
+    "個人目錄"
+  ],
+  "Remote shell": [
+    "远程 Shell",
+    "遠端 Shell"
+  ],
+  "Automatic / unknown remote shell": [
+    "自动 / 未知远程 Shell",
+    "自動 / 未知遠端 Shell"
+  ],
+  "Encoding": [
+    "编码",
+    "編碼"
+  ],
+  "Locale": [
+    "区域设置（Locale）",
+    "地區設定（Locale）"
+  ],
+  "Options for {0}": [
+    "{0} 选项",
+    "{0} 選項"
+  ],
+  "Recording": [
+    "录制",
+    "錄製"
+  ],
+  "Record this session's output to a file": [
+    "将此会话的输出录制到文件",
+    "將此連線的輸出錄製至檔案"
+  ],
+  "Recording folder": [
+    "录制文件夹",
+    "錄製資料夾"
+  ],
+  "Recorded in": [
+    "保存位置",
+    "儲存位置"
+  ],
+  "Recording to {0} — click to open the folder": [
+    "正在录制到 {0}，单击打开文件夹",
+    "正在錄製至 {0}，按一下開啟資料夾"
+  ],
+  "Terminal output to a file": [
+    "将终端输出保存到文件",
+    "將終端輸出儲存至檔案"
+  ],
+  "Each connection starts a new file, named": [
+    "每次连接都会新建文件，文件名为",
+    "每次連線都會新增檔案，檔案名稱為"
+  ],
+  "The file is the raw output the terminal received, escape sequences included, so it replays in a terminal with cat. What you type appears only as the far end echoes it, so a password entered without echo is not recorded.": [
+    "文件保存终端收到的原始输出（包括转义序列），可用 cat 在终端中回放。输入内容仅在远端回显时才会记录，因此无回显的密码不会被录制。",
+    "檔案會儲存終端收到的原始輸出（包括逸出序列），可用 cat 在終端重播。輸入內容只會在遠端回顯時記錄，因此沒有回顯的密碼不會被錄製。"
+  ],
+  "Run after connecting": [
+    "连接后执行",
+    "連線後執行"
+  ],
+  "Startup command": [
+    "启动命令",
+    "啟動指令"
+  ],
+  "Startup delay (ms)": [
+    "执行延迟（毫秒）",
+    "執行延遲（毫秒）"
+  ],
+  "Leave blank to disable. Runs once per opened, reconnected or duplicated session, submitting each line with Enter. The delay lets the shell initialize; it does not wait for prompts or for each command to finish. Commands are saved and exported with the profile.": [
+    "留空即禁用。每次打开、重连或复制会话时执行一次，逐行发送并回车。延迟用于等待 Shell 初始化，不会等待提示符或前一条命令完成。命令会随会话配置保存和导出。",
+    "留空即可停用。每次開啟、重新連線或複製連線時執行一次，逐行傳送並按 Enter。延遲用於等候 Shell 初始化，不會等候提示字元或上一條指令完成。指令會隨連線設定儲存及匯出。"
+  ],
+  "Device port": [
+    "设备端口",
+    "裝置連接埠"
+  ],
+  "Select a port…": [
+    "选择端口…",
+    "選擇連接埠…"
+  ],
+  "Refresh serial ports": [
+    "刷新串口列表",
+    "重新整理串列埠清單"
+  ],
+  "Baud rate": [
+    "波特率",
+    "鮑率"
+  ],
+  "Data bits": [
+    "数据位",
+    "資料位元"
+  ],
+  "Stop bits": [
+    "停止位",
+    "停止位元"
+  ],
+  "Parity": [
+    "校验",
+    "同位檢查"
+  ],
+  "Flow control": [
+    "流量控制",
+    "流量控制"
+  ],
+  "None (N)": [
+    "无（N）",
+    "無（N）"
+  ],
+  "Odd (O)": [
+    "奇校验（O）",
+    "奇同位（O）"
+  ],
+  "Even (E)": [
+    "偶校验（E）",
+    "偶同位（E）"
+  ],
+  "1 bit": [
+    "1 位",
+    "1 位元"
+  ],
+  "2 bits": [
+    "2 位",
+    "2 位元"
+  ],
+  " bits": [
+    " 位",
+    " 位元"
+  ],
+  "RTS/CTS (hardware)": [
+    "RTS/CTS（硬件）",
+    "RTS/CTS（硬件）"
+  ],
+  "XON/XOFF (software)": [
+    "XON/XOFF（软件）",
+    "XON/XOFF（軟件）"
+  ],
+  "Select a common value or enter any custom positive integer.": [
+    "选择常用值，或输入自定义正整数。",
+    "選擇常用值，或輸入自訂正整數。"
+  ],
+  "Backspace sends": [
+    "退格键发送",
+    "退格鍵傳送"
+  ],
+  "FTP · passive mode · unencrypted": [
+    "FTP · 被动模式 · 未加密",
+    "FTP · 被動模式 · 未加密"
+  ],
+  "SFTP · encrypted file transfer over SSH": [
+    "SFTP · 通过 SSH 加密传输文件",
+    "SFTP · 透過 SSH 加密傳送檔案"
+  ],
+  "SFTP (over SSH)": [
+    "SFTP（通过 SSH）",
+    "SFTP（透過 SSH）"
+  ],
+  "Standard FTP sends credentials and file contents without encryption. Use it only on a trusted network — choose SFTP when transport security is required.": [
+    "标准 FTP 不加密登录凭据和文件内容，仅应在可信网络中使用。需要安全传输时请选择 SFTP。",
+    "標準 FTP 不會加密登入憑證及檔案內容，請只在可信任的網絡使用。如需安全傳輸，請選擇 SFTP。"
+  ],
+  "Telnet sends everything you type, passwords included, without encryption. Use it only on a trusted network — choose SSH when the device supports it.": [
+    "Telnet 不加密任何输入内容，包括密码。仅应在可信网络中使用；设备支持时请选择 SSH。",
+    "Telnet 不會加密任何輸入內容，包括密碼。請只在可信任的網絡使用；如裝置支援，請選擇 SSH。"
+  ],
+  "Telnet · login typed at the server's prompt · unencrypted": [
+    "Telnet · 按服务器提示输入登录信息 · 未加密",
+    "Telnet · 按伺服器提示輸入登入資料 · 未加密"
+  ],
+  "Port 23 opens with the usual telnet negotiation. On any other port the connection stays plain until the server negotiates, so text services such as HTTP or SMTP can be tested too; lines are edited and echoed locally until the server echoes them itself.": [
+    "端口 23 使用常规 Telnet 协商。其他端口在服务器发起协商前保持纯文本连接，也可测试 HTTP、SMTP 等文本服务；在服务器启用回显前，输入行在本地编辑并回显。",
+    "連接埠 23 會使用一般 Telnet 協商。其他連接埠在伺服器開始協商前維持純文字連線，亦可測試 HTTP、SMTP 等文字服務；在伺服器啟用回顯前，輸入行會在本機編輯及回顯。"
+  ],
+  "When the device prints a login prompt (Username:, login:, Password:) within a minute of connecting, the saved answer is typed for you, once. Leave a field empty to type it yourself.": [
+    "连接后一分钟内，如果设备显示登录提示（Username:、login:、Password:），会自动填写已保存的对应信息一次。留空则由你手动输入。",
+    "連線後一分鐘內，如裝置顯示登入提示（Username:、login:、Password:），會自動填入已儲存的對應資料一次。留空則由你自行輸入。"
+  ],
+  "Save": [
+    "保存",
+    "儲存"
+  ],
+  "Cancel": [
+    "取消",
+    "取消"
+  ],
+  "cancel": [
+    "取消",
+    "取消"
+  ],
+  "Apply": [
+    "应用",
+    "套用"
+  ],
+  "Close": [
+    "关闭",
+    "關閉"
+  ],
+  "Delete": [
+    "删除",
+    "刪除"
+  ],
+  "Delete…": [
+    "删除…",
+    "刪除…"
+  ],
+  "Edit…": [
+    "编辑…",
+    "編輯…"
+  ],
+  "New": [
+    "新建",
+    "新增"
+  ],
+  "Open": [
+    "打开",
+    "開啟"
+  ],
+  "Open With": [
+    "打开方式",
+    "開啟方式"
+  ],
+  "Retry": [
+    "重试",
+    "重試"
+  ],
+  "Try Again": [
+    "重试",
+    "再試一次"
+  ],
+  "Continue": [
+    "继续",
+    "繼續"
+  ],
+  "Continue editing": [
+    "继续编辑",
+    "繼續編輯"
+  ],
+  "Enable": [
+    "启用",
+    "啟用"
+  ],
+  "None": [
+    "无",
+    "無"
+  ],
+  "Automatic": [
+    "自动",
+    "自動"
+  ],
+  "Optional": [
+    "可选",
+    "可選"
+  ],
+  "Optional for anonymous FTP": [
+    "匿名 FTP 可留空",
+    "匿名 FTP 可留空"
+  ],
+  "Optional for local services": [
+    "本地服务可留空",
+    "本機服務可留空"
+  ],
+  "Loading…": [
+    "正在加载…",
+    "正在載入…"
+  ],
+  "Working…": [
+    "正在处理…",
+    "正在處理…"
+  ],
+  "working…": [
+    "正在处理…",
+    "正在處理…"
+  ],
+  "Failed": [
+    "失败",
+    "失敗"
+  ],
+  "Failed: {0}": [
+    "失败：{0}",
+    "失敗：{0}"
+  ],
+  "Cancelled": [
+    "已取消",
+    "已取消"
+  ],
+  "Complete": [
+    "已完成",
+    "已完成"
+  ],
+  "Clear": [
+    "清除",
+    "清除"
+  ],
+  "Copy": [
+    "复制",
+    "複製"
+  ],
+  "Paste": [
+    "粘贴",
+    "貼上"
+  ],
+  "Select All": [
+    "全选",
+    "全選"
+  ],
+  "Copy on Select": [
+    "选中即复制",
+    "選取即複製"
+  ],
+  "Paste Selection": [
+    "粘贴选中文本",
+    "貼上已選文字"
+  ],
+  "Clear Buffer": [
+    "清空缓冲区",
+    "清除緩衝區"
+  ],
+  "Redraw Screen": [
+    "重绘屏幕",
+    "重繪畫面"
+  ],
+  "Warn Before Multi-line Paste": [
+    "粘贴多行文本前提醒",
+    "貼上多行文字前提示"
+  ],
+  "Programs Can Set Clipboard": [
+    "程序设置剪贴板",
+    "程式設定剪貼簿"
+  ],
+  "Home/End Line Editing": [
+    "Home/End 移动到行首/行尾",
+    "Home/End 移至行首/行尾"
+  ],
+  "Command Suggestions": [
+    "历史命令建议",
+    "歷史指令建議"
+  ],
+  "Clear Command History": [
+    "清空命令历史",
+    "清除指令記錄"
+  ],
+  "Clear Command History…": [
+    "清空命令历史…",
+    "清除指令記錄…"
+  ],
+  "Command history cleared": [
+    "命令历史已清空",
+    "已清除指令記錄"
+  ],
+  "Failed to clear command history: {0}": [
+    "清空命令历史失败：{0}",
+    "清除指令記錄失敗：{0}"
+  ],
+  "Copy failed: {0}": [
+    "复制失败：{0}",
+    "複製失敗：{0}"
+  ],
+  "Paste failed: {0}": [
+    "粘贴失败：{0}",
+    "貼上失敗：{0}"
+  ],
+  "Find": [
+    "查找",
+    "尋找"
+  ],
+  "Find…": [
+    "查找…",
+    "尋找…"
+  ],
+  "Find Next": [
+    "下一个匹配",
+    "下一個符合項目"
+  ],
+  "Find Previous": [
+    "上一个匹配",
+    "上一個符合項目"
+  ],
+  "Find in buffer": [
+    "在缓冲区中查找",
+    "在緩衝區中尋找"
+  ],
+  "Find in Selection": [
+    "在选区中查找",
+    "在選取範圍內尋找"
+  ],
+  "Match Case": [
+    "区分大小写",
+    "區分大小寫"
+  ],
+  "Match Whole Word": [
+    "全字匹配",
+    "全字相符"
+  ],
+  "Use Regular Expression": [
+    "使用正则表达式",
+    "使用正規表示式"
+  ],
+  "Previous match": [
+    "上一个匹配",
+    "上一個符合項目"
+  ],
+  "Next match": [
+    "下一个匹配",
+    "下一個符合項目"
+  ],
+  "Previous Match ({0})": [
+    "上一个匹配（{0}）",
+    "上一個符合項目（{0}）"
+  ],
+  "Next Match ({0})": [
+    "下一个匹配（{0}）",
+    "下一個符合項目（{0}）"
+  ],
+  "Previous match (Shift+Enter)": [
+    "上一个匹配（Shift+Enter）",
+    "上一個符合項目（Shift+Enter）"
+  ],
+  "Next match (Enter)": [
+    "下一个匹配（Enter）",
+    "下一個符合項目（Enter）"
+  ],
+  "Close search": [
+    "关闭搜索",
+    "關閉搜尋"
+  ],
+  "Close search (Esc)": [
+    "关闭搜索（Esc）",
+    "關閉搜尋（Esc）"
+  ],
+  "Close (Esc)": [
+    "关闭（Esc）",
+    "關閉（Esc）"
+  ],
+  "No results": [
+    "无匹配结果",
+    "沒有符合的結果"
+  ],
+  "No selection": [
+    "未选中文本",
+    "未選取文字"
+  ],
+  "Invalid regex": [
+    "正则表达式无效",
+    "正規表示式無效"
+  ],
+  "Display Settings": [
+    "显示设置",
+    "顯示設定"
+  ],
+  "Display Settings…": [
+    "显示设置…",
+    "顯示設定…"
+  ],
+  "Keyboard Shortcuts": [
+    "键盘快捷键",
+    "鍵盤快捷鍵"
+  ],
+  "Keyboard Shortcuts…": [
+    "键盘快捷键…",
+    "鍵盤快捷鍵…"
+  ],
+  "Increase Terminal Font": [
+    "增大终端字号",
+    "放大終端字體"
+  ],
+  "Decrease Terminal Font": [
+    "减小终端字号",
+    "縮小終端字體"
+  ],
+  "Reset Panel Layout": [
+    "重置面板布局",
+    "重設面板配置"
+  ],
+  "Restore Default Settings": [
+    "恢复默认设置",
+    "還原預設設定"
+  ],
+  "Restore Default Settings…": [
+    "恢复默认设置…",
+    "還原預設設定…"
+  ],
+  "Default settings restored": [
+    "已恢复默认设置",
+    "已還原預設設定"
+  ],
+  "Reset Defaults": [
+    "恢复默认值",
+    "還原預設值"
+  ],
+  "Panel font size": [
+    "界面字号",
+    "介面字體大小"
+  ],
+  "Buffer font size": [
+    "终端字号",
+    "終端字體大小"
+  ],
+  "Filer, Session, and Sender panels": [
+    "文件管理、会话和命令发送面板",
+    "檔案管理、連線及指令傳送面板"
+  ],
+  "Terminal output and its gutter": [
+    "终端输出与行号区域",
+    "終端輸出及行號區域"
+  ],
+  "Terminal history retained per session": [
+    "每个会话保留的终端历史",
+    "每個連線保留的終端記錄"
+  ],
+  "Terminal scrollback lines": [
+    "终端回滚行数",
+    "終端回捲行數"
+  ],
+  "Scrollback": [
+    "回滚历史",
+    "回捲記錄"
+  ],
+  "Cursor": [
+    "光标",
+    "游標"
+  ],
+  "Cursor style": [
+    "光标样式",
+    "游標樣式"
+  ],
+  "Shape of the terminal cursor": [
+    "终端光标形状",
+    "終端游標形狀"
+  ],
+  "Blink": [
+    "闪烁",
+    "閃爍"
+  ],
+  "Block": [
+    "方块",
+    "方塊"
+  ],
+  "Bar": [
+    "竖线",
+    "直線"
+  ],
+  "Underline": [
+    "下划线",
+    "底線"
+  ],
+  "System default": [
+    "系统默认",
+    "系統預設"
+  ],
+  "Timestamp & Line": [
+    "时间戳和行号",
+    "時間戳記及行號"
+  ],
+  "Long Text": [
+    "长文本",
+    "長文字"
+  ],
+  "Right Click": [
+    "右键操作",
+    "滑鼠右鍵操作"
+  ],
+  "Split Right": [
+    "向右拆分",
+    "向右分割"
+  ],
+  "Split Down": [
+    "向下拆分",
+    "向下分割"
+  ],
+  "Split Right{0}": [
+    "向右拆分{0}",
+    "向右分割{0}"
+  ],
+  "Split Down{0}": [
+    "向下拆分{0}",
+    "向下分割{0}"
+  ],
+  "Next Pane": [
+    "下一个窗格",
+    "下一個窗格"
+  ],
+  "Previous Pane": [
+    "上一个窗格",
+    "上一個窗格"
+  ],
+  "Next Session": [
+    "下一个会话",
+    "下一個連線"
+  ],
+  "Previous Session": [
+    "上一个会话",
+    "上一個連線"
+  ],
+  "Close All": [
+    "全部关闭",
+    "全部關閉"
+  ],
+  "Close Others": [
+    "关闭其他会话",
+    "關閉其他連線"
+  ],
+  "Close to the Left": [
+    "关闭左侧会话",
+    "關閉左方連線"
+  ],
+  "Close to the Right": [
+    "关闭右侧会话",
+    "關閉右方連線"
+  ],
+  "Minimize": [
+    "最小化",
+    "最小化"
+  ],
+  "Maximize": [
+    "最大化",
+    "最大化"
+  ],
+  "Restore Down": [
+    "向下还原",
+    "還原視窗"
+  ],
+  "Tutorial": [
+    "使用教程",
+    "使用教學"
+  ],
+  "About EdgeTerm": [
+    "关于 EdgeTerm",
+    "關於 EdgeTerm"
+  ],
+  "Check for Updates…": [
+    "检查更新…",
+    "檢查更新…"
+  ],
+  "Checking GitHub Releases for the latest version…": [
+    "正在从 GitHub Releases 检查最新版本…",
+    "正在從 GitHub Releases 檢查最新版本…"
+  ],
+  "You already have the latest version": [
+    "当前已是最新版本",
+    "目前已是最新版本"
+  ],
+  "Download and Install": [
+    "下载并安装",
+    "下載並安裝"
+  ],
+  "Open Download Page": [
+    "打开下载页面",
+    "開啟下載頁面"
+  ],
+  "Release notes": [
+    "更新说明",
+    "更新說明"
+  ],
+  "Installed: ": [
+    "当前版本：",
+    "目前版本："
+  ],
+  "Latest: ": [
+    "最新版本：",
+    "最新版本："
+  ],
+  "Downloading EdgeTerm ": [
+    "正在下载 EdgeTerm ",
+    "正在下載 EdgeTerm "
+  ],
+  "Installing EdgeTerm ": [
+    "正在安装 EdgeTerm ",
+    "正在安裝 EdgeTerm "
+  ],
+  " and restarting…": [
+    " 并重启…",
+    " 並重新啟動…"
+  ],
+  " downloaded": [
+    " 已下载",
+    " 已下載"
+  ],
+  "Later": [
+    "稍后",
+    "稍後"
+  ],
+  "Failed to open tutorial: {0}": [
+    "打开教程失败：{0}",
+    "開啟教學失敗：{0}"
+  ],
+  "A small, fast terminal, SSH, SFTP, FTP and serial client. The installer is tiny, it starts instantly, and it stays out of your way.": [
+    "轻巧快速的终端、SSH、SFTP、FTP 和串口客户端。安装包小巧，启动迅速，专注于日常工作。",
+    "輕巧快捷的終端、SSH、SFTP、FTP 及串列埠用戶端。安裝檔小巧，啟動迅速，讓你專注日常工作。"
+  ],
+  "Made by miskin ·": [
+    "由 miskin 开发 ·",
+    "由 miskin 開發 ·"
+  ],
+  "Quit": [
+    "退出",
+    "結束"
+  ],
+  "Quit EdgeTerm": [
+    "退出 EdgeTerm",
+    "結束 EdgeTerm"
+  ],
+  "All connections will be disconnected and their terminal output discarded.": [
+    "所有连接将断开，终端输出也将丢弃。",
+    "所有連線將會中斷，終端輸出亦會捨棄。"
+  ],
+  "AI Command Suggestions": [
+    "AI 命令建议",
+    "AI 指令建議"
+  ],
+  "AI command suggestion": [
+    "AI 命令建议",
+    "AI 指令建議"
+  ],
+  "AI configuration: ": [
+    "AI 配置：",
+    "AI 設定："
+  ],
+  "AI: {0}": [
+    "AI：{0}",
+    "AI：{0}"
+  ],
+  "AI: use a settled shell prompt with the cursor at the end, or enter the request in Sender.": [
+    "AI：请等待 Shell 就绪并将光标移至输入末尾，或在命令发送面板中输入需求。",
+    "AI：請等候 Shell 就緒，並將游標移至輸入末端，或在指令傳送面板輸入要求。"
+  ],
+  "Enable AI Command Suggestions first (SSH / Shell only).": [
+    "请先启用 AI 命令建议（仅支持 SSH / Shell）。",
+    "請先啟用 AI 指令建議（只支援 SSH / Shell）。"
+  ],
+  "Enable AI Command Suggestions first.": [
+    "请先启用 AI 命令建议。",
+    "請先啟用 AI 指令建議。"
+  ],
+  "Enable AI suggestions (turns off Command Suggestions)": [
+    "启用 AI 建议（关闭历史命令建议）",
+    "啟用 AI 建議（關閉歷史指令建議）"
+  ],
+  "API Base URL": [
+    "API 基础地址",
+    "API 基本網址"
+  ],
+  "API Key": [
+    "API 密钥",
+    "API 金鑰"
+  ],
+  "Model": [
+    "模型",
+    "模型"
+  ],
+  "Additional rules": [
+    "补充规则",
+    "附加規則"
+  ],
+  "Strict structured output (requires model support)": [
+    "严格结构化输出（需要模型支持）",
+    "嚴格結構化輸出（需要模型支援）"
+  ],
+  "Enable for services supporting JSON Schema. Otherwise leave off; responses are still validated locally. Invalid responses are discarded without automatic retries.": [
+    "服务支持 JSON Schema 时可开启，否则请保持关闭；响应仍会在本地校验。无效响应会被丢弃，不会自动重试。",
+    "服務支援 JSON Schema 時可啟用，否則請保持關閉；回應仍會在本機驗證。無效回應會被捨棄，不會自動重試。"
+  ],
+  "Preferences guide command selection. Built-in output rules remain fixed: one command or no suggestion, without explanations.": [
+    "偏好用于指导命令选择。内置输出规则保持不变：只返回一条命令或不提供建议，不附带解释。",
+    "偏好用於引導指令選擇。內置輸出規則維持不變：只回傳一條指令或不提供建議，不附加解釋。"
+  ],
+  "Prefer built-in tools; prefer read-only commands": [
+    "优先使用系统自带工具；优先使用只读命令",
+    "優先使用系統內置工具；優先使用唯讀指令"
+  ],
+  "Only a manual request sends your current input, shell type and additional rules to this service. Tab replaces the input without executing it. Editing dismisses the preview.": [
+    "仅在手动触发时，将当前输入、Shell 类型和补充规则发送给此服务。按 Tab 替换输入，不会执行；编辑输入会取消预览。",
+    "只會在手動觸發時，將目前輸入、Shell 類型及附加規則傳送至此服務。按 Tab 取代輸入，不會執行；編輯輸入會取消預覽。"
+  ],
+  "OpenAI-compatible Chat Completions API. Keys are encrypted locally and included only in password-encrypted backups.": [
+    "兼容 OpenAI 的 Chat Completions API。密钥在本地加密保存，仅包含在密码加密的备份中。",
+    "相容 OpenAI 的 Chat Completions API。金鑰會在本機加密儲存，只會包含在以密碼加密的備份內。"
+  ],
+  "Remove saved API key": [
+    "删除已保存的 API 密钥",
+    "刪除已儲存的 API 金鑰"
+  ],
+  "Saved; leave blank to keep for the same URL": [
+    "已保存；地址不变时留空可保留",
+    "已儲存；網址不變時留空即可保留"
+  ],
+  "Settings…": [
+    "设置…",
+    "設定…"
+  ],
+  "Generate AI Command": [
+    "生成 AI 命令",
+    "產生 AI 指令"
+  ],
+  "Generate: ": [
+    "生成快捷键：",
+    "產生快捷鍵："
+  ],
+  ". Change this in Keyboard Shortcuts → Generate AI Command.": [
+    "。可在“键盘快捷键 → 生成 AI 命令”中修改。",
+    "。可在「鍵盤快捷鍵 → 產生 AI 指令」更改。"
+  ],
+  ". The saved key is kept only when the endpoint stays the same.": [
+    "。仅在接口地址不变时保留已保存的密钥。",
+    "。只有在端點網址不變時才會保留已儲存的金鑰。"
+  ],
+  "Test Connection": [
+    "测试连接",
+    "測試連線"
+  ],
+  "Export Data": [
+    "导出数据",
+    "匯出資料"
+  ],
+  "Export Data…": [
+    "导出数据…",
+    "匯出資料…"
+  ],
+  "Export EdgeTerm Data": [
+    "导出 EdgeTerm 数据",
+    "匯出 EdgeTerm 資料"
+  ],
+  "Import Data": [
+    "导入数据",
+    "匯入資料"
+  ],
+  "Import Data…": [
+    "导入数据…",
+    "匯入資料…"
+  ],
+  "Import EdgeTerm Data": [
+    "导入 EdgeTerm 数据",
+    "匯入 EdgeTerm 資料"
+  ],
+  "Import OpenSSH Config": [
+    "导入 OpenSSH 配置",
+    "匯入 OpenSSH 設定"
+  ],
+  "Import OpenSSH Config…": [
+    "导入 OpenSSH 配置…",
+    "匯入 OpenSSH 設定…"
+  ],
+  "Import": [
+    "导入",
+    "匯入"
+  ],
+  "Export…": [
+    "导出…",
+    "匯出…"
+  ],
+  "Include login passwords, private key passphrases and AI API key": [
+    "包含登录密码、私钥密码和 AI API 密钥",
+    "包含登入密碼、私鑰密碼及 AI API 金鑰"
+  ],
+  "Export password": [
+    "导出密码",
+    "匯出密碼"
+  ],
+  "Confirm password": [
+    "确认密码",
+    "確認密碼"
+  ],
+  "Export sessions, groups, Sender commands and application settings.": [
+    "导出会话、分组、已保存的发送命令和应用设置。",
+    "匯出連線、群組、已儲存的傳送指令及應用程式設定。"
+  ],
+  "The entire file will be encrypted with your export password. Keep it safe: a forgotten password cannot be recovered.": [
+    "整个文件将使用导出密码加密。请妥善保管密码，忘记后无法找回。",
+    "整個檔案會以匯出密碼加密。請妥善保管密碼，忘記後無法復原。"
+  ],
+  "The file is readable JSON. Saved login passwords, private key passphrases and AI API key are excluded.": [
+    "文件为可读的 JSON，不包含已保存的登录密码、私钥密码和 AI API 密钥。",
+    "檔案為可讀的 JSON，不包含已儲存的登入密碼、私鑰密碼及 AI API 金鑰。"
+  ],
+  "Private key files are not included. Copy them separately and adjust their paths on the destination device.": [
+    "不包含私钥文件。请单独复制，并在目标设备上调整路径。",
+    "不包含私鑰檔案。請另行複製，並在目標裝置上調整路徑。"
+  ],
+  "Reading backup…": [
+    "正在读取备份…",
+    "正在讀取備份…"
+  ],
+  "This backup is encrypted. Enter the password set when it was exported.": [
+    "此备份已加密，请输入导出时设置的密码。",
+    "此備份已加密，請輸入匯出時設定的密碼。"
+  ],
+  "Could not read this backup. Retry or choose another file.": [
+    "无法读取此备份，请重试或选择其他文件。",
+    "無法讀取此備份，請重試或選擇其他檔案。"
+  ],
+  "Entries with the same ID replace local entries; other entries are kept.": [
+    "相同 ID 的条目将替换本地条目，其他条目保持不变。",
+    "相同 ID 的項目會取代本機項目，其他項目則會保留。"
+  ],
+  "This file does not import saved passwords. Existing local credentials are kept; new sessions may ask for a password.": [
+    "此文件不会导入已保存的密码。本地已有凭据将保留，新会话可能需要输入密码。",
+    "此檔案不會匯入已儲存的密碼。現有本機憑證會保留，新連線可能需要輸入密碼。"
+  ],
+  "Saved credentials in this backup replace credentials for matching sessions and are encrypted again on this device. Sessions without credentials in the backup keep any locally saved credentials.": [
+    "备份中的登录凭据会替换对应会话的凭据，并在本设备重新加密。备份中未包含凭据的会话将保留本地已保存的凭据。",
+    "備份內的登入憑證會取代對應連線的憑證，並在此裝置重新加密。備份中未包含憑證的連線會保留本機已儲存的憑證。"
+  ],
+  "Unlock": [
+    "解锁",
+    "解鎖"
+  ],
+  "Import failed: {0}": [
+    "导入失败：{0}",
+    "匯入失敗：{0}"
+  ],
+  "Import failed: “{0}” is not an EdgeTerm data file (expected .{1})": [
+    "导入失败：“{0}”不是 EdgeTerm 数据文件（应为 .{1}）",
+    "匯入失敗：「{0}」不是 EdgeTerm 資料檔案（應為 .{1}）"
+  ],
+  "Exported {0} and settings to {1} ({2})": [
+    "已将 {0} 和设置导出到 {1}（{2}）",
+    "已將 {0} 及設定匯出至 {1}（{2}）"
+  ],
+  "Add new sessions to": [
+    "将新会话添加到",
+    "將新連線加入至"
+  ],
+  "Select all hosts": [
+    "选择所有主机",
+    "選取所有主機"
+  ],
+  "Hosts already saved start unchecked; checking one updates that session’s host, port and user from the file. A single jump host comes along; a multi-hop ProxyJump is not imported. Passwords are never in the file, so imported sessions ask for theirs.": [
+    "已保存的主机默认不勾选；勾选后会用文件中的主机、端口和用户名更新对应会话。支持导入单级跳板机，不导入多级 ProxyJump。文件不包含密码，因此导入的会话会询问密码。",
+    "已儲存的主機預設不勾選；勾選後會以檔案中的主機、連接埠及用戶名稱更新對應連線。支援匯入單層跳板主機，不會匯入多層 ProxyJump。檔案不含密碼，因此匯入的連線會要求輸入密碼。"
+  ],
+  "No Host entries found in {0}": [
+    "{0} 中没有 Host 条目",
+    "{0} 中沒有 Host 項目"
+  ],
+  "Host Key Changed": [
+    "主机密钥已更改",
+    "主機金鑰已變更"
+  ],
+  "New key": [
+    "新密钥",
+    "新金鑰"
+  ],
+  "Accept New Key": [
+    "接受新密钥",
+    "接受新金鑰"
+  ],
+  "Accepting…": [
+    "正在接受…",
+    "正在接受…"
+  ],
+  "Accept only if you expect this — the server was reinstalled, or the address now belongs to a different machine. A changed key can also mean the connection is being intercepted; when in doubt, cancel and compare the fingerprint with": [
+    "仅当你确认原因时才接受，例如服务器重装或地址已分配给其他机器。密钥更改也可能意味着连接被截获；如有疑问，请取消并核对指纹，使用",
+    "只有在你確認原因時才接受，例如伺服器重新安裝或地址已分配給其他機器。金鑰變更亦可能代表連線遭截取；如有疑問，請取消並核對指紋，使用"
+  ],
+  "presented a key that does not match the one recorded for it.": [
+    "提供的密钥与已记录的密钥不一致。",
+    "提供的金鑰與已記錄的金鑰不符。"
+  ],
+  " on the server. Accepting replaces every key recorded for this host.": [
+    " 在服务器上检查。接受后将替换此主机的所有已记录密钥。",
+    " 在伺服器上檢查。接受後會取代此主機的所有已記錄金鑰。"
+  ],
+  "Answers are sent to the server for this login only; EdgeTerm never stores them.": [
+    "回答仅用于本次登录并发送给服务器，EdgeTerm 不会保存。",
+    "答案只會傳送至伺服器供本次登入使用，EdgeTerm 不會儲存。"
+  ],
+  "Response": [
+    "回答",
+    "答案"
+  ],
+  "Signing in to ": [
+    "正在登录 ",
+    "正在登入 "
+  ],
+  "Allow": [
+    "允许",
+    "允許"
+  ],
+  "Deny": [
+    "拒绝",
+    "拒絕"
+  ],
+  "Allow Clipboard Access": [
+    "允许访问剪贴板",
+    "允許存取剪貼簿"
+  ],
+  "Always allow programs to set the clipboard": [
+    "始终允许程序设置剪贴板",
+    "一律允許程式設定剪貼簿"
+  ],
+  "A program in ": [
+    "程序所在会话：",
+    "程式所在連線："
+  ],
+  " wants to copy": [
+    " 请求复制",
+    " 要求複製"
+  ],
+  " characters to the clipboard. Allowing it lets this session set the clipboard until it closes.": [
+    " 个字符到剪贴板。允许后，此会话在关闭前均可设置剪贴板。",
+    " 個字元至剪貼簿。允許後，此連線在關閉前均可設定剪貼簿。"
+  ],
+  "The clipboard holds": [
+    "剪贴板包含",
+    "剪貼簿包含"
+  ],
+  "The clipboard holds ": [
+    "剪贴板包含 ",
+    "剪貼簿包含 "
+  ],
+  "Don’t warn me again": [
+    "不再提醒",
+    "不再提示"
+  ],
+  " characters). Every line after the first runs as its own command.": [
+    " 个字符）。第一行后的每一行都会作为独立命令执行。",
+    " 個字元）。第一行後的每一行都會作為獨立指令執行。"
+  ],
+  "The saved session, any stored credentials for it": [
+    "已保存的会话及其登录凭据",
+    "已儲存的連線及其登入憑證"
+  ],
+  " will be removed. This cannot be undone.": [
+    " 将被删除，此操作无法撤销。",
+    " 將會刪除，此操作無法復原。"
+  ],
+  "File Transfer": [
+    "文件传输",
+    "檔案傳輸"
+  ],
+  "File transfer": [
+    "文件传输",
+    "檔案傳輸"
+  ],
+  "File actions": [
+    "文件操作",
+    "檔案操作"
+  ],
+  "File transfer actions": [
+    "文件传输操作",
+    "檔案傳輸操作"
+  ],
+  "File transfers need a terminal session": [
+    "文件传输需要终端会话",
+    "檔案傳輸需要終端連線"
+  ],
+  "Dual-pane file transfer": [
+    "双窗格文件传输",
+    "雙窗格檔案傳輸"
+  ],
+  "Local Computer": [
+    "本地计算机",
+    "本機電腦"
+  ],
+  "Folder": [
+    "文件夹",
+    "資料夾"
+  ],
+  "File": [
+    "文件",
+    "檔案"
+  ],
+  "Folder path": [
+    "文件夹路径",
+    "資料夾路徑"
+  ],
+  "Parent folder": [
+    "上级文件夹",
+    "上一層資料夾"
+  ],
+  "Terminal folder": [
+    "终端工作目录",
+    "終端工作目錄"
+  ],
+  "Terminal folder ({0})": [
+    "终端工作目录（{0}）",
+    "終端工作目錄（{0}）"
+  ],
+  "Reveal Working Directory": [
+    "显示工作目录",
+    "顯示工作目錄"
+  ],
+  "Reveal Working Directory in Filer": [
+    "在文件管理中显示工作目录",
+    "在檔案管理中顯示工作目錄"
+  ],
+  "New file": [
+    "新建文件",
+    "新增檔案"
+  ],
+  "New file name": [
+    "新文件名称",
+    "新檔案名稱"
+  ],
+  "New folder": [
+    "新建文件夹",
+    "新增資料夾"
+  ],
+  "New folder name": [
+    "新文件夹名称",
+    "新資料夾名稱"
+  ],
+  "New File…": [
+    "新建文件…",
+    "新增檔案…"
+  ],
+  "New Folder…": [
+    "新建文件夹…",
+    "新增資料夾…"
+  ],
+  "Rename…": [
+    "重命名…",
+    "重新命名…"
+  ],
+  "Rename file or folder": [
+    "重命名文件或文件夹",
+    "重新命名檔案或資料夾"
+  ],
+  "Delete (one item at a time)": [
+    "删除（每次一项）",
+    "刪除（每次一個項目）"
+  ],
+  "Copy Name": [
+    "复制名称",
+    "複製名稱"
+  ],
+  "Copy Names": [
+    "复制名称",
+    "複製名稱"
+  ],
+  "Copy Path": [
+    "复制路径",
+    "複製路徑"
+  ],
+  "Copy Paths": [
+    "复制路径",
+    "複製路徑"
+  ],
+  "Copy Folder Path": [
+    "复制文件夹路径",
+    "複製資料夾路徑"
+  ],
+  "Copy to folder": [
+    "复制到文件夹",
+    "複製至資料夾"
+  ],
+  "Copy files into current folder": [
+    "将文件复制到当前文件夹",
+    "將檔案複製至目前資料夾"
+  ],
+  "Choose a folder": [
+    "选择文件夹",
+    "選擇資料夾"
+  ],
+  "Upload": [
+    "上传",
+    "上載"
+  ],
+  "Upload files or folders": [
+    "上传文件或文件夹",
+    "上載檔案或資料夾"
+  ],
+  "Upload Files…": [
+    "上传文件…",
+    "上載檔案…"
+  ],
+  "Upload files…": [
+    "上传文件…",
+    "上載檔案…"
+  ],
+  "Upload Folder…": [
+    "上传文件夹…",
+    "上載資料夾…"
+  ],
+  "Upload folder…": [
+    "上传文件夹…",
+    "上載資料夾…"
+  ],
+  "Upload selected local file or folder": [
+    "上传选中的本地文件或文件夹",
+    "上載已選取的本機檔案或資料夾"
+  ],
+  "Upload {0} selected local items": [
+    "上传选中的 {0} 个本地项目",
+    "上載已選取的 {0} 個本機項目"
+  ],
+  "Uploading": [
+    "正在上传",
+    "正在上載"
+  ],
+  "Download": [
+    "下载",
+    "下載"
+  ],
+  "Download…": [
+    "下载…",
+    "下載…"
+  ],
+  "Download file or folder": [
+    "下载文件或文件夹",
+    "下載檔案或資料夾"
+  ],
+  "Download selected {0} file or folder": [
+    "下载选中的 {0} 文件或文件夹",
+    "下載已選取的 {0} 檔案或資料夾"
+  ],
+  "Download {0} selected {1} items": [
+    "下载选中的 {0} 个 {1} 项目",
+    "下載已選取的 {0} 個 {1} 項目"
+  ],
+  "Downloading": [
+    "正在下载",
+    "正在下載"
+  ],
+  "Drop files or folders to copy here": [
+    "拖放文件或文件夹以复制到此处",
+    "拖放檔案或資料夾以複製至此處"
+  ],
+  "Drop files or folders to upload": [
+    "拖放文件或文件夹以上传",
+    "拖放檔案或資料夾以上載"
+  ],
+  "Local file list. Drop files or folders here to copy them into this folder, or drag an entry out of the window.": [
+    "本地文件列表。拖放文件或文件夹以复制到此文件夹，或将条目拖出窗口。",
+    "本機檔案清單。拖放檔案或資料夾以複製至此資料夾，或將項目拖出視窗。"
+  ],
+  "{0} file list. Drop files or folders here to upload, or drag an entry out of the window to download it.": [
+    "{0} 文件列表。拖放文件或文件夹以上传，或将条目拖出窗口以下载。",
+    "{0} 檔案清單。拖放檔案或資料夾以上載，或將項目拖出視窗以下載。"
+  ],
+  "Select local items to upload or {0} items to download; {1}-click or Shift-click selects several.": [
+    "选择本地项目以上传，或选择 {0} 项目以下载；按住 {1} 或 Shift 单击可多选。",
+    "選取本機項目以上載，或選取 {0} 項目以下載；按住 {1} 或 Shift 再按一下可選取多個項目。"
+  ],
+  "This folder is empty.": [
+    "此文件夹为空。",
+    "此資料夾沒有內容。"
+  ],
+  "Refresh": [
+    "刷新",
+    "重新整理"
+  ],
+  "Modified": [
+    "修改时间",
+    "修改時間"
+  ],
+  "Size": [
+    "大小",
+    "大小"
+  ],
+  "Search files": [
+    "搜索文件",
+    "搜尋檔案"
+  ],
+  "Search file names": [
+    "搜索文件名",
+    "搜尋檔案名稱"
+  ],
+  "Search current folder": [
+    "搜索当前文件夹",
+    "搜尋目前資料夾"
+  ],
+  "Search files in current folder{0}": [
+    "搜索当前文件夹中的文件{0}",
+    "搜尋目前資料夾中的檔案{0}"
+  ],
+  "Find names in current folder": [
+    "在当前文件夹中查找名称",
+    "在目前資料夾中尋找名稱"
+  ],
+  "Close file search": [
+    "关闭文件搜索",
+    "關閉檔案搜尋"
+  ],
+  "Next file match": [
+    "下一个文件匹配",
+    "下一個相符檔案"
+  ],
+  "Previous file match": [
+    "上一个文件匹配",
+    "上一個相符檔案"
+  ],
+  "Cancel Transfer": [
+    "取消传输",
+    "取消傳輸"
+  ],
+  "No file transfer is running": [
+    "没有正在进行的文件传输",
+    "沒有正在進行的檔案傳輸"
+  ],
+  "Transfer speed": [
+    "传输速度",
+    "傳輸速度"
+  ],
+  "Receive via XMODEM": [
+    "通过 XMODEM 接收",
+    "透過 XMODEM 接收"
+  ],
+  "Receive via XMODEM…": [
+    "通过 XMODEM 接收…",
+    "透過 XMODEM 接收…"
+  ],
+  "Send via XMODEM…": [
+    "通过 XMODEM 发送…",
+    "透過 XMODEM 傳送…"
+  ],
+  "Send via XMODEM-1K…": [
+    "通过 XMODEM-1K 发送…",
+    "透過 XMODEM-1K 傳送…"
+  ],
+  "Filer: only shell and SSH sessions have a working directory": [
+    "文件管理：只有 Shell 和 SSH 会话有工作目录",
+    "檔案管理：只有 Shell 及 SSH 連線有工作目錄"
+  ],
+  "Filer: the session is not connected": [
+    "文件管理：会话尚未连接",
+    "檔案管理：尚未建立連線"
+  ],
+  "Filer: {0}": [
+    "文件管理：{0}",
+    "檔案管理：{0}"
+  ],
+  "Command": [
+    "命令",
+    "指令"
+  ],
+  "Saved commands": [
+    "已保存的命令",
+    "已儲存的指令"
+  ],
+  "Find a saved command": [
+    "查找已保存的命令",
+    "尋找已儲存的指令"
+  ],
+  "Find saved command": [
+    "查找已保存的命令",
+    "尋找已儲存的指令"
+  ],
+  "No matching commands": [
+    "没有匹配的命令",
+    "沒有符合的指令"
+  ],
+  "Run command": [
+    "执行命令",
+    "執行指令"
+  ],
+  "Run command (Enter)": [
+    "执行命令（Enter）",
+    "執行指令（Enter）"
+  ],
+  "Clear command": [
+    "清空命令",
+    "清除指令"
+  ],
+  "Ending": [
+    "行尾",
+    "行尾"
+  ],
+  "Line ending": [
+    "行尾符",
+    "行尾符號"
+  ],
+  "Targets": [
+    "目标",
+    "目標"
+  ],
+  "Sender targets": [
+    "发送目标",
+    "傳送目標"
+  ],
+  "Type a command ({0}); Shift+Enter adds a line": [
+    "输入命令（{0}）；Shift+Enter 换行",
+    "輸入指令（{0}）；Shift+Enter 換行"
+  ],
+  "Tag name (optional)": [
+    "标签名称（可选）",
+    "標籤名稱（可選）"
+  ],
+  "Saved command tag name": [
+    "已保存命令的标签名称",
+    "已儲存指令的標籤名稱"
+  ],
+  "Save the command — asks where to list it": [
+    "保存命令，并选择保存位置",
+    "儲存指令，並選擇儲存位置"
+  ],
+  "Save a command to add it here.": [
+    "保存命令后会显示在此处。",
+    "儲存指令後會在此顯示。"
+  ],
+  "Scope": [
+    "范围",
+    "範圍"
+  ],
+  "Expand Sender": [
+    "展开命令发送面板",
+    "展開指令傳送面板"
+  ],
+  "Collapse Sender": [
+    "折叠命令发送面板",
+    "摺疊指令傳送面板"
+  ],
+  "Show saved commands in one row": [
+    "单行显示已保存命令",
+    "以一行顯示已儲存指令"
+  ],
+  "Previous page": [
+    "上一页",
+    "上一頁"
+  ],
+  "Next page": [
+    "下一页",
+    "下一頁"
+  ],
+  "Repeat": [
+    "重复发送",
+    "重複傳送"
+  ],
+  "Repeat on a timer": [
+    "定时重复发送",
+    "定時重複傳送"
+  ],
+  "Send Repeatedly": [
+    "重复发送",
+    "重複傳送"
+  ],
+  "Stop repeat": [
+    "停止重复发送",
+    "停止重複傳送"
+  ],
+  "Stop sending": [
+    "停止发送",
+    "停止傳送"
+  ],
+  "Stop after the current line": [
+    "发送当前行后停止",
+    "傳送目前行後停止"
+  ],
+  "Start": [
+    "开始",
+    "開始"
+  ],
+  "Stop": [
+    "停止",
+    "停止"
+  ],
+  "Times": [
+    "次数",
+    "次數"
+  ],
+  "Every": [
+    "间隔",
+    "間隔"
+  ],
+  "Seconds between sends": [
+    "发送间隔（秒）",
+    "傳送間隔（秒）"
+  ],
+  "Number of sends, 0 for until stopped": [
+    "发送次数，0 表示持续到手动停止",
+    "傳送次數，0 表示持續至手動停止"
+  ],
+  "0 = until stopped": [
+    "0 = 直到手动停止",
+    "0 = 直至手動停止"
+  ],
+  "Sending…": [
+    "正在发送…",
+    "正在傳送…"
+  ],
+  "Repeating {0} · click to stop": [
+    "正在重复发送 {0} · 单击停止",
+    "正在重複傳送 {0} · 按一下停止"
+  ],
+  "A command is repeating on a timer": [
+    "有命令正在定时重复发送",
+    "有指令正在定時重複傳送"
+  ],
+  "Sends the command to the chosen targets on a timer, e.g. to keep a session alive.": [
+    "按设定间隔向选定目标发送命令，例如用于保持会话连接。",
+    "按設定間隔向選定目標傳送指令，例如用於保持連線。"
+  ],
+  "Sender: no session selected": [
+    "命令发送：未选择会话",
+    "指令傳送：未選取連線"
+  ],
+  "Sender: blocked while a file transfer or another send is running": [
+    "命令发送：文件传输或其他发送任务正在进行，请稍后再试",
+    "指令傳送：檔案傳輸或其他傳送工作正在進行，請稍後再試"
+  ],
+  "Sender: enter a command before saving": [
+    "命令发送：请先输入要保存的命令",
+    "指令傳送：請先輸入要儲存的指令"
+  ],
+  "Sender: enter a command before updating": [
+    "命令发送：请先输入要更新的命令",
+    "指令傳送：請先輸入要更新的指令"
+  ],
+  "Sender: failed to delete command: {0}": [
+    "命令发送：删除命令失败：{0}",
+    "指令傳送：刪除指令失敗：{0}"
+  ],
+  "Sender: failed to load saved commands: {0}": [
+    "命令发送：加载已保存命令失败：{0}",
+    "指令傳送：載入已儲存指令失敗：{0}"
+  ],
+  "Sender: failed to save command: {0}": [
+    "命令发送：保存命令失败：{0}",
+    "指令傳送：儲存指令失敗：{0}"
+  ],
+  "Sender: failed to update command: {0}": [
+    "命令发送：更新命令失败：{0}",
+    "指令傳送：更新指令失敗：{0}"
+  ],
+  "Sender: repeated the command {0} times, done": [
+    "命令发送：已重复 {0} 次，发送完成",
+    "指令傳送：已重複 {0} 次，傳送完成"
+  ],
+  "Sender: saved command limit is {0}": [
+    "命令发送：最多可保存 {0} 条命令",
+    "指令傳送：最多可儲存 {0} 條指令"
+  ],
+  "Sender: saved command {0}/{1} ({2})": [
+    "命令发送：已保存命令 {0}/{1}（{2}）",
+    "指令傳送：已儲存指令 {0}/{1}（{2}）"
+  ],
+  "Sender: stopped": [
+    "命令发送：已停止",
+    "指令傳送：已停止"
+  ],
+  "Sender: stopped repeating, the session was closed": [
+    "命令发送：会话已关闭，已停止重复发送",
+    "指令傳送：連線已關閉，已停止重複傳送"
+  ],
+  "Sender: updated saved command ({0})": [
+    "命令发送：已更新保存的命令（{0}）",
+    "指令傳送：已更新儲存的指令（{0}）"
+  ],
+  "Sender: {0}": [
+    "命令发送：{0}",
+    "指令傳送：{0}"
+  ],
+  "Sender: {0}; skipped {1} session(s) with a file transfer or another send running": [
+    "命令发送：{0}；已跳过正在传输文件或发送命令的 {1} 个会话",
+    "指令傳送：{0}；已略過正在傳輸檔案或傳送指令的 {1} 個連線"
+  ],
+  "Send {0}: {1}": [
+    "发送 {0}：{1}",
+    "傳送 {0}：{1}"
+  ],
+  "Update": [
+    "更新",
+    "更新"
+  ],
+  "Update \"{0}\" — asks where to list it": [
+    "更新“{0}”，并选择保存位置",
+    "更新「{0}」，並選擇儲存位置"
+  ],
+  "Fixed": [
+    "固定",
+    "固定"
+  ],
+  "Unassigned": [
+    "未设置",
+    "未設定"
+  ],
+  "Press keys…": [
+    "请按快捷键…",
+    "請按快捷鍵…"
+  ],
+  "Remove shortcut": [
+    "移除快捷键",
+    "移除快捷鍵"
+  ],
+  "Remove the {0} shortcut": [
+    "移除“{0}”快捷键",
+    "移除「{0}」快捷鍵"
+  ],
+  "{0} shortcut": [
+    "{0} 快捷键",
+    "{0} 快捷鍵"
+  ],
+  "Also: ": [
+    "其他：",
+    "其他："
+  ],
+  "Switch to tab N": [
+    "切换到第 N 个标签页",
+    "切換至第 N 個分頁"
+  ],
+  "Toggle Sessions / Filer / Sender": [
+    "显示或隐藏会话 / 文件管理 / 命令发送面板",
+    "顯示或隱藏連線 / 檔案管理 / 指令傳送面板"
+  ],
+  "Toggle line numbers / timestamps": [
+    "显示或隐藏行号 / 时间戳",
+    "顯示或隱藏行號 / 時間戳記"
+  ],
+  "Split down / right": [
+    "向下 / 向右拆分",
+    "向下 / 向右分割"
+  ],
+  "Manually suggest a command for the focused terminal or Sender input": [
+    "为当前终端或命令发送输入框手动生成命令建议",
+    "為目前終端或指令傳送輸入框手動產生指令建議"
+  ],
+  "Open the new-session dialog": [
+    "打开新建会话对话框",
+    "開啟新增連線對話框"
+  ],
+  "Close the current tab": [
+    "关闭当前标签页",
+    "關閉目前分頁"
+  ],
+  "Search file names while hovering over Filer; otherwise search the terminal buffer": [
+    "鼠标位于文件管理区域时搜索文件名，否则搜索终端缓冲区",
+    "滑鼠位於檔案管理範圍時搜尋檔案名稱，否則搜尋終端緩衝區"
+  ],
+  "Jump to the next match": [
+    "跳到下一个匹配",
+    "跳至下一個符合項目"
+  ],
+  "Jump to the previous search match": [
+    "跳到上一个匹配",
+    "跳至上一個符合項目"
+  ],
+  "Clear the screen and scrollback": [
+    "清空屏幕和回滚历史",
+    "清除畫面及回捲記錄"
+  ],
+  "Point the Filer at the shell's directory": [
+    "在文件管理中打开 Shell 工作目录",
+    "在檔案管理中開啟 Shell 工作目錄"
+  ],
+  "Select the tab on the left": [
+    "切换到左侧标签页",
+    "切換至左方分頁"
+  ],
+  "Select the tab on the right": [
+    "切换到右侧标签页",
+    "切換至右方分頁"
+  ],
+  "Focus the pane before this one": [
+    "切换到上一个窗格",
+    "切換至上一個窗格"
+  ],
+  "Focus the pane after this one": [
+    "切换到下一个窗格",
+    "切換至下一個窗格"
+  ],
+  "Open the current session's profile again in a pane to the right": [
+    "在右侧窗格中再次打开当前会话",
+    "在右方窗格再次開啟目前連線"
+  ],
+  "Open the current session's profile again in a pane below": [
+    "在下方窗格中再次打开当前会话",
+    "在下方窗格再次開啟目前連線"
+  ],
+  "Open another connection using the active session profile": [
+    "使用当前会话配置打开另一条连接",
+    "使用目前連線設定開啟另一條連線"
+  ],
+  "Toggle Session Panel": [
+    "显示或隐藏会话面板",
+    "顯示或隱藏連線面板"
+  ],
+  "Toggle Filer Panel": [
+    "显示或隐藏文件管理面板",
+    "顯示或隱藏檔案管理面板"
+  ],
+  "Toggle Sender Panel": [
+    "显示或隐藏命令发送面板",
+    "顯示或隱藏指令傳送面板"
+  ],
+  "Show or hide the left panel": [
+    "显示或隐藏左侧面板",
+    "顯示或隱藏左方面板"
+  ],
+  "Show or hide the right panel": [
+    "显示或隐藏右侧面板",
+    "顯示或隱藏右方面板"
+  ],
+  "Show or hide the bottom panel": [
+    "显示或隐藏底部面板",
+    "顯示或隱藏底部面板"
+  ],
+  "Copy the terminal selection": [
+    "复制终端选中的文本",
+    "複製終端已選文字"
+  ],
+  "Paste the clipboard into the terminal": [
+    "将剪贴板内容粘贴到终端",
+    "將剪貼簿內容貼上至終端"
+  ],
+  "Select the whole terminal buffer": [
+    "选中整个终端缓冲区",
+    "選取整個終端緩衝區"
+  ],
+  "Send Ctrl+L to the terminal application": [
+    "向终端程序发送 Ctrl+L",
+    "向終端程式傳送 Ctrl+L"
+  ],
+  "Paste selected terminal text, with the usual multiline confirmation": [
+    "粘贴终端选中文本，多行时仍需确认",
+    "貼上終端已選文字，多行時仍需確認"
+  ],
+  "Scroll Up": [
+    "向上滚动",
+    "向上捲動"
+  ],
+  "Scroll Down": [
+    "向下滚动",
+    "向下捲動"
+  ],
+  "Scroll Left": [
+    "向左滚动",
+    "向左捲動"
+  ],
+  "Scroll Right": [
+    "向右滚动",
+    "向右捲動"
+  ],
+  "Scroll Page Up": [
+    "向上翻页",
+    "向上翻頁"
+  ],
+  "Scroll Page Down": [
+    "向下翻页",
+    "向下翻頁"
+  ],
+  "Scroll to Top": [
+    "滚动到顶部",
+    "捲動至頂部"
+  ],
+  "Scroll to Bottom": [
+    "滚动到底部",
+    "捲動至底部"
+  ],
+  "Scroll the terminal by one line": [
+    "终端滚动一行",
+    "終端捲動一行"
+  ],
+  "Scroll the terminal by one page": [
+    "终端滚动一页",
+    "終端捲動一頁"
+  ],
+  "Show the start of the terminal buffer": [
+    "显示终端缓冲区开头",
+    "顯示終端緩衝區開首"
+  ],
+  "Return to the terminal's latest output": [
+    "返回终端最新输出",
+    "返回終端最新輸出"
+  ],
+  "Increase the terminal font size": [
+    "增大终端字号",
+    "放大終端字體"
+  ],
+  "Decrease the terminal font size": [
+    "减小终端字号",
+    "縮小終端字體"
+  ],
+  " (multi-hop, not imported)": [
+    "（多级跳板，未导入）",
+    "（多層跳板，未匯入）"
+  ],
+  " (no group)": [
+    "（未分组）",
+    "（未分類）"
+  ],
+  " allow · ": [
+    " 允许 · ",
+    " 允許 · "
+  ],
+  " and settings": [
+    "及设置",
+    "及設定"
+  ],
+  " as": [
+    " 保存为",
+    " 儲存為"
+  ],
+  " cancel": [
+    " 取消",
+    " 取消"
+  ],
+  " characters": [
+    " 个字符",
+    " 個字元"
+  ],
+  " close · ": [
+    " 关闭 · ",
+    " 關閉 · "
+  ],
+  " delete · ": [
+    " 删除 · ",
+    " 刪除 · "
+  ],
+  " deny": [
+    " 拒绝",
+    " 拒絕"
+  ],
+  " every": [
+    "，间隔",
+    "，間隔"
+  ],
+  " for a new session, or pick one from the Session panel.": [
+    " 新建会话，或从会话面板选择。",
+    " 新增連線，或從連線面板選取。"
+  ],
+  " items": [
+    " 个项目",
+    " 個項目"
+  ],
+  " lines": [
+    " 行",
+    " 行"
+  ],
+  "lines": [
+    "行",
+    "行"
+  ],
+  " more": [
+    " 个其他项目",
+    " 個其他項目"
+  ],
+  " more lines": [
+    " 行",
+    " 行"
+  ],
+  " of ": [
+    " / ",
+    " / "
+  ],
+  " of {0}": [
+    " / {0}",
+    " / {0}"
+  ],
+  " on one line.": [
+    "，显示为一行。",
+    "，以一行顯示。"
+  ],
+  " paste · ": [
+    " 粘贴 · ",
+    " 貼上 · "
+  ],
+  " quit · ": [
+    " 退出 · ",
+    " 結束 · "
+  ],
+  " saved commands": [
+    " 条已保存命令",
+    " 條已儲存指令"
+  ],
+  " selected": [
+    " 项已选中",
+    " 個已選項目"
+  ],
+  " via ": [
+    "，通过 ",
+    "，透過 "
+  ],
+  "via ": [
+    "通过 ",
+    "透過 "
+  ],
+  " · next in {0} s": [
+    " · {0} 秒后再次发送",
+    " · {0} 秒後再次傳送"
+  ],
+  " · no flow control": [
+    " · 无流量控制",
+    " · 無流量控制"
+  ],
+  " · sending…": [
+    " · 正在发送…",
+    " · 正在傳送…"
+  ],
+  " · {0} flow": [
+    " · {0} 流量控制",
+    " · {0} 流量控制"
+  ],
+  ", line ": [
+    "，行 ",
+    "，行 "
+  ],
+  "; type to narrow": [
+    "；输入以筛选",
+    "；輸入以篩選"
+  ],
+  "Buffer": [
+    "缓冲区",
+    "緩衝區"
+  ],
+  "Cancel: {0}": [
+    "取消：{0}",
+    "取消：{0}"
+  ],
+  "Close ": [
+    "关闭 ",
+    "關閉 "
+  ],
+  "Close {0} Sessions": [
+    "关闭 {0} 个会话",
+    "關閉 {0} 個連線"
+  ],
+  "Color": [
+    "颜色",
+    "顏色"
+  ],
+  "Delete ": [
+    "删除 ",
+    "刪除 "
+  ],
+  "Dock {0}": [
+    "停靠到{0}",
+    "停駐至{0}"
+  ],
+  "Download {0} Items…": [
+    "下载 {0} 个项目…",
+    "下載 {0} 個項目…"
+  ],
+  "Download {0} items into…": [
+    "将 {0} 个项目下载到…",
+    "將 {0} 個項目下載至…"
+  ],
+  "Duplicate": [
+    "复制",
+    "複製"
+  ],
+  "Group \"{0}\" deleted": [
+    "已删除分组“{0}”",
+    "已刪除群組「{0}」"
+  ],
+  "Hide {0}": [
+    "隐藏{0}",
+    "隱藏{0}"
+  ],
+  "Import ": [
+    "导入 ",
+    "匯入 "
+  ],
+  "In ": [
+    "范围：",
+    "範圍："
+  ],
+  "Legacy SSH": [
+    "旧版 SSH 算法",
+    "舊版 SSH 演算法"
+  ],
+  "More ": [
+    "更多 ",
+    "更多 "
+  ],
+  "Open “{0}” with…": [
+    "选择程序打开“{0}”…",
+    "選擇程式開啟「{0}」…"
+  ],
+  "Paste ": [
+    "粘贴 ",
+    "貼上 "
+  ],
+  "Press ": [
+    "按 ",
+    "按 "
+  ],
+  "Quit with": [
+    "退出时仍有",
+    "結束時仍有"
+  ],
+  "Repeating ": [
+    "正在重复发送 ",
+    "正在重複傳送 "
+  ],
+  "Save folder “{0}” into…": [
+    "将文件夹“{0}”保存到…",
+    "將資料夾「{0}」儲存至…"
+  ],
+  "Send via {0}": [
+    "通过 {0} 发送",
+    "透過 {0} 傳送"
+  ],
+  "Session color": [
+    "会话颜色",
+    "連線顏色"
+  ],
+  "Showing 100 of ": [
+    "显示前 100 项，总计 ",
+    "顯示首 100 項，合共 "
+  ],
+  "Use session color {0}": [
+    "使用会话颜色 {0}",
+    "使用連線顏色 {0}"
+  ],
+  "Window ": [
+    "窗口 ",
+    "視窗 "
+  ],
+  "local": [
+    "本地",
+    "本機"
+  ],
+  "s": [
+    "秒",
+    "秒"
+  ],
+  "sent ": [
+    "已发送 ",
+    "已傳送 "
+  ],
+  "updates “": [
+    "更新“",
+    "更新「"
+  ],
+  "{0} (no group)": [
+    "{0}（未分组）",
+    "{0}（未分類）"
+  ],
+  "{0} Lines": [
+    "{0} 行",
+    "{0} 行"
+  ],
+  "{0} Server": [
+    "{0} 服务器",
+    "{0} 伺服器"
+  ],
+  "{0} files": [
+    "{0} 文件",
+    "{0} 檔案"
+  ],
+  "{0} on {1}": [
+    "{1} 上的 {0}",
+    "{1} 上的 {0}"
+  ],
+  "{0} path": [
+    "{0} 路径",
+    "{0} 路徑"
+  ],
+  "{0} unavailable": [
+    "{0} 不可用",
+    "{0} 無法使用"
+  ],
+  "{0} · right-click for options": [
+    "{0} · 右键单击查看选项",
+    "{0} · 按滑鼠右鍵查看選項"
+  ],
+  "{0}: a transfer is already running": [
+    "{0}：已有传输任务正在进行",
+    "{0}：已有傳輸工作正在進行"
+  ],
+  "{0}: the session is not connected": [
+    "{0}：会话未连接",
+    "{0}：尚未建立連線"
+  ],
+  "… and ": [
+    "…以及 ",
+    "…以及 "
+  ],
+  "…and ": [
+    "…以及 ",
+    "…以及 "
+  ],
+  "Dark": [
+    "深色",
+    "深色"
+  ],
+  "Light": [
+    "浅色",
+    "淺色"
+  ],
+  "Dark (serialX)": [
+    "深色（serialX）",
+    "深色（serialX）"
+  ],
+  "Light (serialX)": [
+    "浅色（serialX）",
+    "淺色（serialX）"
+  ],
+  "Left": [
+    "左侧",
+    "左方"
+  ],
+  "Right": [
+    "右侧",
+    "右方"
+  ],
+  "Bottom": [
+    "底部",
+    "底部"
+  ],
+  "Ask": [
+    "询问",
+    "詢問"
+  ],
+  "Never": [
+    "从不",
+    "永不"
+  ],
+  "Always": [
+    "始终",
+    "一律"
+  ],
+  "Interface font": [
+    "界面字体",
+    "介面字體"
+  ],
+  "Buffer font": [
+    "终端字体",
+    "終端字體"
+  ],
+  "Menus, tabs, panels and dialogs": [
+    "菜单、标签页、面板和对话框",
+    "選單、分頁、面板及對話框"
+  ],
+  "Terminal typeface; pick a monospaced one": [
+    "终端字体，建议使用等宽字体",
+    "終端字體，建議使用等寬字體"
+  ],
+  "Common baud rates": [
+    "常用波特率",
+    "常用鮑率"
+  ],
+  "Choose a detected COM or TTY device.": [
+    "选择检测到的 COM 或 TTY 设备。",
+    "選擇偵測到的 COM 或 TTY 裝置。"
+  ],
+  "No serial ports detected. Refresh to scan again.": [
+    "未检测到串口，请刷新以重新扫描。",
+    "未偵測到串列埠，請重新整理以再次掃描。"
+  ],
+  "Startup delay must be a whole number from 0 to 4294967295 milliseconds.": [
+    "启动延迟必须为 0 至 4294967295 毫秒之间的整数。",
+    "啟動延遲必須是 0 至 4294967295 毫秒之間的整數。"
+  ],
+  "Locale must be a locale name such as en_US.UTF-8 or C.UTF-8.": [
+    "区域设置必须为有效的 locale 名称，例如 en_US.UTF-8 或 C.UTF-8。",
+    "地區設定必須是有效的 locale 名稱，例如 en_US.UTF-8 或 C.UTF-8。"
+  ],
+  "Baud rate must be a positive whole number up to 4294967295.": [
+    "波特率必须为不超过 4294967295 的正整数。",
+    "鮑率必須是不大於 4294967295 的正整數。"
+  ],
+  "Connection successful. Model returned a command.": [
+    "连接成功，模型已返回命令。",
+    "連線成功，模型已回傳指令。"
+  ],
+  "Enter a request or partial command first.": [
+    "请先输入需求或部分命令。",
+    "請先輸入要求或部分指令。"
+  ],
+  "Move the cursor to the end of the input first.": [
+    "请先将光标移到输入末尾。",
+    "請先將游標移至輸入末端。"
+  ],
+  "Invalid command returned by AI": [
+    "AI 返回的命令无效",
+    "AI 回傳的指令無效"
+  ],
+  "  Generating…": [
+    "  正在生成…",
+    "  正在產生…"
+  ],
+  "  [Tab to accept · Esc to dismiss]": [
+    "  [Tab 采用 · Esc 取消]",
+    "  [Tab 採用 · Esc 取消]"
+  ],
+  "Verification Required": [
+    "需要验证",
+    "需要驗證"
+  ],
+  "Delete Folder": [
+    "删除文件夹",
+    "刪除資料夾"
+  ],
+  "Delete Link": [
+    "删除链接",
+    "刪除連結"
+  ],
+  "Delete File": [
+    "删除文件",
+    "刪除檔案"
+  ],
+  " and its 1 saved Sender command": [
+    "及其 1 条已保存的发送命令",
+    "及其 1 條已儲存的傳送指令"
+  ],
+  "Reconnect Session": [
+    "重新连接会话",
+    "重新連線"
+  ],
+  "Disconnect Session": [
+    "断开会话连接",
+    "中斷連線"
+  ],
+  "Timestamp + Line Number": [
+    "时间戳和行号",
+    "時間戳記及行號"
+  ],
+  "Line Number Only": [
+    "仅行号",
+    "只顯示行號"
+  ],
+  "Timestamp Only": [
+    "仅时间戳",
+    "只顯示時間戳記"
+  ],
+  "No Gutter": [
+    "隐藏行号区域",
+    "隱藏行號區域"
+  ],
+  "Show Menu": [
+    "显示菜单",
+    "顯示選單"
+  ],
+  "Copy or Paste": [
+    "复制或粘贴",
+    "複製或貼上"
+  ],
+  "Delete the recorded command history used for inline suggestions?": [
+    "要删除用于行内建议的命令历史记录吗？",
+    "要刪除用於行內建議的指令記錄嗎？"
+  ],
+  "Restore panel visibility and layout, timestamp and line display, theme, font sizes, scrollback, command suggestions, keyboard shortcuts, and mouse copy / paste to their defaults?": [
+    "要将面板显示与布局、时间戳与行号、主题、字号、回滚历史、命令建议、快捷键及鼠标复制/粘贴恢复为默认设置吗？",
+    "要將面板顯示及配置、時間戳記及行號、佈景主題、字體大小、回捲記錄、指令建議、快捷鍵及滑鼠複製/貼上還原為預設設定嗎？"
+  ],
+  "New remote folder name": [
+    "远程新文件夹名称",
+    "遠端新資料夾名稱"
+  ],
+  "New local folder name": [
+    "本地新文件夹名称",
+    "本機新資料夾名稱"
+  ],
+  "Rename remote item": [
+    "重命名远程项目",
+    "重新命名遠端項目"
+  ],
+  "Rename local item": [
+    "重命名本地项目",
+    "重新命名本機項目"
+  ],
+  "New remote folder": [
+    "新建远程文件夹",
+    "新增遠端資料夾"
+  ],
+  "New local folder": [
+    "新建本地文件夹",
+    "新增本機資料夾"
+  ],
+  "Delete remote item": [
+    "删除远程项目",
+    "刪除遠端項目"
+  ],
+  "Delete local item": [
+    "删除本地项目",
+    "刪除本機項目"
+  ],
+  "This device": [
+    "本设备",
+    "此裝置"
+  ],
+  "Upload complete": [
+    "上传完成",
+    "上載完成"
+  ],
+  "Upload failed": [
+    "上传失败",
+    "上載失敗"
+  ],
+  "Upload cancelled": [
+    "上传已取消",
+    "上載已取消"
+  ],
+  "Download complete": [
+    "下载完成",
+    "下載完成"
+  ],
+  "Download failed": [
+    "下载失败",
+    "下載失敗"
+  ],
+  "Download cancelled": [
+    "下载已取消",
+    "下載已取消"
+  ],
+  "Sync failed": [
+    "同步失败",
+    "同步失敗"
+  ],
+  "Sync cancelled": [
+    "同步已取消",
+    "同步已取消"
+  ],
+  "Copy complete": [
+    "复制完成",
+    "複製完成"
+  ],
+  "Copy failed": [
+    "复制失败",
+    "複製失敗"
+  ],
+  "Copy cancelled": [
+    "复制已取消",
+    "複製已取消"
+  ],
+  "Preparing to drag": [
+    "正在准备拖动",
+    "正在準備拖放"
+  ],
+  "Ready to drop": [
+    "可以放下文件",
+    "可以放下檔案"
+  ],
+  "Could not prepare the drag": [
+    "无法准备拖动",
+    "無法準備拖放"
+  ],
+  "Drag cancelled": [
+    "已取消拖动",
+    "已取消拖放"
+  ],
+  "Loading saved commands…": [
+    "正在加载已保存的命令…",
+    "正在載入已儲存的指令…"
+  ],
+  "Update and list under": [
+    "更新并保存到",
+    "更新並儲存至"
+  ],
+  "Save and list under": [
+    "保存到",
+    "儲存至"
+  ],
+  "SSH Sessions": [
+    "SSH 会话",
+    "SSH 連線"
+  ],
+  "Telnet Sessions": [
+    "Telnet 会话",
+    "Telnet 連線"
+  ],
+  "SFTP Sessions": [
+    "SFTP 会话",
+    "SFTP 連線"
+  ],
+  "FTP Sessions": [
+    "FTP 会话",
+    "FTP 連線"
+  ],
+  "no line ending": [
+    "不添加行尾符",
+    "不加入行尾符號"
+  ],
+  "Ready": [
+    "就绪",
+    "就緒"
+  ],
+  "Quit with {count} active sessions?": [
+    "仍有 {count} 个活动会话，确定退出吗？",
+    "仍有 {count} 個使用中的連線，確定結束嗎？"
+  ],
+  "Quit with 1 active session?": [
+    "仍有 1 个活动会话，确定退出吗？",
+    "仍有 1 個使用中的連線，確定結束嗎？"
+  ],
+  "Delete {name}?": [
+    "确定删除“{name}”吗？",
+    "確定刪除「{name}」嗎？"
+  ],
+  "Close {name}?": [
+    "确定关闭“{name}”吗？",
+    "確定關閉「{name}」嗎？"
+  ],
+  "Close {count} sessions?": [
+    "确定关闭 {count} 个会话吗？",
+    "確定關閉 {count} 個連線嗎？"
+  ],
+  "Connected sessions will be disconnected and their terminal output discarded; connection attempts will be cancelled.": [
+    "已连接的会话将断开，终端输出将被丢弃；正在进行的连接将取消。",
+    "已建立的連線將會中斷，終端輸出會被捨棄；正在嘗試的連線將會取消。"
+  ],
+  "The connection attempt will be cancelled.": [
+    "将取消此次连接。",
+    "將會取消此次連線。"
+  ],
+  "The connection attempts will be cancelled.": [
+    "将取消这些连接。",
+    "將會取消這些連線。"
+  ],
+  "The session will be disconnected and its terminal output discarded.": [
+    "会话将断开，终端输出将被丢弃。",
+    "連線將會中斷，終端輸出會被捨棄。"
+  ],
+  "The sessions will be disconnected and their terminal output discarded.": [
+    "这些会话将断开，终端输出将被丢弃。",
+    "這些連線將會中斷，終端輸出會被捨棄。"
+  ],
+  "Only an empty folder can be deleted. This cannot be undone.": [
+    "只能删除空文件夹，此操作无法撤销。",
+    "只能刪除空白資料夾，此操作無法復原。"
+  ],
+  "Only the link itself is removed; what it points to is left alone. This cannot be undone.": [
+    "仅删除链接本身，不影响链接目标。此操作无法撤销。",
+    "只會刪除連結本身，不會影響連結目標。此操作無法復原。"
+  ],
+  "The file will be removed. This cannot be undone.": [
+    "文件将被删除，此操作无法撤销。",
+    "檔案將會刪除，此操作無法復原。"
+  ],
+  "The clipboard holds {lines} lines ({characters} characters). Every line after the first runs as its own command.": [
+    "剪贴板包含 {lines} 行文本（{characters} 个字符）。第一行之后的每一行都会作为独立命令执行。",
+    "剪貼簿包含 {lines} 行文字（{characters} 個字元）。第一行之後的每一行都會作為獨立指令執行。"
+  ],
+  "The clipboard holds {characters} characters on one line.": [
+    "剪贴板包含一行文本，共 {characters} 个字符。",
+    "剪貼簿包含一行文字，共 {characters} 個字元。"
+  ],
+  "The locale is sent as LANG when the shell starts, so a server with AcceptEnv LANG prints file names in UTF-8 instead of octal escapes. Empty keeps the server's default.": [
+    "Shell 启动时将通过 LANG 发送区域设置。服务器配置 AcceptEnv LANG 后，会以 UTF-8 显示文件名，而非八进制转义。留空则使用服务器默认设置。",
+    "Shell 啟動時會透過 LANG 傳送地區設定。伺服器設定 AcceptEnv LANG 後，會以 UTF-8 顯示檔案名稱，而非八進制逸出字元。留空則使用伺服器預設設定。"
+  ],
+  "The locale becomes the shell's LANG. Empty inherits the environment, with a UTF-8 locale filled in when the environment names none.": [
+    "此区域设置将用作 Shell 的 LANG。留空则继承环境设置；环境未指定时会自动补充 UTF-8 区域设置。",
+    "此地區設定會用作 Shell 的 LANG。留空則繼承環境設定；如環境未有指定，會自動補上 UTF-8 地區設定。"
+  ],
+  "{0}_<date>_<time>.log": [
+    "{0}_<date>_<time>.log",
+    "{0}_<date>_<time>.log"
+  ],
+  "{0}. {1}{2}": [
+    "{0}. {1}{2}",
+    "{0}. {1}{2}"
+  ],
+  "The saved session and its stored credentials will be removed. This cannot be undone.": [
+    "将删除此会话及其保存的凭据，此操作无法撤销。",
+    "將刪除此連線及其已儲存的憑證，此操作無法復原。"
+  ],
+  "The saved session, its stored credentials and {count} saved Sender commands will be removed. This cannot be undone.": [
+    "将删除此会话、保存的凭据及其专属的 {count} 条已保存命令，此操作无法撤销。",
+    "將刪除此連線、已儲存的憑證及其專屬的 {count} 條已儲存指令，此操作無法復原。"
+  ],
+  " · {count} selected": [
+    " · 已选中 {count} 项",
+    " · 已選取 {count} 項"
+  ],
+  "{count} folder": [
+    "{count} 个文件夹",
+    "{count} 個資料夾"
+  ],
+  "{count} folders": [
+    "{count} 个文件夹",
+    "{count} 個資料夾"
+  ],
+  "{count} file": [
+    "{count} 个文件",
+    "{count} 個檔案"
+  ],
+  "{count} files": [
+    "{count} 个文件",
+    "{count} 個檔案"
+  ],
+  "{count} link": [
+    "{count} 个链接",
+    "{count} 個連結"
+  ],
+  "{count} links": [
+    "{count} 个链接",
+    "{count} 個連結"
+  ],
+  "0 items": [
+    "0 项",
+    "0 項"
+  ],
+  "Syncing": [
+    "正在同步",
+    "正在同步"
+  ],
+  "Synced": [
+    "已同步",
+    "已同步"
+  ],
+  "Copying": [
+    "正在复制",
+    "正在複製"
+  ],
+  "Sync complete": [
+    "同步完成",
+    "同步完成"
+  ],
+  "{count} session": [
+    "{count} 个会话",
+    "{count} 個連線"
+  ],
+  "{count} sessions": [
+    "{count} 个会话",
+    "{count} 個連線"
+  ],
+  "{count} group": [
+    "{count} 个分组",
+    "{count} 個群組"
+  ],
+  "{count} groups": [
+    "{count} 个分组",
+    "{count} 個群組"
+  ],
+  "{count} Sender command": [
+    "{count} 条命令",
+    "{count} 條指令"
+  ],
+  "{count} Sender commands": [
+    "{count} 条命令",
+    "{count} 條指令"
+  ],
+  "passwords are not included": [
+    "不含密码",
+    "不含密碼"
+  ],
+  "encrypted, including saved passwords": [
+    "已加密，包含已保存的密码",
+    "已加密，包含已儲存的密碼"
+  ],
+  "Imported {data}{settings}{credentials}": [
+    "已导入 {data}{settings}{credentials}",
+    "已匯入 {data}{settings}{credentials}"
+  ],
+  " and saved credentials": [
+    "及已保存的凭据",
+    "及已儲存的憑證"
+  ],
+  "; skipped {commands} (library full)": [
+    "；已跳过 {commands}（命令库已满）",
+    "；已略過 {commands}（指令庫已滿）"
+  ],
+  "{name} · no host yet": [
+    "{name} · 尚未填写主机",
+    "{name} · 尚未填寫主機"
+  ],
+  "{name} · no port selected": [
+    "{name} · 尚未选择串口",
+    "{name} · 尚未選取串列埠"
+  ],
+  "GB18030 — Chinese (Simplified)": [
+    "GB18030 — 简体中文",
+    "GB18030 — 簡體中文"
+  ],
+  "GBK — Chinese (Simplified)": [
+    "GBK — 简体中文",
+    "GBK — 簡體中文"
+  ],
+  "Big5 — Chinese (Traditional)": [
+    "Big5 — 繁体中文",
+    "Big5 — 繁體中文"
+  ],
+  "Shift_JIS — Japanese": [
+    "Shift_JIS — 日语",
+    "Shift_JIS — 日文"
+  ],
+  "EUC-JP — Japanese": [
+    "EUC-JP — 日语",
+    "EUC-JP — 日文"
+  ],
+  "EUC-KR — Korean": [
+    "EUC-KR — 韩语",
+    "EUC-KR — 韓文"
+  ],
+  "Windows-1252 / ISO-8859-1 — Western": [
+    "Windows-1252 / ISO-8859-1 — 西欧语言",
+    "Windows-1252 / ISO-8859-1 — 西歐語言"
+  ],
+  "Windows-1251 — Cyrillic": [
+    "Windows-1251 — 西里尔字母",
+    "Windows-1251 — 西里爾字母"
+  ],
+  "KOI8-R — Cyrillic": [
+    "KOI8-R — 西里尔字母",
+    "KOI8-R — 西里爾字母"
+  ],
+  "A program in {session} wants to copy {count} characters to the clipboard. Allowing it lets this session set the clipboard until it closes.": [
+    "会话「{session}」中的程序请求将 {count} 个字符复制到剪贴板。允许后，该会话可持续写入剪贴板，直至关闭。",
+    "連線「{session}」中的程式要求將 {count} 個字元複製至剪貼簿。允許後，此連線可持續寫入剪貼簿，直至關閉。"
+  ]
+}

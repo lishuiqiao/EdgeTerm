@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useRef } from "react";
 
 import { tabTitle, useStore } from "../store";
@@ -55,45 +56,29 @@ export function QuitConfirmDialog({ onConfirm, onCancel }: Props) {
         aria-labelledby="quit-app-title"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <div className="dialog-header" id="quit-app-title">
-          Quit EdgeTerm
-        </div>
+        <div className="dialog-header" id="quit-app-title">{t("Quit EdgeTerm")}</div>
         <div className="dialog-body confirm-dialog-body">
-          <span>
-            Quit with{" "}
-            <strong>
-              {live.length} active session{live.length === 1 ? "" : "s"}
-            </strong>
-            ?
-          </span>
+          <span>{live.length === 1 ? t("Quit with 1 active session?") : t("Quit with {count} active sessions?", { count: live.length })}</span>
           {shown.map((tab) => (
             <span key={tab.info.id} className="confirm-dialog-target">
               {tabTitle(tab)} · {tab.info.protocol}
             </span>
           ))}
           {extra > 0 && (
-            <span className="confirm-dialog-target">…and {extra} more</span>
+            <span className="confirm-dialog-target">{t("…and ")}{extra}{t(" more")}</span>
           )}
-          <span className="confirm-dialog-hint">
-            All connections will be disconnected and their terminal output
-            discarded.
-          </span>
+          <span className="confirm-dialog-hint">{t("All connections will be disconnected and their terminal output discarded.")}</span>
         </div>
         <div className="dialog-footer confirm-dialog-footer">
           <span className="confirm-dialog-keys">
-            <kbd>Enter</kbd> quit · <kbd>Esc</kbd> cancel
-          </span>
-          <button type="button" className="btn" onClick={onCancel}>
-            Cancel
-          </button>
+            <kbd>{"Enter"}</kbd>{t(" quit · ")}<kbd>{"Esc"}</kbd>{t(" cancel")}</span>
+          <button type="button" className="btn" onClick={onCancel}>{t("Cancel")}</button>
           <button
             ref={confirmRef}
             type="button"
             className="btn is-danger"
             onClick={onConfirm}
-          >
-            Quit
-          </button>
+          >{t("Quit")}</button>
         </div>
       </div>
     </div>

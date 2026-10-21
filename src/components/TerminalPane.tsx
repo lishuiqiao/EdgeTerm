@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   lazy,
   Suspense,
@@ -184,34 +185,34 @@ function TerminalHost({
 
   const menuItems: MenuItem[] = [
     {
-      label: "Copy",
+      get label() { return t("Copy"); },
       icon: "copy",
       shortcut: copyKey,
       disabled: !menu?.canCopy,
       action: withTerminal((controller) => controller.copySelection()),
     },
     {
-      label: "Paste",
+      get label() { return t("Paste"); },
       icon: "clippy",
       shortcut: pasteKey,
       action: withTerminal((controller) => controller.pasteFromClipboard()),
     },
     {
-      label: "Select All",
+      get label() { return t("Select All"); },
       icon: "list-selection",
       shortcut: selectAllKey,
       action: withTerminal((controller) => controller.selectAll()),
     },
     "separator",
     {
-      label: "Clear Buffer",
+      get label() { return t("Clear Buffer"); },
       icon: "clear-all",
       shortcut: clearKey,
       action: withTerminal((controller) => controller.clear()),
     },
     "separator",
     {
-      label: "Reveal Working Directory in Filer",
+      get label() { return t("Reveal Working Directory in Filer"); },
       icon: "folder-opened",
       shortcut: revealCwdKey,
       action: withTerminal(() => void revealCwdInFiler(id)),

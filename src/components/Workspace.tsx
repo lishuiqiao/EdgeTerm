@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useMemo, useRef, type CSSProperties } from "react";
 
 import appIcon from "../../src-tauri/icons/128x128@2x.png";
@@ -109,23 +110,18 @@ export function Workspace({ onNewSession }: Props) {
                   <img
                     className="term-empty-icon"
                     src={appIcon}
-                    alt=""
+                    alt={""}
                     draggable={false}
                   />
-                  <h1>EdgeTerm</h1>
+                  <h1>{"EdgeTerm"}</h1>
                   <p className="term-empty-hint">
                     {newSessionKey ? (
-                      <>
-                        Press <kbd>{newSessionKey}</kbd> for a new session, or
-                        pick one from the Session panel.
-                      </>
+                      <>{t("Press ")}<kbd>{newSessionKey}</kbd>{t(" for a new session, or pick one from the Session panel.")}</>
                     ) : (
                       "Open a new session, or pick one from the Session panel."
                     )}
                   </p>
-                  <button className="btn is-primary" onClick={onNewSession}>
-                    New Session
-                  </button>
+                  <button className="btn is-primary" onClick={onNewSession}>{t("New Session")}</button>
                 </div>
               )}
               {zone && (

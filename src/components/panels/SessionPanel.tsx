@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useCallback, useMemo, useRef, useState, type MouseEvent } from "react";
 
 import { openSession, toggleSessionConnection } from "../../actions";
@@ -157,6 +158,7 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
 
   const filtering = filter.trim().length > 0;
 
+  const language = useStore(s => s.language);
   const sections = useMemo<KindSection[]>(() => {
     const needle = filter.trim().toLowerCase();
     const visible = [LOCAL_SHELL_PROFILE, ...profiles].filter(
@@ -211,7 +213,7 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
         rows,
       };
     });
-  }, [profiles, groups, filter, open]);
+  }, [profiles, groups, filter, open, language]);
 
   const toggle = (key: string) =>
     setOpen((prev) => ({ ...prev, [key]: !isOpen(prev, key) }));
@@ -274,7 +276,7 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
     const confirmed = await ask(
       `Delete the group "${group.name}" and everything in it? ${consequence}`,
       {
-        title: "Delete Group",
+        get title() { return t("Delete Group"); },
         kind: "warning",
         okLabel: "Delete",
         cancelLabel: "Cancel",
@@ -283,7 +285,7 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
     if (!confirmed) return;
     try {
       await removeGroup(group.id);
-      setStatus(`Group "${group.name}" deleted`);
+      setStatus(t("Group \"{0}\" deleted", { 0: group.name }));
     } catch (error) {
       report("Failed to delete group", error);
     }
@@ -291,7 +293,7 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
 
   const kindMenu = (kind: SessionKind): MenuItem[] => [
     {
-      label: "New Group…",
+      get label() { return t("New Group…"); },
       icon: "new-folder",
       action: () => setGroupDialog({ mode: "create", kind, parentId: null }),
     },
@@ -300,7 +302,7 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
       ? [
           "separator" as const,
           {
-            label: "Import OpenSSH Config…",
+            get label() { return t("Import OpenSSH Config…"); },
             icon: "cloud-download" as const,
             action: () => void importSshConfig(),
           },
@@ -310,7 +312,7 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
 
   const groupMenu = (group: SessionGroup): MenuItem[] => [
     {
-      label: "New Subgroup…",
+      get label() { return t("New Subgroup…"); },
       icon: "new-folder",
       action: () =>
         setGroupDialog({
@@ -321,12 +323,12 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
     },
     "separator",
     {
-      label: "Rename Group…",
+      get label() { return t("Rename Group…"); },
       icon: "rename",
       action: () => setGroupDialog({ mode: "rename", group }),
     },
     {
-      label: "Delete Group…",
+      get label() { return t("Delete Group…"); },
       icon: "trash",
       danger: true,
       action: () => void confirmDeleteGroup(group),
@@ -335,7 +337,7 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
 
   const profileMenu = (profile: SessionProfile): MenuItem[] => {
     const connect: MenuItem = {
-      label: "Connect",
+      get label() { return t("Connect"); },
       icon: "plug",
       action: () => void openSession(profile),
     };
@@ -349,7 +351,7 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
       );
     const choices: MenuItem[] = [
       {
-        label: `${sectionLabel(profile.kind)} (no group)`,
+        get label() { return t("{0} (no group)", {0: sectionLabel(profile.kind)}); },
         checked: current === null,
         mark: "radio",
         action: move(null),
@@ -368,14 +370,14 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
         });
       }
     } else {
-      choices.push({ label: "No groups yet", disabled: true });
+      choices.push({ get label() { return t("No groups yet"); }, disabled: true });
     }
 
     return [
       connect,
-      { label: "Edit…", icon: "edit", action: () => onEditProfile(profile) },
+      { get label() { return t("Edit…"); }, icon: "edit", action: () => onEditProfile(profile) },
       {
-        label: "Duplicate",
+        get label() { return t("Duplicate"); },
         icon: "copy",
         // Most copies differ from the original in the host or the name, so
         // the copy opens in the editor straight away.
@@ -384,10 +386,10 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
             report("Failed to duplicate session", error),
           ),
       },
-      { label: "Move to Group", icon: "move", children: choices },
+      { get label() { return t("Move to Group"); }, icon: "move", children: choices },
       "separator",
       {
-        label: "Delete…",
+        get label() { return t("Delete…"); },
         icon: "trash",
         danger: true,
         action: () => void askDeleteProfile(profile),
@@ -429,7 +431,7 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
       />
       <span className="row-label">{profile.name}</span>
       {/* SSH and Telnet share a section; the rarer protocol is marked. */}
-      {profile.kind === "telnet" && <span className="row-meta">telnet</span>}
+      {profile.kind === "telnet" && <span className="row-meta">{"telnet"}</span>}
       {profile.id && (
         <>
           <button
@@ -438,8 +440,8 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
               event.stopPropagation();
               onEditProfile(profile);
             }}
-            title="Edit"
-            aria-label="Edit"
+            title={t("Edit")}
+            aria-label={t("Edit")}
           >
             <Icon name="edit" />
           </button>
@@ -449,8 +451,8 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
               event.stopPropagation();
               void askDeleteProfile(profile);
             }}
-            title="Delete"
-            aria-label="Delete"
+            title={t("Delete")}
+            aria-label={t("Delete")}
           >
             <Icon name="close" />
           </button>
@@ -480,11 +482,11 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
         if (event.button === 0) { event.currentTarget.focus(); toggle(`group:${row.group.id}`); }
       }}
       onContextMenu={(event) => openMenu(event, groupMenu(row.group))}
-      title={`${describeLocation(
+      title={t("{0} · right-click for options", { 0: describeLocation(
         groups,
         row.group.kind,
         row.group.id,
-      )} · right-click for options`}
+      ) })}
     >
       <span className={`row-caret${row.collapsed ? "" : " is-open"}`}>
         <Icon name="chevron-right" />
@@ -502,9 +504,7 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
     <div className="panel" style={{ flex: 1 }}>
       <div className="panel-header">
         <div className="panel-title is-session">
-          <Icon name="server" />
-          Session
-        </div>
+          <Icon name="server" />{t("Session")}</div>
         <button
           className={`panel-action panel-power${
             activeTab?.state === "connected" ? " is-connected" : ""
@@ -516,9 +516,9 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
           title={
             activeTab
               ? `${POWER_TITLES[activeTab.state]} · ${tabTitle(activeTab)}`
-              : "No active session"
+              : t("No active session")
           }
-          aria-label={activeTab ? POWER_TITLES[activeTab.state] : "Disconnect"}
+          aria-label={activeTab ? POWER_TITLES[activeTab.state] : t("Disconnect")}
         >
           {/* Power symbol: an open ring with a bar through the gap. */}
           <Icon name="plug" />
@@ -526,8 +526,8 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
         <button
           className="panel-action"
           onClick={onNewSession}
-          title="New session"
-          aria-label="New session"
+          title={t("New session")}
+          aria-label={t("New session")}
         >
           <Icon name="add" />
         </button>
@@ -539,8 +539,8 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
         </span>
         <input
           value={filter}
-          placeholder="Filter sessions"
-          aria-label="Filter sessions"
+          placeholder={t("Filter sessions")}
+          aria-label={t("Filter sessions")}
           onChange={(event) => setFilter(event.target.value)}
         />
       </div>
@@ -571,7 +571,7 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
               onContextMenu={(event) =>
                 openMenu(event, kindMenu(section.kind))
               }
-              title="Right-click to add a group"
+              title={t("Right-click to add a group")}
             >
               <span
                 className={`row-caret${section.collapsed ? "" : " is-open"}`}
@@ -591,8 +591,7 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
           </div>
         ))}
         {filtering && sections.every((section) => section.count === 0) && (
-          <div className="panel-empty">
-            No sessions match “{filter.trim()}”.
+          <div className="panel-empty">{t("No sessions match “")}{filter.trim()}”.
           </div>
         )}
       </div>
@@ -609,7 +608,7 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
       {groupDialog &&
         (groupDialog.mode === "create" ? (
           <GroupNameDialog
-            title={groupDialog.parentId ? "New Subgroup" : "New Group"}
+            title={groupDialog.parentId ? t("New Subgroup") : t("New Group")}
             location={describeLocation(
               groups,
               groupDialog.kind,
@@ -637,7 +636,7 @@ export function SessionPanel({ onEditProfile, onNewSession }: Props) {
           />
         ) : (
           <GroupNameDialog
-            title="Rename Group"
+            title={t("Rename Group")}
             location={describeLocation(
               groups,
               groupDialog.group.kind,

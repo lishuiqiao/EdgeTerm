@@ -1,3 +1,4 @@
+import { t, loadUiLanguage, setUiLanguage, isUiLanguage, type UiLanguage } from "./i18n";
 import { create } from "zustand";
 
 import * as api from "./api";
@@ -504,6 +505,7 @@ export interface AppSettings {
   /** Which dock each panel sits in, and in what order; see panelDock.ts. */
   panelDocks: PanelDocks;
   gutterMode: GutterMode;
+  language?: UiLanguage;
   theme: ThemeMode;
   panelFontSize: number;
   bufferFontSize: number;
@@ -548,6 +550,7 @@ interface AppStore {
   draggingTabId: string | null;
   dropTarget: DropTarget | null;
   gutterMode: GutterMode;
+  language: UiLanguage;
   theme: ThemeMode;
   panelFontSize: number;
   bufferFontSize: number;
@@ -715,6 +718,7 @@ interface AppStore {
   ) => void;
   resetPanelLayout: () => void;
   setGutterMode: (mode: GutterMode) => void;
+  setLanguage: (language: UiLanguage) => void;
   setTheme: (theme: ThemeMode) => void;
   setPanelFontSize: (size: number) => void;
   setBufferFontSize: (size: number) => void;
@@ -878,6 +882,7 @@ export const useStore = create<AppStore>((set, get) => ({
   tabs: [],
   activeId: null,
   gutterMode: loadGutterMode(),
+  language: loadUiLanguage(),
   theme: loadTheme(),
   panelFontSize: loadFontSize(PANEL_FONT_SIZE_KEY, PANEL_FONT_SIZE),
   bufferFontSize: loadFontSize(BUFFER_FONT_SIZE_KEY, BUFFER_FONT_SIZE),
@@ -902,7 +907,7 @@ export const useStore = create<AppStore>((set, get) => ({
   shortcuts: initialShortcuts,
   panels: loadPanels(),
   panelDocks: loadPanelDocks(),
-  status: "Ready",
+  status: t("Ready"),
   error: null,
   errorSessionId: null,
   hostKeyPrompt: null,
@@ -1047,7 +1052,7 @@ export const useStore = create<AppStore>((set, get) => ({
     set({
       ...settled,
       tabs: acknowledgeTab(settled.tabs, settled.activeId),
-      status: clearsSessionError ? "Ready" : current.status,
+      status: clearsSessionError ? t("Ready") : current.status,
       error: clearsSessionError ? null : current.error,
       errorSessionId: clearsSessionError ? null : current.errorSessionId,
       hostKeyPrompt:
@@ -1301,6 +1306,13 @@ export const useStore = create<AppStore>((set, get) => ({
     }
   },
 
+  setLanguage(language) {
+    if (!isUiLanguage(language)) return;
+    const wasReady = get().status === t("Ready");
+    setUiLanguage(language);
+    set({ language, ...(wasReady ? { status: t("Ready") } : {}) });
+  },
+
   setTheme(theme) {
     set({ theme });
     try {
@@ -1434,6 +1446,7 @@ export const useStore = create<AppStore>((set, get) => ({
   },
 
   resetSettings() {
+    get().setLanguage("en");
     const shortcuts = defaultShortcuts();
     setActiveShortcuts(shortcuts);
     set({
@@ -1492,6 +1505,7 @@ export const useStore = create<AppStore>((set, get) => ({
         bottom: [...state.panelDocks.bottom],
       },
       gutterMode: state.gutterMode,
+      language: state.language,
       theme: state.theme,
       panelFontSize: state.panelFontSize,
       bufferFontSize: state.bufferFontSize,
@@ -1519,6 +1533,7 @@ export const useStore = create<AppStore>((set, get) => ({
     // or hand-edited file can only ever change the fields it names.
     const theme = parseTheme(values.theme);
     if (theme) state.setTheme(theme);
+    if (isUiLanguage(values.language)) state.setLanguage(values.language);
     const gutterMode = parseGutterMode(values.gutterMode);
     if (gutterMode) state.setGutterMode(gutterMode);
     const panels = parsePanels(values.panels, state.panels);

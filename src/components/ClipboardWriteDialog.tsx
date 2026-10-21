@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 
 import { pasteLines } from "../terminalPaste";
@@ -60,15 +61,9 @@ export function ClipboardWriteDialog({ session, text, onAllow, onDeny }: Props) 
         aria-labelledby="clipboard-write-title"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <div className="dialog-header" id="clipboard-write-title">
-          Allow Clipboard Access
-        </div>
+        <div className="dialog-header" id="clipboard-write-title">{t("Allow Clipboard Access")}</div>
         <div className="dialog-body confirm-dialog-body">
-          <span>
-            A program in <strong>{session}</strong> wants to copy{" "}
-            {text.length.toLocaleString()} characters to the clipboard.
-            Allowing it lets this session set the clipboard until it closes.
-          </span>
+          <span>{t("A program in {session} wants to copy {count} characters to the clipboard. Allowing it lets this session set the clipboard until it closes.", { session, count: text.length.toLocaleString() })}</span>
           <pre className="paste-warning-preview">
             {shown.map((line, index) => (
               <span key={index}>
@@ -79,9 +74,7 @@ export function ClipboardWriteDialog({ session, text, onAllow, onDeny }: Props) 
               </span>
             ))}
             {preview.length > shown.length && (
-              <span className="paste-warning-more">
-                … and {preview.length - shown.length} more lines
-              </span>
+              <span className="paste-warning-more">{t("… and ")}{preview.length - shown.length}{t(" more lines")}</span>
             )}
           </pre>
           <label className="paste-warning-remember">
@@ -90,24 +83,19 @@ export function ClipboardWriteDialog({ session, text, onAllow, onDeny }: Props) 
               checked={always}
               onChange={(event) => setAlways(event.target.checked)}
             />
-            <span>Always allow programs to set the clipboard</span>
+            <span>{t("Always allow programs to set the clipboard")}</span>
           </label>
         </div>
         <div className="dialog-footer confirm-dialog-footer">
           <span className="confirm-dialog-keys">
-            <kbd>Enter</kbd> allow · <kbd>Esc</kbd> deny
-          </span>
-          <button type="button" className="btn" onClick={onDeny}>
-            Deny
-          </button>
+            <kbd>{"Enter"}</kbd>{t(" allow · ")}<kbd>{"Esc"}</kbd>{t(" deny")}</span>
+          <button type="button" className="btn" onClick={onDeny}>{t("Deny")}</button>
           <button
             ref={allowRef}
             type="button"
             className="btn is-primary"
             onClick={() => onAllow(always)}
-          >
-            Allow
-          </button>
+          >{t("Allow")}</button>
         </div>
       </div>
     </div>

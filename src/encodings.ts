@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 /**
  * Character encodings a terminal session can be in.
  *
@@ -19,15 +20,15 @@ export const DEFAULT_ENCODING = "utf-8";
 /** What the session dialog offers; `label` is what a profile stores. */
 export const TERMINAL_ENCODINGS: readonly TerminalEncoding[] = [
   { label: DEFAULT_ENCODING, name: "UTF-8" },
-  { label: "gb18030", name: "GB18030 — Chinese (Simplified)" },
-  { label: "gbk", name: "GBK — Chinese (Simplified)" },
-  { label: "big5", name: "Big5 — Chinese (Traditional)" },
-  { label: "shift_jis", name: "Shift_JIS — Japanese" },
-  { label: "euc-jp", name: "EUC-JP — Japanese" },
-  { label: "euc-kr", name: "EUC-KR — Korean" },
-  { label: "windows-1252", name: "Windows-1252 / ISO-8859-1 — Western" },
-  { label: "windows-1251", name: "Windows-1251 — Cyrillic" },
-  { label: "koi8-r", name: "KOI8-R — Cyrillic" },
+  { label: "gb18030", get name() { return t("GB18030 — Chinese (Simplified)"); } },
+  { label: "gbk", get name() { return t("GBK — Chinese (Simplified)"); } },
+  { label: "big5", get name() { return t("Big5 — Chinese (Traditional)"); } },
+  { label: "shift_jis", get name() { return t("Shift_JIS — Japanese"); } },
+  { label: "euc-jp", get name() { return t("EUC-JP — Japanese"); } },
+  { label: "euc-kr", get name() { return t("EUC-KR — Korean"); } },
+  { label: "windows-1252", get name() { return t("Windows-1252 / ISO-8859-1 — Western"); } },
+  { label: "windows-1251", get name() { return t("Windows-1251 — Cyrillic"); } },
+  { label: "koi8-r", get name() { return t("KOI8-R — Cyrillic"); } },
 ];
 
 /** A profile's label as stored: trimmed, lower-case, empty for UTF-8. */

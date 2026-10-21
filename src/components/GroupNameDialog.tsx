@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 
 interface Props {
@@ -78,28 +79,24 @@ export function GroupNameDialog({
         </div>
         <div className="dialog-body confirm-dialog-body">
           <label className="session-field is-wide">
-            <span className="session-field-label">Name</span>
+            <span className="session-field-label">{t("Name")}</span>
             <input
               ref={inputRef}
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
               value={name}
-              placeholder="Group name"
+              placeholder={t("Group name")}
               onChange={(event) => setName(event.target.value)}
             />
           </label>
-          <span className="confirm-dialog-hint">In {location}</span>
+          <span className="confirm-dialog-hint">{t("In ")}{location}</span>
           {error && <div className="dialog-error">{error}</div>}
         </div>
         <div className="dialog-footer confirm-dialog-footer">
           <span className="confirm-dialog-keys">
-            <kbd>Enter</kbd> {submitLabel.toLowerCase()} · <kbd>Esc</kbd>{" "}
-            cancel
-          </span>
-          <button type="button" className="btn" onClick={onCancel}>
-            Cancel
-          </button>
+            <kbd>{"Enter"}</kbd> {submitLabel.toLowerCase()} · <kbd>{"Esc"}</kbd>{" "}{t("cancel")}</span>
+          <button type="button" className="btn" onClick={onCancel}>{t("Cancel")}</button>
           <button type="submit" className="btn is-primary" disabled={busy}>
             {submitLabel}
           </button>

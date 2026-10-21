@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import * as api from "../api";
@@ -147,29 +148,29 @@ export function SshConfigImportDialog({ preview, onClose }: Props) {
         onAnimationEnd={endDialogAttention}
       >
         <div className="dialog-header">
-          <span id="ssh-import-title">Import OpenSSH Config</span>
+          <span id="ssh-import-title">{t("Import OpenSSH Config")}</span>
           <button
             className="panel-action"
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("Close")}
           >
             <Icon name="close" />
           </button>
         </div>
         <div className="dialog-body ssh-import-body">
           <span className="confirm-dialog-target">{preview.path}</span>
-          <div className="ssh-import-list" role="group" aria-label="Hosts">
+          <div className="ssh-import-list" role="group" aria-label={t("Hosts")}>
             <label className="ssh-import-row is-head">
               <input
                 type="checkbox"
                 checked={allSelected}
                 onChange={toggleAll}
-                aria-label="Select all hosts"
+                aria-label={t("Select all hosts")}
               />
-              <span className="ssh-import-alias">Host</span>
-              <span className="ssh-import-target">Connects to</span>
-              <span className="ssh-import-note">Auth</span>
+              <span className="ssh-import-alias">{t("Host")}</span>
+              <span className="ssh-import-target">{t("Connects to")}</span>
+              <span className="ssh-import-note">{t("Auth")}</span>
             </label>
             {preview.entries.map((entry) => (
               <label
@@ -187,13 +188,11 @@ export function SshConfigImportDialog({ preview, onClose }: Props) {
                 <span className="ssh-import-target" title={target(entry)}>
                   {target(entry)}
                   {entry.jumps.length === 1 && (
-                    <span className="ssh-import-via"> via {entry.jumps[0]}</span>
+                    <span className="ssh-import-via">{t(" via ")}{entry.jumps[0]}</span>
                   )}
                   {entry.jumps.length > 1 && (
                     <span className="ssh-import-via">
-                      {" "}
-                      via {entry.jumps.join(", ")} (multi-hop, not imported)
-                    </span>
+                      {" "}{t("via ")}{entry.jumps.join(", ")}{t(" (multi-hop, not imported)")}</span>
                   )}
                 </span>
                 <span className="ssh-import-note">
@@ -201,8 +200,7 @@ export function SshConfigImportDialog({ preview, onClose }: Props) {
                     {authLabel(entry)}
                   </span>
                   {entry.existingId && (
-                    <span className="ssh-import-existing">
-                      updates “{entry.existingName}”
+                    <span className="ssh-import-existing">{t("updates “")}{entry.existingName}”
                     </span>
                   )}
                 </span>
@@ -210,14 +208,14 @@ export function SshConfigImportDialog({ preview, onClose }: Props) {
             ))}
           </div>
           <label className="ssh-import-group">
-            <span>Add new sessions to</span>
+            <span>{t("Add new sessions to")}</span>
             <span className="select-wrap">
               <select
                 className="select"
                 value={groupId}
                 onChange={(event) => setGroupId(event.target.value)}
               >
-                <option value="">SSH Sessions (no group)</option>
+                <option value="">{t("SSH Sessions (no group)")}</option>
                 {sshGroups.map((group) => (
                   <option key={group.id} value={group.id}>
                     {group.label}
@@ -227,29 +225,19 @@ export function SshConfigImportDialog({ preview, onClose }: Props) {
               <Icon name="chevron-down" className="select-chevron" />
             </span>
           </label>
-          <span className="confirm-dialog-hint">
-            Hosts already saved start unchecked; checking one updates that
-            session’s host, port and user from the file. A single jump host
-            comes along; a multi-hop ProxyJump is not imported. Passwords are
-            never in the file, so imported sessions ask for theirs.
-          </span>
+          <span className="confirm-dialog-hint">{t("Hosts already saved start unchecked; checking one updates that session’s host, port and user from the file. A single jump host comes along; a multi-hop ProxyJump is not imported. Passwords are never in the file, so imported sessions ask for theirs.")}</span>
           {error && <div className="dialog-error">{error}</div>}
         </div>
         <div className="dialog-footer confirm-dialog-footer">
           <span className="confirm-dialog-keys">
-            {selected.size} of {preview.entries.length} selected
-          </span>
-          <button type="button" className="btn" onClick={onClose}>
-            Cancel
-          </button>
+            {selected.size}{t(" of ")}{preview.entries.length}{t(" selected")}</span>
+          <button type="button" className="btn" onClick={onClose}>{t("Cancel")}</button>
           <button
             type="button"
             className="btn is-primary"
             disabled={busy || selected.size === 0}
             onClick={() => void submit()}
-          >
-            Import
-          </button>
+          >{t("Import")}</button>
         </div>
       </div>
     </div>

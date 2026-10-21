@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   forwardRef,
   useEffect,
@@ -71,25 +72,25 @@ const TOGGLES: { id: Toggle; label: string; icon: IconName; chord: KeyChord }[] 
   [
     {
       id: "caseSensitive",
-      label: "Match Case",
+      get label() { return t("Match Case"); },
       icon: "case-sensitive",
       chord: toggleChord("KeyC"),
     },
     {
       id: "wholeWord",
-      label: "Match Whole Word",
+      get label() { return t("Match Whole Word"); },
       icon: "whole-word",
       chord: toggleChord("KeyW"),
     },
     {
       id: "regex",
-      label: "Use Regular Expression",
+      get label() { return t("Use Regular Expression"); },
       icon: "regex",
       chord: toggleChord("KeyR"),
     },
     {
       id: "inSelection",
-      label: "Find in Selection",
+      get label() { return t("Find in Selection"); },
       icon: "list-selection",
       chord: toggleChord("KeyL"),
     },
@@ -120,7 +121,7 @@ const selectedText = (sessionId: string | null) => {
 
 /** "3/12", "1000+" past the highlight limit, or "No results". */
 const formatResults = ({ resultIndex, resultCount }: SearchResults) => {
-  if (resultCount === 0) return "No results";
+  if (resultCount === 0) return t("No results");
   const total =
     resultCount >= SEARCH_HIGHLIGHT_LIMIT
       ? `${SEARCH_HIGHLIGHT_LIMIT}+`
@@ -209,7 +210,7 @@ export const SearchOverlay = forwardRef<SearchOverlayHandle, Props>(
       const on = controller.setSearchScope(!was);
       inSelectionRef.current = on;
       setInSelection(on);
-      setNotice(on || was ? null : "No selection");
+      setNotice(on || was ? null : t("No selection"));
       runSearch(true, true);
     };
 
@@ -340,7 +341,7 @@ export const SearchOverlay = forwardRef<SearchOverlayHandle, Props>(
     const status =
       notice ??
       (error
-        ? "Invalid regex"
+        ? t("Invalid regex")
         : query && results
           ? formatResults(results)
           : "");
@@ -356,7 +357,7 @@ export const SearchOverlay = forwardRef<SearchOverlayHandle, Props>(
           <input
             ref={inputRef}
             value={query}
-            placeholder="Find in buffer"
+            placeholder={t("Find in buffer")}
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
@@ -385,16 +386,16 @@ export const SearchOverlay = forwardRef<SearchOverlayHandle, Props>(
         <button
           className="panel-action"
           onClick={() => runSearch(false)}
-          title={`Previous Match (${SHIFT_ENTER_LABEL})`}
-          aria-label="Previous match"
+          title={t("Previous Match ({0})", { 0: SHIFT_ENTER_LABEL })}
+          aria-label={t("Previous match")}
         >
           <Icon name="arrow-up" />
         </button>
         <button
           className="panel-action"
           onClick={() => runSearch(true)}
-          title={`Next Match (${ENTER_LABEL})`}
-          aria-label="Next match"
+          title={t("Next Match ({0})", { 0: ENTER_LABEL })}
+          aria-label={t("Next match")}
         >
           <Icon name="arrow-down" />
         </button>
@@ -402,8 +403,8 @@ export const SearchOverlay = forwardRef<SearchOverlayHandle, Props>(
         <button
           className="panel-action"
           onClick={close}
-          title="Close (Esc)"
-          aria-label="Close search"
+          title={t("Close (Esc)")}
+          aria-label={t("Close search")}
         >
           <Icon name="close" />
         </button>

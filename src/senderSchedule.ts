@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useSyncExternalStore } from "react";
 
 import { newStopSignal, sendUnits, type StopSignal } from "./senderSend";
@@ -161,14 +162,14 @@ export function startSchedule(spec: ScheduleSpec): string | null {
     const { ids, gone } = targetsOf(spec);
     if (gone) {
       stopSchedule();
-      setStatus("Sender: stopped repeating, the session was closed");
+      setStatus(t("Sender: stopped repeating, the session was closed"));
       return;
     }
     if (ids.length > 0) {
       try {
         await sendUnits(ids, entry.units, spec.ending, entry.stop);
       } catch (error) {
-        setStatus(`Sender: ${error}`);
+        setStatus(t("Sender: {0}", { 0: error }));
       }
     }
     if (active !== entry) return;
@@ -177,7 +178,7 @@ export function startSchedule(spec: ScheduleSpec): string | null {
     if (spec.times > 0 && sent >= spec.times) {
       active = null;
       notify();
-      setStatus(`Sender: repeated the command ${sent} times, done`);
+      setStatus(t("Sender: repeated the command {0} times, done", { 0: sent }));
       return;
     }
     const nextAt = Date.now() + spec.every * 1000;

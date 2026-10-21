@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import * as api from "./api";
 import { open as openDialog, save as saveDialog } from "./nativeDialog";
 import { useStore } from "./store";
@@ -23,7 +24,7 @@ const withDataExtension = (path: string) =>
   hasDataExtension(path) ? path : `${path}.${DATA_FILE_EXTENSION}`;
 
 const plural = (count: number, noun: string) =>
-  `${count} ${noun}${count === 1 ? "" : "s"}`;
+  t(`{count} ${noun}${count === 1 ? "" : "s"}`, { count });
 
 export const describeData = (counts: {
   profiles: number;
@@ -49,7 +50,7 @@ export async function exportAppData(password: string | null = null): Promise<boo
   const { exportSettings, setStatus } = useStore.getState();
   const now = new Date();
   const picked = await saveDialog({
-    title: "Export EdgeTerm Data",
+    get title() { return t("Export EdgeTerm Data"); },
     defaultPath: `EdgeTerm-${datestamp(now)}.${DATA_FILE_EXTENSION}`,
     filters: FILE_FILTERS,
   });
@@ -62,7 +63,7 @@ export async function exportAppData(password: string | null = null): Promise<boo
     password,
   );
   setStatus(
-    `Exported ${describeData(summary)} and settings to ${basename(path)} (${password === null ? "passwords are not included" : "encrypted, including saved passwords"})`,
+    t("Exported {0} and settings to {1} ({2})", { 0: describeData(summary), 1: basename(path), 2: password === null ? t("passwords are not included") : t("encrypted, including saved passwords") }),
   );
   return true;
 }
@@ -71,7 +72,7 @@ export async function chooseDataImport(): Promise<string | null> {
   const store = useStore.getState();
   try {
     const picked = await openDialog({
-      title: "Import EdgeTerm Data",
+      get title() { return t("Import EdgeTerm Data"); },
       multiple: false,
       directory: false,
       filters: FILE_FILTERS,
@@ -82,14 +83,14 @@ export async function chooseDataImport(): Promise<string | null> {
     // paths get through on some platforms; say what was expected up front.
     if (!hasDataExtension(path)) {
       store.setStatus(
-        `Import failed: “${basename(path)}” is not an EdgeTerm data file (expected .${DATA_FILE_EXTENSION})`,
+        t("Import failed: “{0}” is not an EdgeTerm data file (expected .{1})", { 0: basename(path), 1: DATA_FILE_EXTENSION }),
       );
       return null;
     }
 
     return path;
   } catch (error) {
-    store.setStatus(`Import failed: ${error}`);
+    store.setStatus(t("Import failed: {0}", { 0: error }));
     return null;
   }
 }
@@ -102,9 +103,9 @@ export async function importAppData(path: string, preview: BackupPreview, passwo
   if (hasSettings) store.applySettings(settings);
   await store.loadProfiles();
   store.bumpSenderLibrary();
-  let status = `Imported ${describeData(result)}${hasSettings ? " and settings" : ""}${preview.encrypted ? " and saved credentials" : ""}`;
+  let status = t("Imported {data}{settings}{credentials}", { data: describeData(result), settings: hasSettings ? t(" and settings") : "", credentials: preview.encrypted ? t(" and saved credentials") : "" });
   if (result.skippedSenderCommands > 0) {
-    status += `; skipped ${plural(result.skippedSenderCommands, "Sender command")} (library full)`;
+    status += t("; skipped {commands} (library full)", { commands: plural(result.skippedSenderCommands, "Sender command") });
   }
   store.setStatus(status);
 }
@@ -119,7 +120,7 @@ export async function importSshConfig(): Promise<void> {
   try {
     const defaultPath = await api.defaultSshConfigPath();
     const picked = await openDialog({
-      title: "Import OpenSSH Config",
+      get title() { return t("Import OpenSSH Config"); },
       multiple: false,
       directory: false,
       defaultPath,
@@ -128,11 +129,11 @@ export async function importSshConfig(): Promise<void> {
     if (!path) return;
     const preview = await api.readSshConfig(path);
     if (preview.entries.length === 0) {
-      store.setStatus(`No Host entries found in ${basename(path)}`);
+      store.setStatus(t("No Host entries found in {0}", { 0: basename(path) }));
       return;
     }
     store.setSshConfigImport(preview);
   } catch (error) {
-    store.setStatus(`Import failed: ${error}`);
+    store.setStatus(t("Import failed: {0}", { 0: error }));
   }
 }

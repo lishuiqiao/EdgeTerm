@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import * as api from "../api";
@@ -69,7 +70,7 @@ export function AuthPromptDialog({ prompt, onDone }: Props) {
     }
   };
 
-  const title = prompt.name.trim() || "Verification Required";
+  const title = prompt.name.trim() || t("Verification Required");
 
   return (
     <div
@@ -95,8 +96,7 @@ export function AuthPromptDialog({ prompt, onDone }: Props) {
           {title}
         </div>
         <div className="dialog-body confirm-dialog-body">
-          <span>
-            Signing in to <strong>{prompt.address}</strong> as{" "}
+          <span>{t("Signing in to ")}<strong>{prompt.address}</strong>{t(" as")}{" "}
             <strong>{prompt.username}</strong>.
           </span>
           {prompt.instructions.trim() && (
@@ -104,7 +104,7 @@ export function AuthPromptDialog({ prompt, onDone }: Props) {
           )}
           {prompt.prompts.map((field, index) => (
             <label className="auth-prompt-field" key={index}>
-              <span>{field.prompt.trim() || "Response"}</span>
+              <span>{field.prompt.trim() || t("Response")}</span>
               <input
                 ref={index === 0 ? firstField : undefined}
                 type={field.echo ? "text" : "password"}
@@ -124,26 +124,20 @@ export function AuthPromptDialog({ prompt, onDone }: Props) {
               />
             </label>
           ))}
-          <span className="confirm-dialog-hint">
-            Answers are sent to the server for this login only; EdgeTerm never
-            stores them.
-          </span>
+          <span className="confirm-dialog-hint">{t("Answers are sent to the server for this login only; EdgeTerm never stores them.")}</span>
           {error && <div className="dialog-error">{error}</div>}
         </div>
         <div className="dialog-footer confirm-dialog-footer">
           <span className="confirm-dialog-keys">
-            <kbd>Esc</kbd> cancel
-          </span>
+            <kbd>{"Esc"}</kbd>{t(" cancel")}</span>
           <button
             type="button"
             className="btn"
             onClick={cancel}
             disabled={busy}
-          >
-            Cancel
-          </button>
+          >{t("Cancel")}</button>
           <button type="submit" className="btn is-primary" disabled={busy}>
-            {busy ? "Sending…" : "Continue"}
+            {busy ? t("Sending…") : t("Continue")}
           </button>
         </div>
       </form>

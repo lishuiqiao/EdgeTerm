@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import type { LineEnding } from "./types";
 
 // What the Sender writes for one command: the text line by line, each line
@@ -33,5 +34,5 @@ export function endingText(ending: LineEnding): string {
 export function endingLabel(ending: LineEnding): string {
   if (ending === "lf") return "append \\n";
   if (ending === "crlf") return "append \\r\\n";
-  return "no line ending";
+  return t("no line ending");
 }

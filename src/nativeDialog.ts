@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import {
   ask as askNative,
   open as openNative,
@@ -28,7 +29,7 @@ export async function open<T extends OpenDialogOptions>(
   options?: T,
 ): Promise<OpenDialogReturn<T>> {
   await pointer();
-  return openNative(options);
+  return openNative(options && { ...options, title: options.title ? t(options.title) : undefined });
 }
 
 /** Picks where to write a file; see `plugin-dialog`'s `save`. */
@@ -36,7 +37,7 @@ export async function save(
   options?: SaveDialogOptions,
 ): Promise<string | null> {
   await pointer();
-  return saveNative(options);
+  return saveNative(options && { ...options, title: options.title ? t(options.title) : undefined });
 }
 
 /** A yes / no question in a system dialog; see `plugin-dialog`'s `ask`. */
@@ -45,5 +46,9 @@ export async function ask(
   options?: string | ConfirmDialogOptions,
 ): Promise<boolean> {
   await pointer();
-  return askNative(message, options);
+  return askNative(t(message), typeof options === "string" ? t(options) : options && {
+    ...options, title: options.title ? t(options.title) : undefined,
+    okLabel: options.okLabel ? t(options.okLabel) : undefined,
+    cancelLabel: options.cancelLabel ? t(options.cancelLabel) : undefined,
+  });
 }

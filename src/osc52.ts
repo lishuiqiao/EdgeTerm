@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 /**
  * What a program may do with OSC 52, the sequence tmux, vim, Neovim and TUI
  * agents use to put text on the clipboard of the terminal they draw in
@@ -9,9 +10,9 @@ export type ProgramClipboardMode = "ask" | "allow" | "deny";
 
 export const PROGRAM_CLIPBOARD_LABELS: Record<ProgramClipboardMode, string> =
   {
-    ask: "Ask",
-    allow: "Allow",
-    deny: "Deny",
+    get ask() { return t("Ask"); },
+    get allow() { return t("Allow"); },
+    get deny() { return t("Deny"); },
   };
 
 export const parseProgramClipboardMode = (

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 
 import { pasteLineCount, pasteLines } from "../terminalPaste";
@@ -65,25 +66,12 @@ export function PasteWarningDialog({ text, onConfirm, onCancel }: Props) {
         aria-labelledby="paste-warning-title"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <div className="dialog-header" id="paste-warning-title">
-          Paste {lines > 1 ? `${lines} Lines` : "Long Text"}
+        <div className="dialog-header" id="paste-warning-title">{t("Paste ")}{lines > 1 ? t("{0} Lines", { 0: lines }) : t("Long Text")}
         </div>
         <div className="dialog-body confirm-dialog-body">
-          <span>
-            {lines > 1 ? (
-              <>
-                The clipboard holds <strong>{lines} lines</strong> (
-                {text.length.toLocaleString()} characters). Every line after
-                the first runs as its own command.
-              </>
-            ) : (
-              <>
-                The clipboard holds{" "}
-                <strong>{text.length.toLocaleString()} characters</strong> on
-                one line.
-              </>
-            )}
-          </span>
+          <span>{lines > 1
+            ? t("The clipboard holds {lines} lines ({characters} characters). Every line after the first runs as its own command.", { lines, characters: text.length.toLocaleString() })
+            : t("The clipboard holds {characters} characters on one line.", { characters: text.length.toLocaleString() })}</span>
           <pre className="paste-warning-preview">
             {shown.map((line, index) => (
               <span key={index}>
@@ -94,9 +82,7 @@ export function PasteWarningDialog({ text, onConfirm, onCancel }: Props) {
               </span>
             ))}
             {preview.length > shown.length && (
-              <span className="paste-warning-more">
-                … and {preview.length - shown.length} more lines
-              </span>
+              <span className="paste-warning-more">{t("… and ")}{preview.length - shown.length}{t(" more lines")}</span>
             )}
           </pre>
           <label className="paste-warning-remember">
@@ -105,24 +91,19 @@ export function PasteWarningDialog({ text, onConfirm, onCancel }: Props) {
               checked={remember}
               onChange={(event) => setRemember(event.target.checked)}
             />
-            <span>Don’t warn me again</span>
+            <span>{t("Don’t warn me again")}</span>
           </label>
         </div>
         <div className="dialog-footer confirm-dialog-footer">
           <span className="confirm-dialog-keys">
-            <kbd>Enter</kbd> paste · <kbd>Esc</kbd> cancel
-          </span>
-          <button type="button" className="btn" onClick={onCancel}>
-            Cancel
-          </button>
+            <kbd>{"Enter"}</kbd>{t(" paste · ")}<kbd>{"Esc"}</kbd>{t(" cancel")}</span>
+          <button type="button" className="btn" onClick={onCancel}>{t("Cancel")}</button>
           <button
             ref={confirmRef}
             type="button"
             className="btn is-primary"
             onClick={() => onConfirm(remember)}
-          >
-            Paste
-          </button>
+          >{t("Paste")}</button>
         </div>
       </div>
     </div>

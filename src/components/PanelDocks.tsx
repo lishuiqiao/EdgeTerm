@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   Fragment,
   type PointerEvent as ReactPointerEvent,
@@ -366,7 +367,7 @@ export function DockArea({ dock, panels, size, render }: DockAreaProps) {
     const current = dockOf(panelDocks, panel);
     return [
       ...DOCK_NAMES.map((name) => ({
-        label: `Dock ${DOCK_LABELS[name]}`,
+        get label() { return t("Dock {0}", {0: DOCK_LABELS[name]}); },
         checked: current === name,
         mark: "radio" as const,
         action: () => {
@@ -375,7 +376,7 @@ export function DockArea({ dock, panels, size, render }: DockAreaProps) {
       })),
       "separator",
       {
-        label: `Hide ${PANEL_LABELS[panel]}`,
+        get label() { return t("Hide {0}", {0: PANEL_LABELS[panel]}); },
         action: () => togglePanel(panel),
       },
     ];

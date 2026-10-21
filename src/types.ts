@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 export type SessionKind =
   "local" | "ssh" | "telnet" | "ftp" | "sftp" | "serial";
 export type AuthKind = "password" | "publicKey" | "agent";
@@ -28,10 +29,10 @@ export type ThemeMode = "dark" | "light" | "serialx-dark" | "serialx-light";
 
 /** Menu labels, in the order View → Theme lists them. */
 export const THEME_LABELS: Record<ThemeMode, string> = {
-  dark: "Dark",
-  light: "Light",
-  "serialx-dark": "Dark (serialX)",
-  "serialx-light": "Light (serialX)",
+  get dark() { return t("Dark"); },
+  get light() { return t("Light"); },
+  get "serialx-dark"() { return t("Dark (serialX)"); },
+  get "serialx-light"() { return t("Light (serialX)"); },
 };
 
 /**

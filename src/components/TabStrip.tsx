@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   useCallback,
   useEffect,
@@ -235,9 +236,7 @@ export function TabStrip({ paneId }: Props) {
   // open so the button toggles instead of reopening.
   const listWasOpen = useRef(false);
   const listItems: MenuItem[] = tabs.map((tab) => ({
-    label: `${tab.number}. ${tabTitle(tab)}${
-      activityLabel(tab) ? ` · ${activityLabel(tab)}` : ""
-    }`,
+    get label() { return t("{0}. {1}{2}", {0: tab.number, 1: tabTitle(tab), 2: activityLabel(tab) ? ` · ${activityLabel(tab)}` : ""}); },
     checked: tab.info.id === shownId,
     mark: "radio" as const,
     action: () => setActive(tab.info.id),
@@ -264,45 +263,45 @@ export function TabStrip({ paneId }: Props) {
     const tab = tabs.find((item) => item.info.id === id);
     return [
       {
-        label: "Close",
+        get label() { return t("Close"); },
         shortcut: closeKey,
         action: () => requestCloseTabs([id]),
       },
       {
-        label: "Close Others",
+        get label() { return t("Close Others"); },
         disabled: ids.length < 2,
         action: () => requestCloseTabs(ids.filter((other) => other !== id)),
       },
       {
-        label: "Close to the Left",
+        get label() { return t("Close to the Left"); },
         disabled: index <= 0,
         action: () => requestCloseTabs(ids.slice(0, index)),
       },
       {
-        label: "Close to the Right",
+        get label() { return t("Close to the Right"); },
         disabled: index >= ids.length - 1,
         action: () => requestCloseTabs(ids.slice(index + 1)),
       },
-      { label: "Close All", action: () => requestCloseTabs(ids) },
+      { get label() { return t("Close All"); }, action: () => requestCloseTabs(ids) },
       "separator",
       // Only a live SSH tab has a connection to open another channel on.
       ...(tab && canDuplicateSshChannel(tab)
         ? [
             {
-              label: "Duplicate SSH Channel",
+              get label() { return t("Duplicate SSH Channel"); },
               icon: "copy",
               action: () => void duplicateSshChannel(id),
             } satisfies MenuItem,
           ]
         : []),
       {
-        label: "Split Right",
+        get label() { return t("Split Right"); },
         icon: "split-horizontal",
         shortcut: splitRightKey,
         action: () => void splitSession(id, "right"),
       },
       {
-        label: "Split Down",
+        get label() { return t("Split Down"); },
         icon: "split-vertical",
         shortcut: splitDownKey,
         action: () => void splitSession(id, "down"),
@@ -578,8 +577,8 @@ export function TabStrip({ paneId }: Props) {
                 event.stopPropagation();
                 requestCloseTabs([tab.info.id]);
               }}
-              title="Close session"
-              aria-label="Close session"
+              title={t("Close session")}
+              aria-label={t("Close session")}
             >
               <Icon name="close" />
             </button>
@@ -602,8 +601,8 @@ export function TabStrip({ paneId }: Props) {
             disabled={!overflow.left}
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => scrollByTab("left")}
-            title="Scroll Left"
-            aria-label="Scroll Left"
+            title={t("Scroll Left")}
+            aria-label={t("Scroll Left")}
           >
             <Icon name="chevron-left" />
           </button>
@@ -612,8 +611,8 @@ export function TabStrip({ paneId }: Props) {
             disabled={!overflow.right}
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => scrollByTab("right")}
-            title="Scroll Right"
-            aria-label="Scroll Right"
+            title={t("Scroll Right")}
+            aria-label={t("Scroll Right")}
           >
             <Icon name="chevron-right" />
           </button>
@@ -627,7 +626,7 @@ export function TabStrip({ paneId }: Props) {
               const rect = event.currentTarget.getBoundingClientRect();
               setListMenu({ x: rect.right, y: rect.bottom + 2 });
             }}
-            title="All sessions"
+            title={t("All sessions")}
             aria-haspopup="menu"
             aria-expanded={listMenu !== null}
           >

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useRef } from "react";
 
 import { tabTitle, type Tab } from "../store";
@@ -47,14 +48,14 @@ export function CloseSessionDialog({ tabs, onConfirm, onCancel }: Props) {
   const connecting = tabs.some((tab) => tab.state === "connecting");
   const connected = tabs.some((tab) => tab.state === "connected");
   const hint = connecting && connected
-    ? "Connected sessions will be disconnected and their terminal output discarded; connection attempts will be cancelled."
+    ? t("Connected sessions will be disconnected and their terminal output discarded; connection attempts will be cancelled.")
     : connecting
       ? tabs.length === 1
-        ? "The connection attempt will be cancelled."
-        : "The connection attempts will be cancelled."
+        ? t("The connection attempt will be cancelled.")
+        : t("The connection attempts will be cancelled.")
       : tabs.length === 1
-        ? "The session will be disconnected and its terminal output discarded."
-        : "The sessions will be disconnected and their terminal output discarded.";
+        ? t("The session will be disconnected and its terminal output discarded.")
+        : t("The sessions will be disconnected and their terminal output discarded.");
   // A long list is summarised rather than scrolled: the names are a
   // reminder, the decision is the count.
   const listed = tabs.slice(0, LISTED_TABS);
@@ -68,32 +69,26 @@ export function CloseSessionDialog({ tabs, onConfirm, onCancel }: Props) {
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="dialog-header" id="close-session-title">
-          {single ? "Close Session" : `Close ${tabs.length} Sessions`}
+          {single ? t("Close Session") : t("Close {0} Sessions", { 0: tabs.length })}
         </div>
         <div className="dialog-body confirm-dialog-body">
           {single ? (
             <>
-              <span>
-                Close <strong>{single.info.name}</strong>?
-              </span>
+              <span>{t("Close {name}?", { name: single.info.name })}</span>
               <span className="confirm-dialog-target">
                 {single.info.protocol} · {single.info.address}
               </span>
             </>
           ) : (
             <>
-              <span>
-                Close <strong>{tabs.length} sessions</strong>?
-              </span>
+              <span>{t("Close {count} sessions?", { count: tabs.length })}</span>
               {listed.map((tab) => (
                 <span className="confirm-dialog-target" key={tab.info.id}>
                   {tabTitle(tab)} · {tab.info.protocol} · {tab.info.address}
                 </span>
               ))}
               {tabs.length > listed.length && (
-                <span className="confirm-dialog-target">
-                  … and {tabs.length - listed.length} more
-                </span>
+                <span className="confirm-dialog-target">{t("… and ")}{tabs.length - listed.length}{t(" more")}</span>
               )}
             </>
           )}
@@ -101,19 +96,14 @@ export function CloseSessionDialog({ tabs, onConfirm, onCancel }: Props) {
         </div>
         <div className="dialog-footer confirm-dialog-footer">
           <span className="confirm-dialog-keys">
-            <kbd>Enter</kbd> close · <kbd>Esc</kbd> cancel
-          </span>
-          <button type="button" className="btn" onClick={onCancel}>
-            Cancel
-          </button>
+            <kbd>{"Enter"}</kbd>{t(" close · ")}<kbd>{"Esc"}</kbd>{t(" cancel")}</span>
+          <button type="button" className="btn" onClick={onCancel}>{t("Cancel")}</button>
           <button
             ref={confirmRef}
             type="button"
             className="btn is-danger"
             onClick={onConfirm}
-          >
-            Close
-          </button>
+          >{t("Close")}</button>
         </div>
       </div>
     </div>
